@@ -1,0 +1,89 @@
+# Python (FastAPI, SQLAlchemy, Alembic)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node / React / Vite
+node_modules/
+dist-ssr/
+.vite/
+.turbo/
+.cache/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Env and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs and local databases
+*.log
+logs/
+*.sqlite3
+*.db
+
+# Coverage and test runners
+coverage/
+.nyc_output/
+
+# AI / agent tooling (local-only, not part of the product)
+.agents/
+AGENTS.md
+.claude/
+.codex/
+.grok/
+.ai/
+.cursor/
+.cursorignore
+.cursorrules
+.windsurf/
+.continue/
+.aider*
+.gemini/
+.copilot/
+CLAUDE.md
+GEMINI.md
+
+# Temporary local scripts and one-off tests. Keep experiments here
+# so they stay out of the repository and do not mix with product tests.
+testing/
+
+# Internal project drafts and notes that should not appear in the repo.
+docs/internal/

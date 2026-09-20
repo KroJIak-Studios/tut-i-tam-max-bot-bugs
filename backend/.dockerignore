@@ -1,0 +1,46 @@
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+*.egg-info
+dist
+build
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+.coverage.*
+htmlcov
+.tox
+.nox
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets
+
+# Tooling and local-only paths
+.idea
+.vscode
+.DS_Store
+*.log
+logs
+.agents
+AGENTS.md
+.claude
+.codex
+.grok
+.ai
+testing
+docs
