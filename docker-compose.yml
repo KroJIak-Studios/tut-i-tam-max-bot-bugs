@@ -1,0 +1,44 @@
+services:
+  api:
+    build:
+      context: ./backend
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  admin-panel:
+    build:
+      context: ./frontend/admin-panel
+    environment:
+      USE_MOCKS: ${PANEL_USE_MOCKS:-true}
+      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      NGINX_ENVSUBST_FILTER: BACKEND_URL
+    expose:
+      - "80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  mini-app:
+    build:
+      context: ./frontend/mini-app
+    environment:
+      USE_MOCKS: ${MINIAPP_USE_MOCKS:-true}
+      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      NGINX_ENVSUBST_FILTER: BACKEND_URL
+    expose:
+      - "80"
+    depends_on:
+      api:
+        condition: service_healthy
