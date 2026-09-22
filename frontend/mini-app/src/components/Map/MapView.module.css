@@ -1,0 +1,71 @@
+.mapContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #F2F4F7;
+  z-index: 1;
+}
+
+/* Custom Pin Styles for Leaflet Markers */
+:global(.tut-pin-wrapper) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+:global(.tut-pin-wrapper:hover) {
+  transform: scale(1.12);
+}
+
+:global(.tut-pin-selected) {
+  transform: scale(1.25) !important;
+  filter: drop-shadow(0 6px 12px rgba(37, 99, 235, 0.45));
+}
+
+:global(.tut-pin-svg) {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
+}
+
+:global(.tut-user-location-marker) {
+  width: 32px;
+  height: 32px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border: 2px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4B5563;
+}
+
+:global(.tut-user-location-pulse) {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.25);
+  animation: pulseLocation 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseLocation {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* User marker badge */
+:global(.tut-pin-user-badge) {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: #10B981;
+  border: 2px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

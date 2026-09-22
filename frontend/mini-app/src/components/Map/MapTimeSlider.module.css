@@ -1,0 +1,113 @@
+.sliderWrapper {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 10px) + 64px);
+  z-index: 900;
+  max-width: 380px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border-radius: 9999px;
+  padding: 9px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-main, #374151);
+  white-space: nowrap;
+}
+
+.trackContainer {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rangeInput {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #E5E7EB;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+  transition: background 0.15s ease;
+}
+
+.rangeInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2.5px solid #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  cursor: grab;
+  transition: transform 0.12s ease;
+}
+
+.rangeInput::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+  cursor: grabbing;
+}
+
+.rangeInput::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2.5px solid #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  cursor: grab;
+}
+
+.timeTooltip {
+  position: absolute;
+  top: -26px;
+  transform: translateX(-50%);
+  background: #111827;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.timeTooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0;
+  border-style: solid;
+  border-color: #111827 transparent transparent;
+}
+
+@media (max-height: 700px) {
+  .sliderWrapper {
+    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 52px);
+    padding: 7px 12px;
+    gap: 8px;
+  }
+  .label {
+    font-size: 11px;
+  }
+  .rangeInput::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+}

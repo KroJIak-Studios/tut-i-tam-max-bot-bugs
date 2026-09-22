@@ -1,0 +1,88 @@
+.chipsWrapper {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  pointer-events: none; /* Allow click through wrapper, enable on chips */
+}
+
+.chipsWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  pointer-events: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: #FFFFFF;
+  color: var(--color-text-main, #1F2937);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.18s ease;
+}
+
+.chip:hover {
+  background: #F9FAFB;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+.chipActive {
+  background: #111827;
+  color: #FFFFFF;
+  border-color: #111827;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.chipActive:hover {
+  background: #1F2937;
+  border-color: #1F2937;
+}
+
+.filterBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #2563EB;
+  color: #FFFFFF;
+  border-radius: 9999px;
+}
+
+@media (max-height: 700px) {
+  .chipsWrapper {
+    top: 48px;
+    padding: 6px 12px;
+  }
+  .chip {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+}

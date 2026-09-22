@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { NavTabId } from '../types'
 import { Header } from './Header'
 import { HomeHero } from './HomeHero'
@@ -15,10 +16,18 @@ import {
 import styles from './HomePage.module.css'
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<NavTabId>('home')
 
   const handleHeroClick = () => {
-    // В будущих шагах: переход к поиску рядом
+    navigate('/map')
+  }
+
+  const handleTabChange = (tab: NavTabId) => {
+    setActiveTab(tab)
+    if (tab === 'map') {
+      navigate('/map')
+    }
   }
 
   const handleQuickAction = (_id: string) => {
@@ -85,7 +94,7 @@ export const HomePage: React.FC = () => {
       {/* Шаг 11: Нижняя навигация */}
       <BottomNavigation
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
     </div>
   )
