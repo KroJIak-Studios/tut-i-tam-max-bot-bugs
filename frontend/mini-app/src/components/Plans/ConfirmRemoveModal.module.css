@@ -66,6 +66,12 @@
   font-weight: 600;
   cursor: pointer;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 16px;
   transition: background-color 0.15s ease, transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }

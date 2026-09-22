@@ -17,7 +17,7 @@
   background-color: #FFFFFF;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  padding: 16px 20px max(env(safe-area-inset-bottom, 0px) + 16px, 20px);
+  padding: 22px 20px max(env(safe-area-inset-bottom, 0px) + 16px, 20px);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
@@ -28,16 +28,7 @@
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
   margin-bottom: 16px;
-}
-
-.dragPill {
-  width: 36px;
-  height: 4px;
-  background-color: #D1D5DB;
-  border-radius: 2px;
-  margin-bottom: 12px;
 }
 
 .headerTop {
@@ -59,16 +50,24 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
+  margin: -6px -6px 0 0;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #6B7280;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .closeBtn:hover {
   background-color: #F3F4F6;
+  color: #111827;
 }
 
 .eventTitle {
@@ -76,9 +75,11 @@
   color: #6B7280;
   margin: 4px 0 0;
   align-self: flex-start;
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
   max-width: 100%;
 }
 
@@ -153,6 +154,7 @@
 }
 
 .submitBtn {
+  width: 100%;
   height: 44px;
   background-color: #2563EB;
   color: #FFFFFF;
@@ -161,6 +163,12 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 16px;
   transition: background-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }

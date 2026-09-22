@@ -44,7 +44,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
-          <div className={styles.dragPill} />
           <div className={styles.headerTop}>
             <h3 className={styles.title}>Оставить отзыв</h3>
             <button
