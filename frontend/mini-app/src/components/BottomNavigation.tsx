@@ -57,11 +57,17 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
             type="button"
             className={`${styles.centerButton} ${isMapActive ? '' : styles.centerButtonInactive}`}
             onClick={() => onTabChange?.('map')}
-            aria-label="Открыть карту"
+            aria-label="Карта"
             aria-current={isMapActive ? 'page' : undefined}
           >
-            <IconGlobe size={isMapActive ? 26 : 22} color="#FFFFFF" />
+            <IconGlobe size={isMapActive ? 26 : 18} color="#FFFFFF" />
           </button>
+          <span
+            className={`${styles.centerLabel} ${isMapActive ? styles.centerLabelActive : ''}`}
+            onClick={() => onTabChange?.('map')}
+          >
+            Карта
+          </span>
         </div>
 
         {/* Tab 4: Планы */}

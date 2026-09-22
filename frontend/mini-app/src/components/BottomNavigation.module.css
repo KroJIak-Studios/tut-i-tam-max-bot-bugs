@@ -68,8 +68,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  min-width: 60px;
+  justify-content: center;
+  min-width: 54px;
+  height: 44px;
+  cursor: pointer;
 }
 
 /* Elegant concentric arc above center button — active state (default) */
@@ -99,9 +101,9 @@
 /* Center button — active state (default, on /map) */
 .centerButton {
   position: relative;
-  top: -15px;
-  width: 52px;
-  height: 52px;
+  top: -14px;
+  width: 50px;
+  height: 50px;
   border-radius: var(--radius-pill);
   background-color: var(--color-primary);
   display: flex;
@@ -109,11 +111,13 @@
   justify-content: center;
   color: #ffffff;
   box-shadow: var(--shadow-floating);
+  margin-bottom: -10px;
   transition:
     transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     top 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     background-color 0.15s ease,
     box-shadow 0.22s ease;
 }
@@ -121,8 +125,9 @@
 /* Center button — inactive state (not on /map) */
 .centerButtonInactive {
   top: 0;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 2px;
   background-color: var(--color-primary);
   box-shadow: 0 1px 4px rgba(37, 99, 235, 0.22);
 }
@@ -149,6 +154,21 @@
   background-color: var(--color-primary-active);
 }
 
+.centerLabel {
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.1px;
+  color: var(--color-text-dim);
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.centerLabelActive {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 /* --- Responsive compact screens --- */
 @media (max-height: 700px) {
   .navBar {
@@ -167,7 +187,8 @@
   }
 
   .centerItemWrapper {
-    min-width: 54px;
+    min-width: 48px;
+    height: 38px;
   }
 
   .centerRingArc {
@@ -179,14 +200,20 @@
   }
 
   .centerButton {
-    width: 48px;
-    height: 48px;
-    top: -13px;
+    width: 46px;
+    height: 46px;
+    top: -12px;
+    margin-bottom: -8px;
   }
 
   .centerButtonInactive {
     top: 0;
-    width: 36px;
-    height: 36px;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 1px;
+  }
+
+  .centerLabel {
+    font-size: 9.5px;
   }
 }
