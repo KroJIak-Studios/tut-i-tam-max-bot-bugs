@@ -1,4 +1,17 @@
 .pageContainer {
+  /* Systemic layout variables */
+  --bottom-nav-height: 50px;
+  --bottom-nav-overhang: 24px;
+  --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+  --bottom-nav-total-reach: calc(var(--bottom-nav-height) + var(--bottom-nav-overhang) + var(--safe-area-bottom));
+
+  --chat-composer-height: 48px;
+  --chat-composer-nav-gap: 12px;
+  --chat-composer-bottom: calc(var(--bottom-nav-total-reach) + var(--chat-composer-nav-gap));
+
+  --chat-content-gap: 16px;
+  --chat-bottom-reserve: calc(var(--chat-composer-bottom) + var(--chat-composer-height) + var(--chat-content-gap));
+
   height: 100dvh;
   min-height: 100vh;
   display: flex;
@@ -13,19 +26,20 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-top: max(env(safe-area-inset-top, 0px) + 60px, 66px);
+  padding-top: max(env(safe-area-inset-top, 0px) + 54px, 60px);
   padding-bottom: 0;
-  display: flex;
-  justify-content: center;
+  display: block;
 }
 
 .messagesList {
   width: 100%;
   max-width: var(--app-max-width, 500px);
-  padding: 12px 16px 24px;
+  margin: 0 auto;
+  padding: 12px 16px var(--chat-bottom-reserve);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
 }
 
 /* Typing state */
@@ -122,23 +136,34 @@
   }
 }
 
-.scrollSpacer {
-  height: 165px;
-  flex-shrink: 0;
+.endAnchor {
+  height: 0;
+  width: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 @media (max-height: 700px) {
+  .pageContainer {
+    --bottom-nav-height: 42px;
+    --bottom-nav-overhang: 21px;
+    --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+    --bottom-nav-total-reach: calc(var(--bottom-nav-height) + var(--bottom-nav-overhang) + var(--safe-area-bottom));
+
+    --chat-composer-height: 42px;
+    --chat-composer-nav-gap: 8px;
+    --chat-composer-bottom: calc(var(--bottom-nav-total-reach) + var(--chat-composer-nav-gap));
+
+    --chat-content-gap: 12px;
+    --chat-bottom-reserve: calc(var(--chat-composer-bottom) + var(--chat-composer-height) + var(--chat-content-gap));
+  }
+
   .scrollArea {
-    padding-top: max(env(safe-area-inset-top, 0px) + 50px, 54px);
-    padding-bottom: 0;
+    padding-top: max(env(safe-area-inset-top, 0px) + 46px, 50px);
   }
 
   .messagesList {
-    padding: 8px 12px 18px;
+    padding: 8px 12px var(--chat-bottom-reserve);
     gap: 12px;
-  }
-
-  .scrollSpacer {
-    height: 145px;
   }
 }

@@ -37,6 +37,8 @@ export const ChatPage: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const latestAiMessageRef = useRef<HTMLDivElement>(null)
+  const prevMessagesLengthRef = useRef(messages.length)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync to sessionStorage
@@ -48,13 +50,36 @@ export const ChatPage: React.FC = () => {
     }
   }, [messages])
 
-  // Scroll to bottom
-  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior })
-  }
-
+  // Intelligent auto-scroll
   useEffect(() => {
-    scrollToBottom('smooth')
+    const isNew = messages.length > prevMessagesLengthRef.current
+    prevMessagesLengthRef.current = messages.length
+
+    if (!isNew && !isTyping) return
+
+    const lastMsg = messages[messages.length - 1]
+
+    if (lastMsg?.sender === 'ai' && !isTyping) {
+      // Scroll to start of new AI message so the response text and top of card are immediately visible
+      const timer = setTimeout(() => {
+        if (latestAiMessageRef.current) {
+          latestAiMessageRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          })
+        }
+      }, 60)
+      return () => clearTimeout(timer)
+    } else {
+      // User sent message or AI is typing: scroll so bottom activity is visible
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'end',
+        })
+      }, 60)
+      return () => clearTimeout(timer)
+    }
   }, [messages, isTyping])
 
   const showToast = (text: string) => {
@@ -127,15 +152,20 @@ export const ChatPage: React.FC = () => {
               msg.sender === 'ai' &&
               (index === messages.length - 1 ||
                 messages.slice(index + 1).every((m) => m.sender === 'user'))
+            const showAiBadge =
+              msg.sender === 'ai' &&
+              (index === 0 || messages[index - 1].sender !== 'ai')
 
             return (
               <ChatMessageItem
                 key={msg.id}
+                ref={isLatestAi ? latestAiMessageRef : undefined}
                 message={msg}
                 onOpenOnMap={handleOpenOnMap}
                 onSelectSuggestion={handleSendMessage}
                 onToast={showToast}
                 isLatestAi={isLatestAi}
+                showAiBadge={showAiBadge}
                 disabled={isTyping}
               />
             )
@@ -156,9 +186,7 @@ export const ChatPage: React.FC = () => {
             </div>
           )}
 
-          {/* Spacer so bottom message/suggestions are never obscured by composer */}
-          <div className={styles.scrollSpacer} />
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className={styles.endAnchor} />
         </div>
       </main>
 

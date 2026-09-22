@@ -19,6 +19,7 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  scroll-margin-top: calc(max(env(safe-area-inset-top, 0px) + 54px, 60px) + 10px);
 }
 
 .aiHeader {
@@ -43,10 +44,11 @@
 }
 
 .aiBubble {
-  max-width: 92%;
+  width: 100%;
+  max-width: 94%;
   background: #FFFFFF;
   color: var(--color-text-main, #1F2937);
-  padding: 12px 16px;
+  padding: 13px 15px;
   border-radius: 18px 18px 18px 4px;
   border: 1px solid rgba(0, 0, 0, 0.07);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
@@ -55,17 +57,24 @@
 
 .messageText {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.45;
   letter-spacing: -0.15px;
+  color: #1F2937;
 }
 
-@media (max-width: 340px) {
-  .userBubble, .aiBubble {
-    max-width: 95%;
-    padding: 10px 13px;
+@media (max-width: 360px) {
+  .userBubble {
+    max-width: 88%;
+    padding: 9px 13px;
   }
+
+  .aiBubble {
+    max-width: 100%;
+    padding: 11px 13px;
+  }
+
   .messageText {
-    font-size: 13.5px;
+    font-size: 14px;
   }
 }

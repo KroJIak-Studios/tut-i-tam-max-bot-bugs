@@ -39,12 +39,13 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
   }
 
   return (
-    <div className={styles.cardContainer}>
+    <div className={styles.recommendationContainer}>
+      <div className={styles.divider} />
       <div className={styles.header}>
         <h4 className={styles.title}>{event.title}</h4>
         {event.address && (
           <div className={styles.addressRow}>
-            <IconLocationPin size={14} color="#6B7280" />
+            <IconLocationPin size={13} color="#6B7280" />
             <span className={styles.addressText}>{event.address}</span>
           </div>
         )}

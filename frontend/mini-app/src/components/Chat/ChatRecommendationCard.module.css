@@ -1,13 +1,15 @@
-.cardContainer {
-  margin-top: 10px;
-  background: #FFFFFF;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
-  padding: 12px;
+.recommendationContainer {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+}
+
+.divider {
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.07);
+  margin: 10px 0 2px 0;
+  width: 100%;
 }
 
 .header {
@@ -17,8 +19,8 @@
 }
 
 .title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16.5px;
+  font-weight: 650;
   color: var(--color-text-main, #111827);
   letter-spacing: -0.2px;
   margin: 0;
@@ -30,7 +32,7 @@
   align-items: center;
   gap: 4px;
   color: #6B7280;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 .addressText {
@@ -43,15 +45,15 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 2px;
+  gap: 8px 12px;
+  padding: 1px 0;
 }
 
 .metaItem {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   color: #4B5563;
 }
@@ -144,4 +146,19 @@
 
 .eventChatLinkBtn:active {
   transform: scale(0.98);
+}
+
+@media (max-width: 360px) {
+  .title {
+    font-size: 15.5px;
+  }
+
+  .metaItem {
+    font-size: 11.5px;
+  }
+
+  .actionBtn {
+    height: 36px;
+    font-size: 12.5px;
+  }
 }
