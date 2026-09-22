@@ -10,7 +10,6 @@ import {
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapView } from './MapView'
-import { MapEventCard } from './MapEventCard'
 import { MapTimeSlider } from './MapTimeSlider'
 import { MapFilterSheet } from './MapFilterSheet'
 import { AddMarkerSheet } from './AddMarkerSheet'
@@ -37,7 +36,7 @@ export const MapPage: React.FC = () => {
   // Data states
   const [events, setEvents] = useState<MapEvent[]>([])
   const [zones, setZones] = useState<MapZone[]>([])
-  const [selectedEventId, setSelectedEventId] = useState<string | null>('event-naberezhnaya')
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -254,11 +253,16 @@ export const MapPage: React.FC = () => {
         <MapView
           events={events}
           zones={zones}
-          selectedEventId={selectedEventId}
+          selectedEventId={selectedEvent?.id ?? null}
+          selectedEvent={selectedEvent}
           isAddingMarkerMode={isAddingMarkerMode}
           onSelectEvent={handleSelectEvent}
           onMapClick={handleMapClickForAdd}
           onDeselect={handleDeselect}
+          onToggleGoing={handleToggleGoing}
+          onMoreDetails={(e) => {
+            console.log('Open event details (future route):', e.id)
+          }}
         />
       </div>
 
@@ -273,18 +277,7 @@ export const MapPage: React.FC = () => {
         <IconPlus size={22} color="currentColor" />
       </button>
 
-      {/* 5. Карточка выбранного мероприятия */}
-      {selectedEvent && (
-        <MapEventCard
-          event={selectedEvent}
-          onToggleGoing={handleToggleGoing}
-          onMoreDetails={(e) => {
-            console.log('Open event details (future route):', e.id)
-          }}
-        />
-      )}
-
-      {/* 6. Ползунок времени (Сейчас -> Поздний вечер) */}
+      {/* 5. Ползунок времени (Сейчас -> Поздний вечер) */}
       <MapTimeSlider
         currentMinutes={filters.timeSlotMinutes}
         onChangeMinutes={handleTimeChange}

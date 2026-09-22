@@ -110,6 +110,10 @@ export const AddMarkerSheet: React.FC<AddMarkerSheetProps> = ({
             />
           </div>
 
+          <div className={styles.freeNotice}>
+            Пользовательские активности всегда бесплатные и открыты для всех
+          </div>
+
           <button type="submit" className={styles.submitBtn}>
             Добавить метку
           </button>

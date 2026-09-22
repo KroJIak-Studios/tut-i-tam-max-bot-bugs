@@ -61,10 +61,16 @@ export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<M
 
   let allEvents = [...INITIAL_MAP_EVENTS, ...userEvents].map((evt) => {
     const isGoing = attendance[evt.id] ?? evt.isGoing ?? false
-    return {
+    const base = evt.source === 'user' ? {
       ...evt,
+      price: 0,
+      isFree: true,
+      pushkinCard: false,
+    } : evt
+    return {
+      ...base,
       isGoing,
-      attendeesCount: evt.attendeesCount + (isGoing && !evt.isGoing ? 1 : 0),
+      attendeesCount: base.attendeesCount + (isGoing && !base.isGoing ? 1 : 0),
     }
   })
 

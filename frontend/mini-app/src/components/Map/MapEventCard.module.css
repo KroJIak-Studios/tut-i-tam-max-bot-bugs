@@ -1,29 +1,24 @@
 .cardWrapper {
-  position: absolute;
-  right: 14px;
-  bottom: calc(max(env(safe-area-inset-bottom, 0px), 10px) + 180px);
-  z-index: 920;
+  position: relative;
   background: #FFFFFF;
   border-radius: 20px;
-  padding: 14px 16px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 13px 15px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: calc(100% - 28px);
-  max-width: 290px;
-  animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 9px;
+  width: 260px;
+  box-sizing: border-box;
+  animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideUp {
+@keyframes popIn {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
@@ -136,12 +131,18 @@
   background: #059669;
 }
 
-@media (max-height: 700px) {
+@media (max-width: 350px) {
   .cardWrapper {
-    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 154px);
+    width: 236px;
     padding: 10px 12px;
     gap: 7px;
-    max-width: 270px;
+  }
+}
+
+@media (max-height: 700px) {
+  .cardWrapper {
+    padding: 10px 12px;
+    gap: 7px;
   }
   .title {
     font-size: 15px;

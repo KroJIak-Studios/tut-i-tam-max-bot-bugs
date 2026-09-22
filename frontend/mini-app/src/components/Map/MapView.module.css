@@ -69,3 +69,28 @@
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
+
+/* Custom Popup Styles anchored to markers */
+:global(.tut-custom-popup) {
+  margin-bottom: 0;
+}
+
+:global(.tut-custom-popup .leaflet-popup-content-wrapper) {
+  background: #FFFFFF;
+  padding: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+:global(.tut-custom-popup .leaflet-popup-content) {
+  margin: 0;
+  line-height: inherit;
+  width: auto !important;
+}
+
+:global(.tut-custom-popup .leaflet-popup-tip) {
+  background: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}

@@ -1,18 +1,23 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { MapEvent, MapZone } from '../../types'
 import { KAZAN_MAP_CENTER, USER_CURRENT_LOCATION } from '../../mocks/mapData'
+import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
 
 interface MapViewProps {
   events: MapEvent[]
   zones: MapZone[]
   selectedEventId: string | null
+  selectedEvent: MapEvent | null
   isAddingMarkerMode: boolean
   onSelectEvent: (event: MapEvent) => void
   onMapClick: (lat: number, lng: number) => void
   onDeselect: () => void
+  onToggleGoing: (eventId: string) => void
+  onMoreDetails?: (event: MapEvent) => void
 }
 
 function createPinIcon(isSelected: boolean, isUserSource: boolean): L.DivIcon {
@@ -62,16 +67,28 @@ export const MapView: React.FC<MapViewProps> = ({
   events,
   zones,
   selectedEventId,
+  selectedEvent,
   isAddingMarkerMode,
   onSelectEvent,
   onMapClick,
   onDeselect,
+  onToggleGoing,
+  onMoreDetails,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersLayerRef = useRef<L.LayerGroup | null>(null)
   const zonesLayerRef = useRef<L.LayerGroup | null>(null)
   const userMarkerRef = useRef<L.Marker | null>(null)
+
+  const [popupContainer] = useState<HTMLDivElement>(() => document.createElement('div'))
+  const popupInstanceRef = useRef<L.Popup | null>(null)
+
+  // Prevent map clicks / scrolls when interacting inside the popup card
+  useEffect(() => {
+    L.DomEvent.disableClickPropagation(popupContainer)
+    L.DomEvent.disableScrollPropagation(popupContainer)
+  }, [popupContainer])
 
   // Initialize Map
   useEffect(() => {
@@ -104,10 +121,44 @@ export const MapView: React.FC<MapViewProps> = ({
     userMarkerRef.current = userMarker
 
     return () => {
+      if (popupInstanceRef.current) {
+        popupInstanceRef.current.remove()
+        popupInstanceRef.current = null
+      }
       map.remove()
       mapInstanceRef.current = null
     }
   }, [])
+
+  // Synchronize Popup with selectedEvent
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    if (!selectedEvent) {
+      if (popupInstanceRef.current) {
+        popupInstanceRef.current.remove()
+      }
+      return
+    }
+
+    if (!popupInstanceRef.current) {
+      popupInstanceRef.current = L.popup({
+        offset: [0, -38],
+        closeButton: false,
+        className: 'tut-custom-popup',
+        autoPan: true,
+        autoPanPaddingTopLeft: [16, 130],
+        autoPanPaddingBottomRight: [16, 140],
+        autoClose: false,
+        closeOnClick: false,
+      }).setContent(popupContainer)
+    }
+
+    popupInstanceRef.current
+      .setLatLng([selectedEvent.latitude, selectedEvent.longitude])
+      .openOn(map)
+  }, [selectedEvent, popupContainer])
 
   // Update map click handler
   useEffect(() => {
@@ -166,16 +217,23 @@ export const MapView: React.FC<MapViewProps> = ({
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e)
         onSelectEvent(evt)
-        // Gently pan to center marker
-        mapInstanceRef.current?.panTo([evt.latitude, evt.longitude], {
-          animate: true,
-          duration: 0.4,
-        })
       })
 
       marker.addTo(markersLayer)
     })
   }, [events, selectedEventId, onSelectEvent])
 
-  return <div ref={mapContainerRef} className={styles.mapContainer} />
+  return (
+    <div ref={mapContainerRef} className={styles.mapContainer}>
+      {selectedEvent &&
+        createPortal(
+          <MapEventCard
+            event={selectedEvent}
+            onToggleGoing={onToggleGoing}
+            onMoreDetails={onMoreDetails}
+          />,
+          popupContainer
+        )}
+    </div>
+  )
 }
