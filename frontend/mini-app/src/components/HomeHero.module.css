@@ -1,0 +1,118 @@
+.heroCard {
+  position: relative;
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  height: 168px;
+  display: flex;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.heroCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.heroCard:active {
+  transform: scale(0.985);
+}
+
+.imageLayer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 62%;
+  pointer-events: none;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.gradientOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    #ffffff 0%,
+    #ffffff 26%,
+    rgba(255, 255, 255, 0.82) 44%,
+    rgba(255, 255, 255, 0.05) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.contentLayer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 22px;
+  max-width: 72%;
+}
+
+.heroTitle {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--color-text-main);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.subtitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.locationIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.heroSubtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.arrowButton {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-btn-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.heroCard:hover .arrowButton {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.heroCard:active .arrowButton {
+  transform: scale(0.95);
+}

@@ -1,0 +1,66 @@
+.headerWrapper {
+  display: flex;
+  flex-direction: column;
+  padding-top: max(env(safe-area-inset-top, 0px) + 8px, 16px);
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-bottom: 16px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 44px;
+}
+
+.topTitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  letter-spacing: -0.3px;
+}
+
+.closeButton {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8e8e93;
+  border-radius: var(--radius-pill);
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.closeButton:hover {
+  color: var(--color-text-main);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.closeButton:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.greetingSection {
+  margin-top: 14px;
+}
+
+.greetingTitle {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--color-text-main);
+  line-height: 1.15;
+}
+
+.greetingSubtitle {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-text-dim);
+  margin-top: 4px;
+}

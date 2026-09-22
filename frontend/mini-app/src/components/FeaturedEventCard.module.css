@@ -1,0 +1,100 @@
+.eventCard {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  text-align: left;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.eventCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.eventCard:active {
+  transform: scale(0.985);
+}
+
+.imageWrapper {
+  width: 135px;
+  height: 94px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #e5e7eb;
+}
+
+.eventImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  padding-right: 32px; /* Space for bottom-right arrow */
+}
+
+.eventTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.infoRow + .infoRow {
+  margin-top: 5px;
+}
+
+.infoIcon {
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+.arrowButton {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-btn-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.eventCard:hover .arrowButton {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.eventCard:active .arrowButton {
+  transform: scale(0.92);
+}

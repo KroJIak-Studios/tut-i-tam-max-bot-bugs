@@ -1,0 +1,40 @@
+.pageContainer {
+  width: 100%;
+  max-width: var(--app-max-width);
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 0 auto;
+}
+
+@media (min-width: 441px) {
+  .pageContainer {
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+.scrollArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.contentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.gridTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
