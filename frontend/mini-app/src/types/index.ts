@@ -66,6 +66,7 @@ export interface MapFilterState {
   quickChip: 'all' | 'today' | 'free' | 'pushkin' | 'under500' | 'volunteer'
   category: string
   dateFilter: 'all' | 'today' | 'tomorrow' | 'weekend'
+  selectedDate: string // "YYYY-MM-DD"
   isFreeOnly: boolean
   maxPrice: number | null
   pushkinCardOnly: boolean

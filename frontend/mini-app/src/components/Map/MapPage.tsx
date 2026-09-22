@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
-import {
-  getMapEvents,
-  getMapZones,
-} from '../../services/mapService'
+import { getMapEvents, getMapZones } from '../../services/mapService'
+import { getIsoDate, formatChipDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
+import { MapDatePickerSheet } from './MapDatePickerSheet'
 import { MapView } from './MapView'
 import { MapTimeSlider } from './MapTimeSlider'
 import { MapFilterSheet } from './MapFilterSheet'
@@ -15,9 +14,10 @@ import { BottomNavigation } from '../BottomNavigation'
 import styles from './MapPage.module.css'
 
 const DEFAULT_FILTERS: MapFilterState = {
-  quickChip: 'today',
+  quickChip: 'all',
   category: 'all',
   dateFilter: 'today',
+  selectedDate: getIsoDate(0),
   isFreeOnly: false,
   maxPrice: null,
   pushkinCardOnly: false,
@@ -43,6 +43,9 @@ export const MapPage: React.FC = () => {
   // Filters state
   const [filters, setFilters] = useState<MapFilterState>(DEFAULT_FILTERS)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+
+  const isToday = filters.selectedDate === getIsoDate(0)
 
   // Load Zones once
   useEffect(() => {
@@ -126,10 +129,22 @@ export const MapPage: React.FC = () => {
     })
   }, [events, attendance])
 
-  // Selected event object
+  // Selected event object (automatically null if event not in displayedEvents)
   const selectedEvent = useMemo(() => {
+    if (!selectedEventId) return null
     return displayedEvents.find((e) => e.id === selectedEventId) || null
   }, [displayedEvents, selectedEventId])
+
+  // Date selection change
+  const handleDateChange = (newIsoDate: string) => {
+    const isNewToday = newIsoDate === getIsoDate(0)
+    setUserSelectedId(null)
+    setFilters((prev) => ({
+      ...prev,
+      selectedDate: newIsoDate,
+      timeSlotMinutes: isNewToday ? 18 * 60 : 9 * 60,
+    }))
+  }
 
   // Navigation tab change
   const handleTabChange = (tab: NavTabId) => {
@@ -139,6 +154,8 @@ export const MapPage: React.FC = () => {
       navigate('/chat')
     } else if (tab === 'plans') {
       navigate('/plans')
+    } else if (tab === 'profile') {
+      navigate('/profile')
     }
   }
 
@@ -147,17 +164,12 @@ export const MapPage: React.FC = () => {
       {/* 1. Header карты */}
       <MapTopBar />
 
-      {/* 2. Быстрые чипы */}
+      {/* 2. Быстрые чипы с выбором даты */}
       <MapFilterChips
-        isTodayActive={filters.quickChip === 'today'}
+        selectedDate={filters.selectedDate}
         isFreeOnly={filters.isFreeOnly}
         extraFilterCount={extraFilterCount}
-        onToggleToday={() => {
-          setFilters((prev) => ({
-            ...prev,
-            quickChip: prev.quickChip === 'today' ? 'all' : 'today',
-          }))
-        }}
+        onOpenDatePicker={() => setIsDatePickerOpen(true)}
         onToggleFree={() => {
           setFilters((prev) => ({
             ...prev,
@@ -195,7 +207,11 @@ export const MapPage: React.FC = () => {
       {/* Баннер пустого результата при фильтрах */}
       {!loading && !error && events.length === 0 && (
         <div className={styles.emptyBanner}>
-          <span>Нет событий по выбранным фильтрам</span>
+          <span>
+            {!isToday
+              ? `На ${formatChipDate(filters.selectedDate)} событий не найдено`
+              : 'Нет событий по выбранным фильтрам'}
+          </span>
           <button
             type="button"
             className={styles.emptyResetBtn}
@@ -204,7 +220,7 @@ export const MapPage: React.FC = () => {
               setFilters(DEFAULT_FILTERS)
             }}
           >
-            Сбросить
+            {!isToday ? 'Показать сегодня' : 'Сбросить'}
           </button>
         </div>
       )}
@@ -225,10 +241,11 @@ export const MapPage: React.FC = () => {
         />
       </div>
 
-      {/* 4. Ползунок времени (Сейчас -> Поздний вечер) */}
+      {/* 4. Ползунок времени (Сейчас / Утро -> Поздний вечер) */}
       <MapTimeSlider
         currentMinutes={filters.timeSlotMinutes}
         onChangeMinutes={handleTimeChange}
+        isToday={isToday}
       />
 
       {/* 5. Нижняя навигация */}
@@ -236,6 +253,15 @@ export const MapPage: React.FC = () => {
         activeTab="map"
         onTabChange={handleTabChange}
       />
+
+      {/* Bottom Sheet выбора даты */}
+      {isDatePickerOpen && (
+        <MapDatePickerSheet
+          selectedDate={filters.selectedDate}
+          onClose={() => setIsDatePickerOpen(false)}
+          onSelectDate={handleDateChange}
+        />
+      )}
 
       {/* Bottom Sheet полных фильтров */}
       {isFilterSheetOpen && (

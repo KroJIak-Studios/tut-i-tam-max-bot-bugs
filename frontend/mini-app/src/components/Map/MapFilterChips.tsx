@@ -1,24 +1,28 @@
 import React from 'react'
-import { IconFilter } from '../Icons'
+import { IconFilter, IconCalendar, IconChevronDown } from '../Icons'
+import { formatChipDate, getIsoDate } from '../../utils/dateUtils'
 import styles from './MapFilterChips.module.css'
 
 interface MapFilterChipsProps {
-  isTodayActive: boolean
+  selectedDate: string
   isFreeOnly: boolean
   extraFilterCount: number
-  onToggleToday: () => void
+  onOpenDatePicker: () => void
   onToggleFree: () => void
   onOpenFilterSheet: () => void
 }
 
 export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
-  isTodayActive,
+  selectedDate,
   isFreeOnly,
   extraFilterCount,
-  onToggleToday,
+  onOpenDatePicker,
   onToggleFree,
   onOpenFilterSheet,
 }) => {
+  const isToday = selectedDate === getIsoDate(0)
+  const dateLabel = formatChipDate(selectedDate)
+
   return (
     <div className={styles.barContainer} role="toolbar" aria-label="Фильтры карты">
       {/* 1. Кнопка «Фильтры» с бейджем активных дополнительных фильтров */}
@@ -41,14 +45,21 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
         )}
       </button>
 
-      {/* 2. Быстрый фильтр «Сегодня» */}
+      {/* 2. Чип выбора даты («Сегодня», «Завтра», «24 сен.») */}
       <button
         type="button"
-        className={`${styles.quickChip} ${isTodayActive ? styles.quickChipActive : ''}`}
-        onClick={onToggleToday}
-        aria-pressed={isTodayActive}
+        className={`${styles.dateChip} ${!isToday ? styles.dateChipCustom : ''}`}
+        onClick={onOpenDatePicker}
+        aria-label={`Выбрать дату (сейчас: ${dateLabel})`}
+        aria-haspopup="dialog"
       >
-        <span>Сегодня</span>
+        <span className={styles.dateChipIcon}>
+          <IconCalendar size={14} color="currentColor" />
+        </span>
+        <span>{dateLabel}</span>
+        <span className={styles.dateChipChevron}>
+          <IconChevronDown size={13} color="currentColor" />
+        </span>
       </button>
 
       {/* 3. Быстрый фильтр «Бесплатно» */}
@@ -63,3 +74,4 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
     </div>
   )
 }
+

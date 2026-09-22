@@ -78,7 +78,67 @@
   line-height: 1;
 }
 
-/* 2. Быстрые чипы («Сегодня» и «Бесплатно») */
+/* 2. Чип выбора даты */
+.dateChip {
+  pointer-events: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 10px;
+  background: #FFFFFF;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.dateChip:hover {
+  background: #F9FAFB;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.dateChip:active {
+  transform: scale(0.96);
+}
+
+.dateChipCustom {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: #F0F7FF;
+  color: #1D4ED8;
+  font-weight: 600;
+}
+
+.dateChipIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563EB;
+}
+
+.dateChipChevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  margin-left: -1px;
+}
+
+.dateChipCustom .dateChipChevron {
+  color: #2563EB;
+}
+
+/* 3. Быстрые чипы («Бесплатно») */
 .quickChip {
   pointer-events: auto;
   flex: 1 1 0;
@@ -138,6 +198,12 @@
   .filterBtnText {
     font-size: 12px;
   }
+  .dateChip {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+    gap: 4px;
+  }
   .quickChip {
     height: 32px;
     padding: 0 8px;
@@ -157,6 +223,11 @@
   }
   .filterBtnText {
     font-size: 12px;
+  }
+  .dateChip {
+    padding: 0 6px;
+    font-size: 12px;
+    gap: 3px;
   }
   .quickChip {
     padding: 0 6px;

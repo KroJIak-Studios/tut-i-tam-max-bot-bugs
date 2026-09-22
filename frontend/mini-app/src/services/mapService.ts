@@ -1,5 +1,6 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
+import { getIsoDate } from '../utils/dateUtils'
 
 const STORAGE_KEY_USER_EVENTS = 'tut_i_tam_user_events'
 const STORAGE_KEY_ATTENDANCE = 'tut_i_tam_event_attendance'
@@ -92,12 +93,20 @@ export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<M
     return allEvents
   }
 
+  // Date filtering by selectedDate (default today)
+  const targetDate = filters.selectedDate || getIsoDate(0)
+  const todayIso = getIsoDate(0)
+
+  allEvents = allEvents.filter((e) => {
+    if (targetDate === todayIso) {
+      return e.date === 'сегодня' || e.date === todayIso
+    }
+    return e.date === targetDate
+  })
+
   // Quick chips filtering
   if (filters.quickChip) {
     switch (filters.quickChip) {
-      case 'today':
-        allEvents = allEvents.filter((e) => e.date === 'сегодня')
-        break
       case 'free':
         allEvents = allEvents.filter((e) => e.isFree || e.price === 0)
         break
@@ -211,7 +220,7 @@ export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent
     latitude: input.latitude,
     longitude: input.longitude,
     category: input.category,
-    date: 'сегодня',
+    date: getIsoDate(0),
     startTime: input.startTime || '19:00',
     price: 0,
     isFree: true,

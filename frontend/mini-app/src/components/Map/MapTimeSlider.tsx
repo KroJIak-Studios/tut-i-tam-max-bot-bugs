@@ -4,8 +4,9 @@ import styles from './MapTimeSlider.module.css'
 interface MapTimeSliderProps {
   currentMinutes: number
   onChangeMinutes: (minutes: number) => void
-  minMinutes?: number // Default: 18:00 (1080)
-  maxMinutes?: number // Default: 23:30 (1410)
+  isToday?: boolean
+  minMinutes?: number
+  maxMinutes?: number
 }
 
 function formatMinutesToTime(minutes: number): string {
@@ -19,15 +20,19 @@ function formatMinutesToTime(minutes: number): string {
 export const MapTimeSlider: React.FC<MapTimeSliderProps> = ({
   currentMinutes,
   onChangeMinutes,
-  minMinutes = 18 * 60, // 18:00
+  isToday = true,
+  minMinutes,
   maxMinutes = 23 * 60 + 30, // 23:30
 }) => {
+  const actualMinMinutes = minMinutes !== undefined ? minMinutes : (isToday ? 18 * 60 : 9 * 60)
+  const leftLabel = isToday ? 'Сейчас' : 'Утро'
+
   const percentage = useMemo(() => {
-    const range = maxMinutes - minMinutes
+    const range = maxMinutes - actualMinMinutes
     if (range <= 0) return 0
-    const clamped = Math.max(minMinutes, Math.min(maxMinutes, currentMinutes))
-    return ((clamped - minMinutes) / range) * 100
-  }, [currentMinutes, minMinutes, maxMinutes])
+    const clamped = Math.max(actualMinMinutes, Math.min(maxMinutes, currentMinutes))
+    return ((clamped - actualMinMinutes) / range) * 100
+  }, [currentMinutes, actualMinMinutes, maxMinutes])
 
   const timeLabel = useMemo(() => {
     return formatMinutesToTime(currentMinutes)
@@ -40,7 +45,7 @@ export const MapTimeSlider: React.FC<MapTimeSliderProps> = ({
 
   return (
     <div className={styles.sliderWrapper} role="group" aria-label="Фильтр по времени">
-      <span className={styles.label}>Сейчас</span>
+      <span className={styles.label}>{leftLabel}</span>
 
       <div className={styles.trackContainer}>
         {percentage > 5 && percentage < 95 && (
