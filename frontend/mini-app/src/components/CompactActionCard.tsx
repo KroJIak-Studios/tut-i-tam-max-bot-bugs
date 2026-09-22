@@ -24,9 +24,9 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
         }`}
       >
         {item.icon === 'location' ? (
-          <IconLocationPinFilled size={22} color="#10B981" />
+          <IconLocationPinFilled size={18} color="#10B981" />
         ) : (
-          <IconHeart size={20} color="#EC4899" />
+          <IconHeart size={16} color="#EC4899" />
         )}
       </div>
 
@@ -36,7 +36,7 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
       </div>
 
       <div className={styles.arrowButton} aria-hidden="true">
-        <IconChevronRight size={14} />
+        <IconChevronRight size={11} />
       </div>
     </button>
   )

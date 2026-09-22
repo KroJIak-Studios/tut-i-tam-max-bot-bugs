@@ -121,3 +121,31 @@
 .heroCard:active .arrowButton {
   transform: scale(0.95);
 }
+
+@media (max-height: 700px) {
+  .heroCard {
+    height: 136px;
+    border-radius: 20px;
+  }
+
+  .contentLayer {
+    padding: 16px 18px;
+    max-width: 70%;
+  }
+
+  .heroTitle {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .heroSubtitle {
+    font-size: 12px;
+  }
+
+  .arrowButton {
+    width: 32px;
+    height: 32px;
+    right: 12px;
+    bottom: 12px;
+  }
+}

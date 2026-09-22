@@ -97,3 +97,34 @@
 .actionCard:active .arrowButton {
   transform: scale(0.92);
 }
+
+@media (max-height: 700px) {
+  .actionCard {
+    min-height: 138px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .iconContainer {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    margin-bottom: 8px;
+  }
+
+  .cardTitle {
+    font-size: 15px;
+    margin-bottom: 3px;
+  }
+
+  .cardSubtitle {
+    font-size: 11.5px;
+  }
+
+  .arrowButton {
+    width: 28px;
+    height: 28px;
+    right: 10px;
+    bottom: 10px;
+  }
+}

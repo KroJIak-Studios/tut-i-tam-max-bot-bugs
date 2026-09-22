@@ -64,3 +64,33 @@
   color: var(--color-text-dim);
   margin-top: 4px;
 }
+
+@media (max-height: 700px) {
+  .headerWrapper {
+    padding-top: max(env(safe-area-inset-top, 0px) + 4px, 8px);
+    margin-bottom: 8px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .topBar {
+    height: 36px;
+  }
+
+  .topTitle {
+    font-size: 16px;
+  }
+
+  .greetingSection {
+    margin-top: 8px;
+  }
+
+  .greetingTitle {
+    font-size: 23px;
+  }
+
+  .greetingSubtitle {
+    font-size: 13px;
+    margin-top: 2px;
+  }
+}

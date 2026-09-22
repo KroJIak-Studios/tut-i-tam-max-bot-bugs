@@ -113,3 +113,38 @@
   transform: scale(0.94);
   background-color: var(--color-primary-active);
 }
+
+@media (max-height: 700px) {
+  .navBar {
+    padding-top: 4px;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+  }
+
+  .navItem {
+    height: 38px;
+    min-width: 48px;
+  }
+
+  .navLabel {
+    font-size: 9.5px;
+    margin-top: 2px;
+  }
+
+  .centerItemWrapper {
+    min-width: 54px;
+  }
+
+  .centerRingArc {
+    width: 58px;
+    height: 29px;
+    border-top-left-radius: 58px;
+    border-top-right-radius: 58px;
+    top: -21px;
+  }
+
+  .centerButton {
+    width: 48px;
+    height: 48px;
+    top: -13px;
+  }
+}
