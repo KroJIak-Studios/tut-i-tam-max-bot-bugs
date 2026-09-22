@@ -24,20 +24,23 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
         }`}
       >
         {item.icon === 'location' ? (
-          <IconLocationPinFilled size={18} color="#10B981" />
+          <IconLocationPinFilled size={16} color="#059669" />
         ) : (
-          <IconHeart size={16} color="#EC4899" />
+          <IconHeart size={15} color="#E11D48" />
         )}
       </div>
 
       <div className={styles.textContent}>
-        <h4 className={styles.cardTitle}>{item.title}</h4>
+        <div className={styles.titleRow}>
+          <h4 className={styles.cardTitle}>{item.title}</h4>
+          <span className={styles.arrowIcon} aria-hidden="true">
+            <IconChevronRight size={12} />
+          </span>
+        </div>
         <p className={styles.cardSubtitle}>{item.subtitle}</p>
-      </div>
-
-      <div className={styles.arrowButton} aria-hidden="true">
-        <IconChevronRight size={11} />
       </div>
     </button>
   )
 }
+
+

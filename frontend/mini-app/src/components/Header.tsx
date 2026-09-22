@@ -25,7 +25,11 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className={styles.greetingSection}>
         <div className={styles.greetingTitle}>{greeting}</div>
-        <div className={styles.greetingSubtitle}>{city}</div>
+        <div className={styles.greetingSubtitleRow}>
+          <span className={styles.cityText}>{city}</span>
+          <span className={styles.dotSeparator}>·</span>
+          <span className={styles.greetingMeta}>Что интересного рядом?</span>
+        </div>
       </div>
     </header>
   )

@@ -1,10 +1,10 @@
 .headerWrapper {
   display: flex;
   flex-direction: column;
-  padding-top: max(env(safe-area-inset-top, 0px) + 8px, 16px);
-  padding-left: 18px;
-  padding-right: 18px;
-  margin-bottom: 18px;
+  padding-top: max(env(safe-area-inset-top, 0px) + 8px, 14px);
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-bottom: 12px;
 }
 
 .topBar {
@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  height: 44px;
+  height: 36px;
 }
 
 .brandLockup {
@@ -20,75 +20,98 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
+  user-select: none;
 }
 
 .brandLogo {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 
 .topTitle {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--color-text-main);
+  font-size: 16.5px;
+  font-weight: 650;
+  color: var(--color-text-main, #0F172A);
   letter-spacing: -0.3px;
   margin: 0;
   line-height: 1.2;
 }
 
 .greetingSection {
-  margin-top: 18px;
+  margin-top: 10px;
 }
 
 .greetingTitle {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  color: var(--color-text-main);
+  letter-spacing: -0.4px;
+  color: var(--color-text-main, #0F172A);
   line-height: 1.15;
 }
 
-.greetingSubtitle {
-  font-size: 15px;
+.greetingSubtitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.cityText {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.dotSeparator {
+  font-size: 13px;
+  color: #94A3B8;
+  line-height: 1;
+}
+
+.greetingMeta {
+  font-size: 13px;
   font-weight: 400;
-  color: var(--color-text-dim);
-  margin-top: 4px;
+  color: #64748B;
+  white-space: nowrap;
 }
 
 @media (max-height: 700px) {
   .headerWrapper {
     padding-top: max(env(safe-area-inset-top, 0px) + 4px, 8px);
-    margin-bottom: 8px;
-    padding-left: 14px;
-    padding-right: 14px;
+    margin-bottom: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .topBar {
-    height: 36px;
+    height: 30px;
   }
 
   .brandLogo {
-    width: 21px;
-    height: 21px;
+    width: 20px;
+    height: 20px;
   }
 
   .topTitle {
-    font-size: 16px;
+    font-size: 15.5px;
   }
 
   .greetingSection {
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .greetingTitle {
-    font-size: 23px;
+    font-size: 22px;
   }
 
-  .greetingSubtitle {
-    font-size: 13px;
-    margin-top: 2px;
+  .cityText {
+    font-size: 12.5px;
+  }
+
+  .greetingMeta {
+    font-size: 12px;
   }
 }

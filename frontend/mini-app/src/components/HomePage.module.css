@@ -3,7 +3,7 @@
   max-width: var(--app-max-width);
   min-height: 100vh;
   min-height: 100dvh;
-  background-color: var(--color-bg-app);
+  background: radial-gradient(100% 50% at 50% 0%, rgba(219, 234, 254, 0.42) 0%, rgba(246, 248, 252, 0) 100%), #F6F8FC;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -30,15 +30,16 @@
 .contentBlock {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
   padding: 0 16px;
 }
 
 .gridTwoCols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
+
 
 @media (max-height: 700px) {
   .scrollArea {
@@ -47,7 +48,7 @@
 
   .contentBlock {
     gap: 8px;
-    padding: 0 14px;
+    padding: 0 12px;
   }
 
   .gridTwoCols {
@@ -58,10 +59,11 @@
 @media (max-width: 350px) {
   .contentBlock {
     padding: 0 10px;
-    gap: 8px;
+    gap: 7px;
   }
 
   .gridTwoCols {
     gap: 6px;
   }
 }
+

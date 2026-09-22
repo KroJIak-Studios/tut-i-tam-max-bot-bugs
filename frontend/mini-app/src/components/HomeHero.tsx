@@ -29,16 +29,20 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       </div>
 
       <div className={styles.contentLayer}>
-        <h2 className={styles.heroTitle}>{title}</h2>
-        <div className={styles.subtitleRow}>
-          <IconLocationPinFilled size={15} className={styles.locationIcon} />
-          <span className={styles.heroSubtitle}>{subtitle}</span>
+        <div className={styles.textGroup}>
+          <h2 className={styles.heroTitle}>{title}</h2>
+          <div className={styles.subtitleRow}>
+            <IconLocationPinFilled size={13} className={styles.locationIcon} />
+            <span className={styles.heroSubtitle}>{subtitle}</span>
+          </div>
         </div>
-      </div>
 
-      <div className={styles.arrowButton} aria-hidden="true">
-        <IconChevronRight size={15} />
+        <div className={styles.heroCta} aria-hidden="true">
+          <span>Найти рядом</span>
+          <IconChevronRight size={13} color="#FFFFFF" />
+        </div>
       </div>
     </button>
   )
 }
+

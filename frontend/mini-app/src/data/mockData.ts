@@ -11,14 +11,14 @@ export const QUICK_ACTIONS: QuickActionItem[] = [
   {
     id: 'catalog',
     title: 'Каталог',
-    subtitle: 'Места, события,\nактивности',
+    subtitle: 'Места и активности',
     icon: 'grid',
     theme: 'purple',
   },
   {
     id: 'tonight',
-    title: 'Сегодня\nвечером',
-    subtitle: 'Интересное\nрядом с вами',
+    title: 'Сегодня вечером',
+    subtitle: 'Интересное рядом',
     icon: 'calendar',
     theme: 'orange',
   },
@@ -28,7 +28,7 @@ export const COMPACT_ACTIONS: CompactActionItem[] = [
   {
     id: 'pushkinskaya',
     title: 'Пушкинская',
-    subtitle: 'Что рядом на улице',
+    subtitle: 'События по карте',
     icon: 'location',
     theme: 'green',
   },
@@ -44,7 +44,8 @@ export const COMPACT_ACTIONS: CompactActionItem[] = [
 export const FEATURED_EVENT: EventItem = {
   id: 'event-embankment',
   title: 'Вечер на набережной',
-  date: 'сегодня 19:00',
-  price: 'бесплатно',
+  date: 'сегодня · 19:00',
+  price: 'Бесплатно',
   imageUrl: '/event-embankment.jpg',
+  tag: 'Рекомендуем сегодня',
 }

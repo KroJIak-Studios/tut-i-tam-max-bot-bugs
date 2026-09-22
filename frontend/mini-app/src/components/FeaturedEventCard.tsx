@@ -1,6 +1,6 @@
 import React from 'react'
 import type { EventItem } from '../types'
-import { IconChevronRight, IconCalendar, IconTicket } from './Icons'
+import { IconChevronRight, IconCalendar, IconSparkles } from './Icons'
 import styles from './FeaturedEventCard.module.css'
 
 interface FeaturedEventCardProps {
@@ -14,7 +14,7 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
       type="button"
       className={styles.eventCard}
       onClick={() => onClick?.(event.id)}
-      aria-label={`${event.title}, ${event.date}, ${event.price}`}
+      aria-label={`${event.tag || 'Рекомендуем'}, ${event.title}, ${event.date}, ${event.price}`}
     >
       <div className={styles.imageWrapper}>
         <img
@@ -26,22 +26,28 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
       </div>
 
       <div className={styles.contentWrapper}>
-        <h4 className={styles.eventTitle}>{event.title}</h4>
-
-        <div className={styles.infoRow}>
-          <IconCalendar size={15} className={styles.infoIcon} />
-          <span>{event.date}</span>
+        <div className={styles.badgeRow}>
+          <span className={styles.recommendBadge}>
+            <IconSparkles size={11} color="#2563EB" />
+            <span>{event.tag || 'Рекомендуем сегодня'}</span>
+          </span>
         </div>
 
-        <div className={styles.infoRow}>
-          <IconTicket size={15} className={styles.infoIcon} />
-          <span>{event.price}</span>
+        <h4 className={styles.eventTitle}>{event.title}</h4>
+
+        <div className={styles.metaRow}>
+          <div className={styles.dateInfo}>
+            <IconCalendar size={13} className={styles.calendarIcon} />
+            <span>{event.date}</span>
+          </div>
+          <span className={styles.pricePill}>{event.price}</span>
         </div>
       </div>
 
-      <div className={styles.arrowButton} aria-hidden="true">
+      <div className={styles.arrowIcon} aria-hidden="true">
         <IconChevronRight size={14} />
       </div>
     </button>
   )
 }
+
