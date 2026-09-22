@@ -1,7 +1,7 @@
 .pageContainer {
-  /* Systemic layout variables — map button is inactive on /chat, smaller overhang */
+  /* Systemic layout variables — map button is inactive on /chat, zero overhang */
   --bottom-nav-height: 50px;
-  --bottom-nav-overhang: 8px;
+  --bottom-nav-overhang: 0px;
   --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
   --bottom-nav-total-reach: calc(var(--bottom-nav-height) + var(--bottom-nav-overhang) + var(--safe-area-bottom));
 
@@ -148,7 +148,7 @@
 @media (max-height: 700px) {
   .pageContainer {
     --bottom-nav-height: 42px;
-    --bottom-nav-overhang: 7px;
+    --bottom-nav-overhang: 0px;
     --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
     --bottom-nav-total-reach: calc(var(--bottom-nav-height) + var(--bottom-nav-overhang) + var(--safe-area-bottom));
 
