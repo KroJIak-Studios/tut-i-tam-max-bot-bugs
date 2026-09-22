@@ -33,13 +33,6 @@ export const HomePage: React.FC = () => {
     // В будущих шагах: переход к карточке мероприятия
   }
 
-  const handleClose = () => {
-    // Обработка закрытия мини-приложения (например, в контексте Telegram/Max Bot WebApp)
-    if (window.history.length > 1) {
-      window.history.back()
-    }
-  }
-
   return (
     <div className={styles.pageContainer}>
       <main className={styles.scrollArea}>
@@ -47,7 +40,6 @@ export const HomePage: React.FC = () => {
         <Header
           city="Казань"
           greeting="Добрый вечер"
-          onClose={handleClose}
         />
 
         <div className={styles.contentBlock}>
