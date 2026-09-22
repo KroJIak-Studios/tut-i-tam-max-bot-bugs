@@ -63,7 +63,7 @@ export interface MapZone {
 }
 
 export interface MapFilterState {
-  quickChip: 'all' | 'today' | 'pushkin' | 'under500' | 'volunteer'
+  quickChip: 'all' | 'today' | 'free' | 'pushkin' | 'under500' | 'volunteer'
   category: string
   dateFilter: 'all' | 'today' | 'tomorrow' | 'weekend'
   isFreeOnly: boolean

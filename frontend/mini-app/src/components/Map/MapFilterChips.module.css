@@ -1,4 +1,4 @@
-.chipsWrapper {
+.barContainer {
   position: absolute;
   top: 56px;
   left: 0;
@@ -7,58 +7,56 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  pointer-events: none; /* Allow click through wrapper, enable on chips */
+  padding: 6px 12px;
+  pointer-events: none;
 }
 
-.chipsWrapper::-webkit-scrollbar {
-  display: none;
-}
-
-.chip {
+/* 1. Фиксированная кнопка «Фильтры» */
+.filterBtn {
   pointer-events: auto;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 36px;
-  padding: 0 14px;
+  padding: 0 13px;
   background: #FFFFFF;
   color: var(--color-text-main, #1F2937);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 9999px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  transition: all 0.18s ease;
+  transition: all 0.15s ease;
 }
 
-.chip:hover {
+.filterBtn:hover {
   background: #F9FAFB;
-  border-color: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.14);
 }
 
-.chip:active {
+.filterBtn:active {
   transform: scale(0.96);
 }
 
-.chipActive {
-  background: #111827;
-  color: #FFFFFF;
-  border-color: #111827;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+.filterBtnWithActive {
+  border-color: rgba(37, 99, 235, 0.35);
 }
 
-.chipActive:hover {
-  background: #1F2937;
-  border-color: #1F2937;
+.filterBtnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4B5563;
+}
+
+.filterBtnText {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
 }
 
 .filterBadge {
@@ -73,14 +71,103 @@
   background: #2563EB;
   color: #FFFFFF;
   border-radius: 9999px;
+  line-height: 1;
+}
+
+/* 2. Область горизонтального скролла с динамическими масками исчезновения */
+.scrollAreaWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: -webkit-mask-image 0.15s ease, mask-image 0.15s ease;
+}
+
+.scrollAreaWrapper.hasScrollRight:not(.hasScrollLeft) {
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent 100%);
+}
+
+.scrollAreaWrapper.hasScrollLeft:not(.hasScrollRight) {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px);
+  mask-image: linear-gradient(to right, transparent 0, black 20px);
+}
+
+.scrollAreaWrapper.hasScrollLeft.hasScrollRight {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 22px), transparent 100%);
+}
+
+.scrollTrack {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px;
+}
+
+.scrollTrack::-webkit-scrollbar {
+  display: none;
+}
+
+/* 3. Быстрые чипы */
+.quickChip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  background: #FFFFFF;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.quickChip:hover {
+  background: #F9FAFB;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.quickChip:active {
+  transform: scale(0.96);
+}
+
+.quickChipActive {
+  background: #111827;
+  color: #FFFFFF;
+  border-color: #111827;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+.quickChipActive:hover {
+  background: #1F2937;
+  border-color: #1F2937;
 }
 
 @media (max-height: 700px) {
-  .chipsWrapper {
+  .barContainer {
     top: 48px;
-    padding: 6px 12px;
+    padding: 4px 10px;
   }
-  .chip {
+  .filterBtn {
+    height: 32px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+  .quickChip {
     height: 32px;
     padding: 0 12px;
     font-size: 12px;

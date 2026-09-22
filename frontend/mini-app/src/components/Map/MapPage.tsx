@@ -5,16 +5,13 @@ import {
   getMapEvents,
   getMapZones,
   toggleEventAttendance,
-  addUserMarker,
 } from '../../services/mapService'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapView } from './MapView'
 import { MapTimeSlider } from './MapTimeSlider'
 import { MapFilterSheet } from './MapFilterSheet'
-import { AddMarkerSheet } from './AddMarkerSheet'
 import { BottomNavigation } from '../BottomNavigation'
-import { IconPlus } from '../Icons'
 import styles from './MapPage.module.css'
 
 const DEFAULT_FILTERS: MapFilterState = {
@@ -43,11 +40,6 @@ export const MapPage: React.FC = () => {
   // Filters state
   const [filters, setFilters] = useState<MapFilterState>(DEFAULT_FILTERS)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
-
-  // Add marker state
-  const [isAddingMarkerMode, setIsAddingMarkerMode] = useState(false)
-  const [pendingCoords, setPendingCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [isAddMarkerSheetOpen, setIsAddMarkerSheetOpen] = useState(false)
 
   // Load Zones once
   useEffect(() => {
@@ -129,44 +121,6 @@ export const MapPage: React.FC = () => {
     }
   }
 
-  // Adding marker handlers
-  const handleToggleAddMode = () => {
-    setIsAddingMarkerMode((prev) => !prev)
-    setSelectedEventId(null)
-  }
-
-  const handleMapClickForAdd = (lat: number, lng: number) => {
-    setPendingCoords({ lat, lng })
-    setIsAddingMarkerMode(false)
-    setIsAddMarkerSheetOpen(true)
-  }
-
-  const handleAddMarkerSubmit = async (formData: {
-    title: string
-    category: MapEvent['category']
-    startTime: string
-    description?: string
-  }) => {
-    if (!pendingCoords) return
-    try {
-      const created = await addUserMarker({
-        title: formData.title,
-        category: formData.category,
-        startTime: formData.startTime,
-        latitude: pendingCoords.lat,
-        longitude: pendingCoords.lng,
-        description: formData.description,
-      })
-      setIsAddMarkerSheetOpen(false)
-      setPendingCoords(null)
-      // Refresh list with new marker included
-      setEvents((prev) => [created, ...prev])
-      setSelectedEventId(created.id)
-    } catch (err) {
-      console.error('Failed to create marker:', err)
-    }
-  }
-
   // Selected event object
   const selectedEvent = useMemo(() => {
     return events.find((e) => e.id === selectedEventId) || null
@@ -197,20 +151,6 @@ export const MapPage: React.FC = () => {
         <div className={styles.loadingPill}>
           <div className={styles.spinner} />
           <span>Обновление карты...</span>
-        </div>
-      )}
-
-      {/* Toast режима добавления метки */}
-      {isAddingMarkerMode && (
-        <div className={styles.modeToast}>
-          <span>Нажмите на карту, чтобы установить метку</span>
-          <button
-            type="button"
-            className={styles.modeToastCancel}
-            onClick={() => setIsAddingMarkerMode(false)}
-          >
-            Отмена
-          </button>
         </div>
       )}
 
@@ -255,9 +195,7 @@ export const MapPage: React.FC = () => {
           zones={zones}
           selectedEventId={selectedEvent?.id ?? null}
           selectedEvent={selectedEvent}
-          isAddingMarkerMode={isAddingMarkerMode}
           onSelectEvent={handleSelectEvent}
-          onMapClick={handleMapClickForAdd}
           onDeselect={handleDeselect}
           onToggleGoing={handleToggleGoing}
           onMoreDetails={(e) => {
@@ -266,24 +204,13 @@ export const MapPage: React.FC = () => {
         />
       </div>
 
-      {/* 4. Плавающая кнопка добавления пользовательской метки */}
-      <button
-        type="button"
-        className={`${styles.floatingPlusButton} ${isAddingMarkerMode ? styles.floatingPlusButtonActive : ''}`}
-        onClick={handleToggleAddMode}
-        aria-label="Добавить метку на карту"
-        title="Добавить свою метку"
-      >
-        <IconPlus size={22} color="currentColor" />
-      </button>
-
-      {/* 5. Ползунок времени (Сейчас -> Поздний вечер) */}
+      {/* 4. Ползунок времени (Сейчас -> Поздний вечер) */}
       <MapTimeSlider
         currentMinutes={filters.timeSlotMinutes}
         onChangeMinutes={handleTimeChange}
       />
 
-      {/* 7. Нижняя навигация */}
+      {/* 5. Нижняя навигация */}
       <BottomNavigation
         activeTab="map"
         onTabChange={handleTabChange}
@@ -302,20 +229,6 @@ export const MapPage: React.FC = () => {
             setLoading(true)
             setFilters(DEFAULT_FILTERS)
           }}
-        />
-      )}
-
-      {/* Bottom Sheet добавления метки */}
-      {pendingCoords && (
-        <AddMarkerSheet
-          latitude={pendingCoords.lat}
-          longitude={pendingCoords.lng}
-          isOpen={isAddMarkerSheetOpen}
-          onClose={() => {
-            setIsAddMarkerSheetOpen(false)
-            setPendingCoords(null)
-          }}
-          onSubmit={handleAddMarkerSubmit}
         />
       )}
     </div>

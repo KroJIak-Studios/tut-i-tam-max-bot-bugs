@@ -12,9 +12,7 @@ interface MapViewProps {
   zones: MapZone[]
   selectedEventId: string | null
   selectedEvent: MapEvent | null
-  isAddingMarkerMode: boolean
   onSelectEvent: (event: MapEvent) => void
-  onMapClick: (lat: number, lng: number) => void
   onDeselect: () => void
   onToggleGoing: (eventId: string) => void
   onMoreDetails?: (event: MapEvent) => void
@@ -68,9 +66,7 @@ export const MapView: React.FC<MapViewProps> = ({
   zones,
   selectedEventId,
   selectedEvent,
-  isAddingMarkerMode,
   onSelectEvent,
-  onMapClick,
   onDeselect,
   onToggleGoing,
   onMoreDetails,
@@ -160,24 +156,20 @@ export const MapView: React.FC<MapViewProps> = ({
       .openOn(map)
   }, [selectedEvent, popupContainer])
 
-  // Update map click handler
+  // Update map click handler to deselect marker
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
 
-    const handleMapClick = (e: L.LeafletMouseEvent) => {
-      if (isAddingMarkerMode) {
-        onMapClick(e.latlng.lat, e.latlng.lng)
-      } else {
-        onDeselect()
-      }
+    const handleMapClick = () => {
+      onDeselect()
     }
 
     map.on('click', handleMapClick)
     return () => {
       map.off('click', handleMapClick)
     }
-  }, [isAddingMarkerMode, onMapClick, onDeselect])
+  }, [onDeselect])
 
   // Update Zones
   useEffect(() => {
@@ -191,8 +183,8 @@ export const MapView: React.FC<MapViewProps> = ({
       const polygon = L.polygon(zone.coordinates, {
         color: isPark ? '#059669' : '#2563EB',
         fillColor: isPark ? '#10B981' : '#3B82F6',
-        fillOpacity: 0.18,
-        weight: 1.5,
+        fillOpacity: 0.14,
+        weight: 1.2,
       })
       polygon.addTo(zonesLayer)
     })

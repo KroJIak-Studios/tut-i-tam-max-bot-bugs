@@ -84,6 +84,9 @@ export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<M
       case 'today':
         allEvents = allEvents.filter((e) => e.date === 'сегодня')
         break
+      case 'free':
+        allEvents = allEvents.filter((e) => e.isFree || e.price === 0)
+        break
       case 'pushkin':
         allEvents = allEvents.filter((e) => e.pushkinCard)
         break
