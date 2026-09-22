@@ -5,12 +5,12 @@
   --color-primary-hover: #1d4ed8;
   --color-primary-active: #1e40af;
   --color-text-main: #111827;
-  --color-text-muted: #6b7280;
-  --color-text-dim: #9ca3af;
+  --color-text-muted: #636366;
+  --color-text-dim: #8e8e93;
   --color-border-card: rgba(0, 0, 0, 0.04);
   --color-border-subtle: rgba(0, 0, 0, 0.06);
-  --color-btn-gray: #f3f4f6;
-  --color-btn-gray-hover: #e5e7eb;
+  --color-btn-gray: #f2f2f7;
+  --color-btn-gray-hover: #e5e5ea;
 
   /* Card Accent Themes */
   --theme-purple: #9d7bfa;
@@ -28,7 +28,7 @@
   --radius-pill: 9999px;
 
   --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.025);
-  --shadow-floating: 0 4px 14px rgba(37, 99, 235, 0.28);
+  --shadow-floating: 0 4px 14px rgba(37, 99, 235, 0.32);
   --shadow-bar: 0 -2px 12px rgba(0, 0, 0, 0.03);
 
   --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
@@ -70,6 +70,10 @@ button {
   background: none;
   cursor: pointer;
   outline: none;
+  color: inherit;
+  text-align: inherit;
+  padding: 0;
+  display: inline-flex;
 }
 
 button:focus-visible {

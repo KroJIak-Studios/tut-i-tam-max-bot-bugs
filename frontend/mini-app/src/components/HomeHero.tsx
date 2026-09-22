@@ -18,22 +18,14 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   onClick,
 }) => {
   return (
-    <div
+    <button
+      type="button"
       className={styles.heroCard}
       onClick={onClick}
-      role="button"
-      tabIndex={0}
       aria-label={`${title}, ${subtitle}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.()
-        }
-      }}
     >
       <div className={styles.imageLayer}>
         <img src={imageUrl} alt={alt} className={styles.heroImage} />
-        <div className={styles.gradientOverlay} />
       </div>
 
       <div className={styles.contentLayer}>
@@ -47,6 +39,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       <div className={styles.arrowButton} aria-hidden="true">
         <IconChevronRight size={15} />
       </div>
-    </div>
+    </button>
   )
 }

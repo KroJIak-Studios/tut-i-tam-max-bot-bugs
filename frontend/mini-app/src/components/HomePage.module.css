@@ -21,7 +21,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -29,12 +29,25 @@
 .contentBlock {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   padding: 0 16px;
+}
+
+@media (max-width: 360px) {
+  .contentBlock {
+    padding: 0 10px;
+    gap: 10px;
+  }
 }
 
 .gridTwoCols {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+@media (max-width: 360px) {
+  .gridTwoCols {
+    gap: 8px;
+  }
 }

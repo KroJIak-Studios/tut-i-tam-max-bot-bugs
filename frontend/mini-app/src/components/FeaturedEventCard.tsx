@@ -10,18 +10,11 @@ interface FeaturedEventCardProps {
 
 export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick }) => {
   return (
-    <div
+    <button
+      type="button"
       className={styles.eventCard}
       onClick={() => onClick?.(event.id)}
-      role="button"
-      tabIndex={0}
       aria-label={`${event.title}, ${event.date}, ${event.price}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.(event.id)
-        }
-      }}
     >
       <div className={styles.imageWrapper}>
         <img
@@ -49,6 +42,6 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
       <div className={styles.arrowButton} aria-hidden="true">
         <IconChevronRight size={14} />
       </div>
-    </div>
+    </button>
   )
 }

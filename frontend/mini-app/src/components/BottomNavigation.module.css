@@ -21,8 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding-top: 8px;
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  padding-top: 6px;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
   position: relative;
 }
 
@@ -31,8 +31,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
-  height: 48px;
+  min-width: 54px;
+  height: 44px;
   color: var(--color-text-dim);
   transition: color 0.15s ease, transform 0.15s ease;
   user-select: none;
@@ -51,7 +51,7 @@
 }
 
 .navLabel {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   margin-top: 3px;
   letter-spacing: -0.1px;
@@ -69,20 +69,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  min-width: 64px;
+  min-width: 60px;
 }
 
 /* Elegant concentric arc above center button as seen in reference */
 .centerRingArc {
   position: absolute;
-  top: -22px;
+  top: -24px;
   left: 50%;
   transform: translateX(-50%);
-  width: 68px;
-  height: 34px;
-  border-top-left-radius: 68px;
-  border-top-right-radius: 68px;
-  border: 2px solid var(--color-primary);
+  width: 64px;
+  height: 32px;
+  border-top-left-radius: 64px;
+  border-top-right-radius: 64px;
+  border: 1.8px solid var(--color-primary);
   border-bottom: 0;
   pointer-events: none;
   opacity: 0.95;
@@ -90,9 +90,9 @@
 
 .centerButton {
   position: relative;
-  top: -14px;
-  width: 56px;
-  height: 56px;
+  top: -15px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-pill);
   background-color: var(--color-primary);
   display: flex;

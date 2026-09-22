@@ -12,18 +12,11 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
   const isGreen = item.theme === 'green'
 
   return (
-    <div
+    <button
+      type="button"
       className={styles.compactCard}
       onClick={() => onClick?.(item.id)}
-      role="button"
-      tabIndex={0}
       aria-label={`${item.title}, ${item.subtitle}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.(item.id)
-        }
-      }}
     >
       <div
         className={`${styles.iconContainer} ${
@@ -31,9 +24,9 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
         }`}
       >
         {item.icon === 'location' ? (
-          <IconLocationPinFilled size={20} color="#10B981" />
+          <IconLocationPinFilled size={22} color="#10B981" />
         ) : (
-          <IconHeart size={18} color="#EC4899" />
+          <IconHeart size={20} color="#EC4899" />
         )}
       </div>
 
@@ -43,8 +36,8 @@ export const CompactActionCard: React.FC<CompactActionCardProps> = ({ item, onCl
       </div>
 
       <div className={styles.arrowButton} aria-hidden="true">
-        <IconChevronRight size={13} />
+        <IconChevronRight size={14} />
       </div>
-    </div>
+    </button>
   )
 }

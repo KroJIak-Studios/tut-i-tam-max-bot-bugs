@@ -12,18 +12,11 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick 
   const isPurple = item.theme === 'purple'
 
   return (
-    <div
+    <button
+      type="button"
       className={styles.actionCard}
       onClick={() => onClick?.(item.id)}
-      role="button"
-      tabIndex={0}
       aria-label={`${item.title}, ${item.subtitle.replace('\n', ' ')}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.(item.id)
-        }
-      }}
     >
       <div
         className={`${styles.iconContainer} ${
@@ -45,6 +38,6 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick 
       <div className={styles.arrowButton} aria-hidden="true">
         <IconChevronRight size={14} />
       </div>
-    </div>
+    </button>
   )
 }
