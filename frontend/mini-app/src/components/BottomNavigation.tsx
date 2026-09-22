@@ -18,8 +18,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeTab = 'home',
   onTabChange,
 }) => {
+  const isMapActive = activeTab === 'map'
+
   return (
-    <nav className={styles.navBarWrapper} aria-label="Основная навигация">
+    <nav
+      className={`${styles.navBarWrapper} ${isMapActive ? styles.mapActive : styles.mapInactive}`}
+      aria-label="Основная навигация"
+    >
       <div className={styles.navBar}>
         {/* Tab 1: Главная */}
         <button
@@ -47,14 +52,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
         {/* Center Tab: Карта */}
         <div className={styles.centerItemWrapper}>
-          <div className={styles.centerRingArc} aria-hidden="true" />
+          <div className={`${styles.centerRingArc} ${isMapActive ? '' : styles.arcHidden}`} aria-hidden="true" />
           <button
             type="button"
-            className={styles.centerButton}
+            className={`${styles.centerButton} ${isMapActive ? '' : styles.centerButtonInactive}`}
             onClick={() => onTabChange?.('map')}
             aria-label="Открыть карту"
+            aria-current={isMapActive ? 'page' : undefined}
           >
-            <IconGlobe size={26} color="#FFFFFF" />
+            <IconGlobe size={isMapActive ? 26 : 22} color="#FFFFFF" />
           </button>
         </div>
 
