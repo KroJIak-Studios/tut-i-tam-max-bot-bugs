@@ -16,7 +16,14 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className={styles.headerWrapper}>
       <div className={styles.topBar}>
-        <h1 className={styles.topTitle}>Рядом</h1>
+        <div className={styles.brandLockup}>
+          <img
+            src="/brand/tut-i-tam-logo.png"
+            alt="Тут и Там"
+            className={styles.brandLogo}
+          />
+          <h1 className={styles.topTitle}>Тут и Там</h1>
+        </div>
         <button
           type="button"
           className={styles.closeButton}

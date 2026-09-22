@@ -15,11 +15,28 @@
   height: 44px;
 }
 
+.brandLockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.brandLogo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
 .topTitle {
   font-size: 17px;
   font-weight: 600;
   color: var(--color-text-main);
   letter-spacing: -0.3px;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .closeButton {
@@ -75,6 +92,11 @@
 
   .topBar {
     height: 36px;
+  }
+
+  .brandLogo {
+    width: 21px;
+    height: 21px;
   }
 
   .topTitle {
