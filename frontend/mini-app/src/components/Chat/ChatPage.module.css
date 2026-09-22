@@ -22,6 +22,8 @@
 }
 
 .scrollArea {
+  position: relative;
+  z-index: 1;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;

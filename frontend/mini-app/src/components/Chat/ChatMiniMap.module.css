@@ -1,14 +1,34 @@
 .miniMap {
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
   width: 100%;
   height: 126px;
   border-radius: 12px;
   overflow: hidden;
-  position: relative;
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
   transition: opacity 0.15s ease, transform 0.15s ease;
   user-select: none;
+}
+
+/* Locally scope Leaflet z-index inside this mini-map so it never leaks into outer UI */
+.miniMap :global(.leaflet-pane) {
+  z-index: 1;
+}
+
+.miniMap :global(.leaflet-tile-pane) {
+  z-index: 1;
+}
+
+.miniMap :global(.leaflet-marker-pane) {
+  z-index: 2;
+}
+
+.miniMap :global(.leaflet-top),
+.miniMap :global(.leaflet-bottom) {
+  z-index: 3;
 }
 
 .miniMap:hover {
@@ -28,7 +48,7 @@
   position: absolute;
   bottom: 7px;
   right: 7px;
-  z-index: 500;
+  z-index: 4;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);

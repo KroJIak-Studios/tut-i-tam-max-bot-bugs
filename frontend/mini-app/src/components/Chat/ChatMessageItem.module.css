@@ -14,6 +14,12 @@
   word-break: break-word;
 }
 
+.userBubble .messageText,
+.userBubble p,
+.userBubble span {
+  color: #FFFFFF;
+}
+
 .aiMessageRow {
   display: flex;
   flex-direction: column;
@@ -55,12 +61,16 @@
   word-break: break-word;
 }
 
+.aiBubble .messageText {
+  color: var(--color-text-main, #1F2937);
+}
+
 .messageText {
   margin: 0;
   font-size: 15px;
   line-height: 1.45;
   letter-spacing: -0.15px;
-  color: #1F2937;
+  color: inherit;
 }
 
 @media (max-width: 360px) {
