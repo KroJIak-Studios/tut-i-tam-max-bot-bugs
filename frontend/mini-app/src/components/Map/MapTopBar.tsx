@@ -5,7 +5,15 @@ export const MapTopBar: React.FC = () => {
   return (
     <header className={styles.topBarWrapper}>
       <div className={styles.topBar}>
-        <h1 className={styles.topTitle}>Карта</h1>
+        <div className={styles.brandLockup}>
+          <img
+            src="/brand/tut-i-tam-logo-128.png"
+            alt="Тут и Там"
+            className={styles.brandLogo}
+          />
+          <span className={styles.brandTitle}>Тут и Там</span>
+        </div>
+        <h1 className={styles.pageTitle}>Карта</h1>
       </div>
     </header>
   )

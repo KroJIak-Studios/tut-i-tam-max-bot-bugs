@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { MapFilterState } from '../../types'
 import { IconClose } from '../Icons'
 import styles from './MapFilterSheet.module.css'
@@ -18,6 +18,19 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
 }) => {
   const [draft, setDraft] = useState<MapFilterState>(filters)
 
+  // Закрытие по нажатию клавиши Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [onClose])
+
   const handleApply = () => {
     onApply(draft)
     onClose()
@@ -31,8 +44,6 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
   return (
     <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.handleBar} />
-
         <div className={styles.headerRow}>
           <h2 className={styles.title}>Фильтры</h2>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">

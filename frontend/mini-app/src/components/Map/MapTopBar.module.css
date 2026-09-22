@@ -18,18 +18,43 @@
 .topBar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   height: 38px;
   padding: 0 16px;
   position: relative;
 }
 
-.topTitle {
-  font-size: 17px;
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  user-select: none;
+}
+
+.brandLogo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.brandTitle {
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text-main, #1F2937);
   letter-spacing: -0.3px;
   margin: 0;
+  line-height: 1.2;
+}
+
+.pageTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-main, #1F2937);
+  letter-spacing: -0.2px;
+  margin: 0;
+  line-height: 1.2;
 }
 
 @media (max-height: 700px) {
@@ -40,7 +65,14 @@
   .topBar {
     height: 32px;
   }
-  .topTitle {
-    font-size: 16px;
+  .brandLogo {
+    width: 20px;
+    height: 20px;
+  }
+  .brandTitle {
+    font-size: 15px;
+  }
+  .pageTitle {
+    font-size: 14px;
   }
 }

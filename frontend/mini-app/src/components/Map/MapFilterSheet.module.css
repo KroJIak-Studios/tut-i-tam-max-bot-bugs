@@ -35,19 +35,11 @@
   to { transform: translateY(0); }
 }
 
-.handleBar {
-  width: 36px;
-  height: 4px;
-  background: #E5E7EB;
-  border-radius: 9999px;
-  align-self: center;
-  margin-bottom: -4px;
-}
-
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 40px;
 }
 
 .title {
@@ -59,19 +51,30 @@
 }
 
 .closeBtn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9CA3AF;
+  color: #6B7280;
   border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.15s ease;
 }
 
 .closeBtn:hover {
   background: #F3F4F6;
-  color: #374151;
+  color: #1F2937;
+}
+
+.closeBtn:active {
+  background: #E5E7EB;
 }
 
 .contentScroll {
