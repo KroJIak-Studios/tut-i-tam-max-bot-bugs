@@ -1,0 +1,97 @@
+.composerWrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 10px) + 84px);
+  z-index: 150;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.composerForm {
+  pointer-events: auto;
+  width: 100%;
+  max-width: var(--app-max-width, 500px);
+  background: #FFFFFF;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  padding: 5px 6px 5px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.composerForm:focus-within {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.inputField {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: var(--color-text-main, #1F2937);
+  background: transparent;
+  padding: 6px 0;
+}
+
+.inputField::placeholder {
+  color: #9CA3AF;
+}
+
+.sendBtn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  background: #F3F4F6;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sendBtnActive {
+  background: #2563EB;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.sendBtnActive:hover {
+  background: #1D4ED8;
+  transform: scale(1.04);
+}
+
+.sendBtnActive:active {
+  transform: scale(0.95);
+}
+
+@media (max-height: 700px) {
+  .composerWrapper {
+    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 74px);
+    padding: 0 12px;
+  }
+
+  .composerForm {
+    padding: 4px 5px 4px 14px;
+  }
+
+  .inputField {
+    font-size: 14px;
+  }
+
+  .sendBtn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
 import {
   getMapEvents,
@@ -29,11 +29,14 @@ const DEFAULT_FILTERS: MapFilterState = {
 
 export const MapPage: React.FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   // Data states
   const [events, setEvents] = useState<MapEvent[]>([])
   const [zones, setZones] = useState<MapZone[]>([])
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const eventParam = searchParams.get('event')
+  const [userSelectedId, setUserSelectedId] = useState<string | null | undefined>(undefined)
+  const selectedEventId = userSelectedId !== undefined ? userSelectedId : eventParam
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -93,11 +96,11 @@ export const MapPage: React.FC = () => {
 
   // Event Selection
   const handleSelectEvent = useCallback((event: MapEvent) => {
-    setSelectedEventId(event.id)
+    setUserSelectedId(event.id)
   }, [])
 
   const handleDeselect = useCallback(() => {
-    setSelectedEventId(null)
+    setUserSelectedId(null)
   }, [])
 
   // Attendance toggle
@@ -121,6 +124,8 @@ export const MapPage: React.FC = () => {
   const handleTabChange = (tab: NavTabId) => {
     if (tab === 'home') {
       navigate('/')
+    } else if (tab === 'chat') {
+      navigate('/chat')
     }
   }
 

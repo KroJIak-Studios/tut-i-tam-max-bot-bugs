@@ -27,6 +27,8 @@ export const HomePage: React.FC = () => {
     setActiveTab(tab)
     if (tab === 'map') {
       navigate('/map')
+    } else if (tab === 'chat') {
+      navigate('/chat')
     }
   }
 
