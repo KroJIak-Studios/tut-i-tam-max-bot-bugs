@@ -77,3 +77,4 @@ export interface MapFilterState {
 }
 
 export * from './chat'
+export * from './profile'

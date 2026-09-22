@@ -31,6 +31,8 @@ export const HomePage: React.FC = () => {
       navigate('/chat')
     } else if (tab === 'plans') {
       navigate('/plans')
+    } else if (tab === 'profile') {
+      navigate('/profile')
     }
   }
 

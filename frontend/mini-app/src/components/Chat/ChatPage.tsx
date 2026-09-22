@@ -138,6 +138,8 @@ export const ChatPage: React.FC = () => {
       navigate('/map')
     } else if (tab === 'plans') {
       navigate('/plans')
+    } else if (tab === 'profile') {
+      navigate('/profile')
     }
   }
 

@@ -43,6 +43,8 @@ export const PlansPage: React.FC = () => {
       navigate('/chat')
     } else if (tab === 'map') {
       navigate('/map')
+    } else if (tab === 'profile') {
+      navigate('/profile')
     }
   }
 
