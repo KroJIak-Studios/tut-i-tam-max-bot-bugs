@@ -7,19 +7,22 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   pointer-events: none;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 /* 1. Фиксированная кнопка «Фильтры» */
 .filterBtn {
   pointer-events: auto;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   height: 36px;
-  padding: 0 13px;
+  padding: 0 12px;
   background: #FFFFFF;
   color: var(--color-text-main, #1F2937);
   font-size: 13px;
@@ -30,6 +33,7 @@
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.15s ease;
 }
 
@@ -74,54 +78,16 @@
   line-height: 1;
 }
 
-/* 2. Область горизонтального скролла с динамическими масками исчезновения */
-.scrollAreaWrapper {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: -webkit-mask-image 0.15s ease, mask-image 0.15s ease;
-}
-
-.scrollAreaWrapper.hasScrollRight:not(.hasScrollLeft) {
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent 100%);
-  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent 100%);
-}
-
-.scrollAreaWrapper.hasScrollLeft:not(.hasScrollRight) {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px);
-  mask-image: linear-gradient(to right, transparent 0, black 20px);
-}
-
-.scrollAreaWrapper.hasScrollLeft.hasScrollRight {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 22px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 22px), transparent 100%);
-}
-
-.scrollTrack {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  padding: 2px 2px;
-}
-
-.scrollTrack::-webkit-scrollbar {
-  display: none;
-}
-
-/* 3. Быстрые чипы */
+/* 2. Быстрые чипы («Сегодня» и «Бесплатно») */
 .quickChip {
-  flex-shrink: 0;
+  pointer-events: auto;
+  flex: 1 1 0;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   height: 36px;
-  padding: 0 14px;
+  padding: 0 10px;
   background: #FFFFFF;
   color: #374151;
   font-size: 13px;
@@ -132,6 +98,7 @@
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.15s ease;
 }
 
@@ -164,12 +131,36 @@
   }
   .filterBtn {
     height: 32px;
-    padding: 0 11px;
+    padding: 0 10px;
+    font-size: 12px;
+    gap: 5px;
+  }
+  .filterBtnText {
     font-size: 12px;
   }
   .quickChip {
     height: 32px;
-    padding: 0 12px;
+    padding: 0 8px;
     font-size: 12px;
   }
 }
+
+@media (max-width: 340px) {
+  .barContainer {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .filterBtn {
+    padding: 0 8px;
+    font-size: 12px;
+    gap: 4px;
+  }
+  .filterBtnText {
+    font-size: 12px;
+  }
+  .quickChip {
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}
+

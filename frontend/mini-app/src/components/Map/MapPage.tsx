@@ -71,11 +71,10 @@ export const MapPage: React.FC = () => {
     }
   }, [filters])
 
-  // Count active non-default filters
-  const activeFilterCount = useMemo(() => {
+  // Count active non-default filters excluding quick buttons (today & free)
+  const extraFilterCount = useMemo(() => {
     let count = 0
     if (filters.category !== 'all') count++
-    if (filters.isFreeOnly) count++
     if (filters.maxPrice !== null) count++
     if (filters.pushkinCardOnly) count++
     if (filters.volunteerOnly) count++
@@ -83,14 +82,6 @@ export const MapPage: React.FC = () => {
     if (filters.minAttendees > 0) count++
     return count
   }, [filters])
-
-  // Quick chips toggle
-  const handleToggleQuickChip = (chip: MapFilterState['quickChip']) => {
-    setFilters((prev) => ({
-      ...prev,
-      quickChip: prev.quickChip === chip ? 'all' : chip,
-    }))
-  }
 
   // Time slider change
   const handleTimeChange = (minutes: number) => {
@@ -140,9 +131,21 @@ export const MapPage: React.FC = () => {
 
       {/* 2. Быстрые чипы */}
       <MapFilterChips
-        filters={filters}
-        activeFilterCount={activeFilterCount}
-        onToggleQuickChip={handleToggleQuickChip}
+        isTodayActive={filters.quickChip === 'today'}
+        isFreeOnly={filters.isFreeOnly}
+        extraFilterCount={extraFilterCount}
+        onToggleToday={() => {
+          setFilters((prev) => ({
+            ...prev,
+            quickChip: prev.quickChip === 'today' ? 'all' : 'today',
+          }))
+        }}
+        onToggleFree={() => {
+          setFilters((prev) => ({
+            ...prev,
+            isFreeOnly: !prev.isFreeOnly,
+          }))
+        }}
         onOpenFilterSheet={() => setIsFilterSheetOpen(true)}
       />
 

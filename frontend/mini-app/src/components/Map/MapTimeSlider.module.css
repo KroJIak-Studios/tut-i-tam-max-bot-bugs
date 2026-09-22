@@ -1,8 +1,17 @@
 .sliderWrapper {
+  --bottom-nav-base-height: 50px;
+  --bottom-nav-center-overhang: 26px;
+  --map-floating-gap: 12px;
+
   position: absolute;
   left: 14px;
   right: 14px;
-  bottom: calc(max(env(safe-area-inset-bottom, 0px), 10px) + 64px);
+  bottom: calc(
+    max(env(safe-area-inset-bottom, 0px), 10px) +
+    var(--bottom-nav-base-height) +
+    var(--bottom-nav-center-overhang) +
+    var(--map-floating-gap)
+  );
   z-index: 900;
   max-width: 380px;
   margin: 0 auto;
@@ -99,7 +108,16 @@
 
 @media (max-height: 700px) {
   .sliderWrapper {
-    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 52px);
+    --bottom-nav-base-height: 42px;
+    --bottom-nav-center-overhang: 24px;
+    --map-floating-gap: 12px;
+
+    bottom: calc(
+      max(env(safe-area-inset-bottom, 0px), 6px) +
+      var(--bottom-nav-base-height) +
+      var(--bottom-nav-center-overhang) +
+      var(--map-floating-gap)
+    );
     padding: 7px 12px;
     gap: 8px;
   }
@@ -109,5 +127,17 @@
   .rangeInput::-webkit-slider-thumb {
     width: 18px;
     height: 18px;
+  }
+}
+
+@media (max-width: 340px) {
+  .sliderWrapper {
+    left: 8px;
+    right: 8px;
+    padding: 7px 10px;
+    gap: 6px;
+  }
+  .label {
+    font-size: 11px;
   }
 }
