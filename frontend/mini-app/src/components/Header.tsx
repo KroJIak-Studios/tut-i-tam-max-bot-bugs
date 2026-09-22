@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className={styles.topBar}>
         <div className={styles.brandLockup}>
           <img
-            src="/brand/tut-i-tam-logo.png"
+            src="/brand/tut-i-tam-logo-128.png"
             alt="Тут и Там"
             className={styles.brandLogo}
           />
