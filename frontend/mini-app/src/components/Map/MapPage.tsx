@@ -4,8 +4,8 @@ import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
 import {
   getMapEvents,
   getMapZones,
-  toggleEventAttendance,
 } from '../../services/mapService'
+import { useAttendance } from '../../context/useAttendance'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapView } from './MapView'
@@ -103,22 +103,33 @@ export const MapPage: React.FC = () => {
     setUserSelectedId(null)
   }, [])
 
+  const { toggleAttendance, attendance } = useAttendance()
+
   // Attendance toggle
   const handleToggleGoing = async (eventId: string) => {
     try {
-      const updated = await toggleEventAttendance(eventId)
-      setEvents((prev) =>
-        prev.map((e) => (e.id === eventId ? updated : e))
-      )
+      await toggleAttendance(eventId)
     } catch (err) {
       console.error('Failed to toggle attendance:', err)
     }
   }
 
+  // Derive events with attendance context
+  const displayedEvents = useMemo(() => {
+    return events.map((e) => {
+      const going = attendance[e.id] ?? e.isGoing
+      return {
+        ...e,
+        isGoing: going,
+        attendeesCount: e.attendeesCount + (going && !e.isGoing ? 1 : 0),
+      }
+    })
+  }, [events, attendance])
+
   // Selected event object
   const selectedEvent = useMemo(() => {
-    return events.find((e) => e.id === selectedEventId) || null
-  }, [events, selectedEventId])
+    return displayedEvents.find((e) => e.id === selectedEventId) || null
+  }, [displayedEvents, selectedEventId])
 
   // Navigation tab change
   const handleTabChange = (tab: NavTabId) => {
@@ -126,6 +137,8 @@ export const MapPage: React.FC = () => {
       navigate('/')
     } else if (tab === 'chat') {
       navigate('/chat')
+    } else if (tab === 'plans') {
+      navigate('/plans')
     }
   }
 
@@ -199,7 +212,7 @@ export const MapPage: React.FC = () => {
       {/* 3. Интерактивная карта (Leaflet) */}
       <div className={styles.mapArea}>
         <MapView
-          events={events}
+          events={displayedEvents}
           zones={zones}
           selectedEventId={selectedEvent?.id ?? null}
           selectedEvent={selectedEvent}

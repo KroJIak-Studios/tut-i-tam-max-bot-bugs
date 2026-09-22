@@ -21,16 +21,30 @@ function saveUserEvents(events: MapEvent[]): void {
   }
 }
 
-function loadAttendanceMap(): Record<string, boolean> {
+export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {
+  'event-naberezhnaya': true,
+  'event-yoga-park': true,
+  'event-volunteer-kazanka': true,
+}
+
+export function loadAttendanceMap(): Record<string, boolean> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_ATTENDANCE)
-    return raw ? JSON.parse(raw) : {}
+    if (raw === null) {
+      saveAttendanceMap(DEFAULT_INITIAL_ATTENDANCE)
+      return { ...DEFAULT_INITIAL_ATTENDANCE }
+    }
+    return JSON.parse(raw)
   } catch {
-    return {}
+    return { ...DEFAULT_INITIAL_ATTENDANCE }
   }
 }
 
-function saveAttendanceMap(map: Record<string, boolean>): void {
+export function getAttendanceMap(): Record<string, boolean> {
+  return loadAttendanceMap()
+}
+
+export function saveAttendanceMap(map: Record<string, boolean>): void {
   try {
     localStorage.setItem(STORAGE_KEY_ATTENDANCE, JSON.stringify(map))
   } catch {
@@ -150,6 +164,22 @@ export async function toggleEventAttendance(eventId: string): Promise<MapEvent> 
   const currentStatus = !!attendance[eventId]
   const newStatus = !currentStatus
   attendance[eventId] = newStatus
+  saveAttendanceMap(attendance)
+
+  const events = await getMapEvents()
+  const event = events.find((e) => e.id === eventId)
+  if (!event) {
+    throw new Error(`Event ${eventId} not found`)
+  }
+
+  return event
+}
+
+export async function setEventAttendance(eventId: string, going: boolean): Promise<MapEvent> {
+  await new Promise((resolve) => setTimeout(resolve, 60))
+
+  const attendance = loadAttendanceMap()
+  attendance[eventId] = going
   saveAttendanceMap(attendance)
 
   const events = await getMapEvents()

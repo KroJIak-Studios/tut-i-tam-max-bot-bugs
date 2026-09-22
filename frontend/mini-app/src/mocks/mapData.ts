@@ -18,6 +18,7 @@ export const INITIAL_MAP_EVENTS: MapEvent[] = [
     isGoing: false,
     source: 'external',
     address: 'Кремлёвская набережная',
+    image: '/event-embankment.jpg',
   },
   {
     id: 'event-kremlin',
@@ -36,6 +37,7 @@ export const INITIAL_MAP_EVENTS: MapEvent[] = [
     isGoing: false,
     source: 'external',
     address: 'Казанский Кремль, Спасская башня',
+    image: '/home-kazan-hero.jpg',
   },
   {
     id: 'event-yoga-park',
@@ -54,6 +56,7 @@ export const INITIAL_MAP_EVENTS: MapEvent[] = [
     isGoing: false,
     source: 'external',
     address: 'Парк «Чёрное озеро»',
+    image: '/event-embankment.jpg',
   },
   {
     id: 'event-volunteer-kazanka',
@@ -72,6 +75,7 @@ export const INITIAL_MAP_EVENTS: MapEvent[] = [
     isGoing: false,
     source: 'external',
     address: 'Берег реки Казанка',
+    image: '/home-kazan-hero.jpg',
   },
   {
     id: 'event-streetball',

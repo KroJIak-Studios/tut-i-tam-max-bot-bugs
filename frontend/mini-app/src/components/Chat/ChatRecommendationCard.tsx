@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import type { MapEvent } from '../../types'
-import { toggleEventAttendance } from '../../services/mapService'
+import { useAttendance } from '../../context/useAttendance'
 import { IconClock, IconTag, IconUsers, IconCheck, IconChat, IconLocationPin } from '../Icons'
 import { ChatMiniMap } from './ChatMiniMap'
 import styles from './ChatRecommendationCard.module.css'
@@ -12,11 +12,12 @@ interface ChatRecommendationCardProps {
 }
 
 export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
-  event: initialEvent,
+  event,
   onOpenOnMap,
   onToast,
 }) => {
-  const [event, setEvent] = useState<MapEvent>(initialEvent)
+  const { isGoing, toggleAttendance } = useAttendance()
+  const going = isGoing(event.id)
   const [isToggling, setIsToggling] = useState(false)
 
   const handleToggleAttendance = async (e: React.MouseEvent) => {
@@ -24,8 +25,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
     if (isToggling) return
     setIsToggling(true)
     try {
-      const updated = await toggleEventAttendance(event.id)
-      setEvent(updated)
+      await toggleAttendance(event.id)
     } catch (err) {
       console.error('Failed to toggle attendance:', err)
     } finally {
@@ -78,11 +78,11 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
       <div className={styles.actionsGrid}>
         <button
           type="button"
-          className={`${styles.actionBtn} ${event.isGoing ? styles.actionBtnActive : styles.actionBtnSecondary}`}
+          className={`${styles.actionBtn} ${going ? styles.actionBtnActive : styles.actionBtnSecondary}`}
           onClick={handleToggleAttendance}
           disabled={isToggling}
         >
-          {event.isGoing ? (
+          {going ? (
             <>
               <IconCheck size={16} color="#FFFFFF" />
               <span>Вы идёте</span>

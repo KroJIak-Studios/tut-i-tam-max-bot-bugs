@@ -1,0 +1,91 @@
+.container {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 8px;
+  width: 100%;
+  max-width: var(--app-max-width, 500px);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.pillTrack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  background-color: #EEF2F6;
+  border-radius: 9999px;
+  padding: 3px;
+  user-select: none;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.sliderIndicator {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: calc(50% - 3px);
+  background-color: #111827;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.2);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.sliderIndicatorLeft {
+  transform: translateX(0);
+}
+
+.sliderIndicatorRight {
+  transform: translateX(100%);
+}
+
+.tabBtn {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #6B7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabBtnActive {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+@media (max-height: 700px) {
+  .container {
+    padding: 8px 12px 6px;
+  }
+  .tabBtn {
+    height: 32px;
+    font-size: 13px;
+  }
+}
