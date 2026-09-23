@@ -1,9 +1,33 @@
 import React from 'react'
+import { IconChevronRight } from '../Icons'
 import styles from './ProfileInterests.module.css'
 
 interface ProfileInterestsProps {
   interests: string[]
   onEditInterests: () => void
+}
+
+const getInterestColorStyle = (interest: string): React.CSSProperties => {
+  const norm = interest.toLowerCase().trim()
+  if (norm.includes('прогулк') || norm.includes('парк')) {
+    return { backgroundColor: 'rgba(16, 185, 129, 0.08)', color: '#047857', borderColor: 'rgba(16, 185, 129, 0.2)' }
+  }
+  if (norm.includes('музе') || norm.includes('театр') || norm.includes('лекци')) {
+    return { backgroundColor: 'rgba(99, 102, 241, 0.08)', color: '#4338CA', borderColor: 'rgba(99, 102, 241, 0.2)' }
+  }
+  if (norm.includes('спорт')) {
+    return { backgroundColor: 'rgba(245, 158, 11, 0.09)', color: '#B45309', borderColor: 'rgba(245, 158, 11, 0.22)' }
+  }
+  if (norm.includes('волонтёр') || norm.includes('настолк')) {
+    return { backgroundColor: 'rgba(37, 99, 235, 0.08)', color: '#1D4ED8', borderColor: 'rgba(37, 99, 235, 0.2)' }
+  }
+  if (norm.includes('концерт') || norm.includes('кино') || norm.includes('фестивал')) {
+    return { backgroundColor: 'rgba(168, 85, 247, 0.08)', color: '#7E22CE', borderColor: 'rgba(168, 85, 247, 0.2)' }
+  }
+  if (norm.includes('гастроном')) {
+    return { backgroundColor: 'rgba(244, 63, 94, 0.08)', color: '#BE123C', borderColor: 'rgba(244, 63, 94, 0.2)' }
+  }
+  return { backgroundColor: 'rgba(100, 116, 139, 0.08)', color: '#334155', borderColor: 'rgba(100, 116, 139, 0.2)' }
 }
 
 export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
@@ -13,22 +37,31 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   return (
     <section className={styles.card} aria-labelledby="interests-title">
       <div className={styles.headerRow}>
-        <h3 id="interests-title" className={styles.title}>
-          Интересы
-        </h3>
+        <div className={styles.headerTitles}>
+          <h3 id="interests-title" className={styles.title}>
+            Интересы
+          </h3>
+          <span className={styles.subtitle}>Для персональных рекомендаций</span>
+        </div>
         <button
           type="button"
           className={styles.editBtn}
           onClick={onEditInterests}
           aria-label="Изменить интересы"
         >
-          Изменить
+          <span>Изменить</span>
+          <IconChevronRight size={14} color="currentColor" />
         </button>
       </div>
 
       <div className={styles.chipsList} role="list">
         {interests.map((interest) => (
-          <div key={interest} className={styles.chip} role="listitem">
+          <div
+            key={interest}
+            className={styles.chip}
+            role="listitem"
+            style={getInterestColorStyle(interest)}
+          >
             {interest}
           </div>
         ))}

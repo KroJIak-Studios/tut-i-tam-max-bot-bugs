@@ -2,20 +2,24 @@
   background: #FFFFFF;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-  margin-bottom: 24px;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  margin-bottom: 14px;
 }
 
 .settingRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 16px;
   border-bottom: 1px solid #F3F4F6;
   background: #FFFFFF;
   transition: background-color 0.15s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 .settingRow:last-child {
@@ -34,24 +38,62 @@
   background: #F3F4F6;
 }
 
-.settingLabel {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text-main, #1F2937);
-  letter-spacing: -0.2px;
-}
-
-.settingRight {
+.settingLeft {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #6B7280;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
-.settingValue {
-  font-size: 14px;
+.iconTile {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tileViolet {
+  background-color: #F3E8FF;
+}
+
+.tileBlue {
+  background-color: #EFF6FF;
+}
+
+.tileOrange {
+  background-color: #FFF7ED;
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settingTitle {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-main, #1F2937);
+  letter-spacing: -0.2px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settingSubtitle {
+  font-size: 12.5px;
   font-weight: 400;
   color: #6B7280;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chevronIcon {
@@ -59,12 +101,15 @@
   align-items: center;
   justify-content: center;
   color: #9CA3AF;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 }
 
 /* iOS-style toggle switch */
 .switchControl {
   position: relative;
-  width: 48px;
+  width: 46px;
   height: 28px;
   flex-shrink: 0;
 }
@@ -107,5 +152,5 @@
 }
 
 .switchInput:checked + .switchTrack::before {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }

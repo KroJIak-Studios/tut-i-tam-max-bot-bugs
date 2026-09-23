@@ -11,6 +11,7 @@ import { ProfileSettings } from './ProfileSettings'
 import { DefaultMapModal } from './DefaultMapModal'
 import { NotificationsModal } from './NotificationsModal'
 import { BottomNavigation } from '../BottomNavigation'
+import { IconLocationPin } from '../Icons'
 import styles from './ProfilePage.module.css'
 
 export const ProfilePage: React.FC = () => {
@@ -73,7 +74,8 @@ export const ProfilePage: React.FC = () => {
 
         {/* Footer info note */}
         <div className={styles.footerNote}>
-          Пока сервис работает в Казани
+          <IconLocationPin size={13} color="#9CA3AF" />
+          <span>Пока сервис работает в Казани</span>
         </div>
       </main>
 

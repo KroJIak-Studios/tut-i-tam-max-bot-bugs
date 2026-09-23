@@ -1,4 +1,5 @@
 import React from 'react'
+import { IconLocationPin, IconPencil } from '../Icons'
 import styles from './ProfileHero.module.css'
 
 interface ProfileHeroProps {
@@ -15,7 +16,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
   onEditProfile,
 }) => {
   return (
-    <div className={styles.heroWrapper}>
+    <section className={styles.heroCard} aria-label="Карточка профиля">
       <div className={styles.avatarContainer}>
         <img
           src={avatarUrl}
@@ -25,7 +26,11 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
       </div>
 
       <h2 className={styles.name}>{name}</h2>
-      <div className={styles.city}>{city}</div>
+
+      <div className={styles.cityRow}>
+        <IconLocationPin size={13} color="#9CA3AF" />
+        <span className={styles.cityText}>{city}</span>
+      </div>
 
       <button
         type="button"
@@ -33,8 +38,9 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
         onClick={onEditProfile}
         aria-label="Изменить имя и город"
       >
+        <IconPencil size={13} color="#4B5563" />
         <span>Изменить профиль</span>
       </button>
-    </div>
+    </section>
   )
 }

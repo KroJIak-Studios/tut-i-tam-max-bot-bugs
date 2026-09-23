@@ -22,11 +22,15 @@
 }
 
 .footerNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   text-align: center;
   font-size: 13px;
   font-weight: 400;
   color: #9CA3AF;
-  padding: 8px 0 16px;
+  padding: 4px 0 16px;
   user-select: none;
 }
 

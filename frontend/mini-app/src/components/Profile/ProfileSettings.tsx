@@ -1,6 +1,6 @@
 import React from 'react'
 import type { MapProvider } from '../../types'
-import { IconChevronRight } from '../Icons'
+import { IconChevronRight, IconTicket, IconGlobe, IconBell } from '../Icons'
 import styles from './ProfileSettings.module.css'
 
 interface ProfileSettingsProps {
@@ -12,9 +12,9 @@ interface ProfileSettingsProps {
 }
 
 const PROVIDER_NAMES: Record<MapProvider, string> = {
-  yandex: 'Яндекс',
+  yandex: 'Яндекс Карты',
   '2gis': '2ГИС',
-  system: 'Системные',
+  system: 'Системные карты',
 }
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
@@ -28,7 +28,15 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
     <section className={styles.card} aria-label="Настройки">
       {/* 1. Пушкинская карта */}
       <label className={styles.settingRow}>
-        <span className={styles.settingLabel}>Пушкинская карта</span>
+        <div className={styles.settingLeft}>
+          <div className={`${styles.iconTile} ${styles.tileViolet}`} aria-hidden="true">
+            <IconTicket size={17} color="#7C3AED" />
+          </div>
+          <div className={styles.settingText}>
+            <span className={styles.settingTitle}>Пушкинская карта</span>
+            <span className={styles.settingSubtitle}>Показывать подходящие события</span>
+          </div>
+        </div>
         <div className={styles.switchControl}>
           <input
             type="checkbox"
@@ -55,12 +63,17 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
           }
         }}
       >
-        <span className={styles.settingLabel}>Карты по умолчанию</span>
-        <div className={styles.settingRight}>
-          <span className={styles.settingValue}>{PROVIDER_NAMES[defaultMapProvider]}</span>
-          <span className={styles.chevronIcon}>
-            <IconChevronRight size={16} color="currentColor" />
-          </span>
+        <div className={styles.settingLeft}>
+          <div className={`${styles.iconTile} ${styles.tileBlue}`} aria-hidden="true">
+            <IconGlobe size={17} color="#2563EB" />
+          </div>
+          <div className={styles.settingText}>
+            <span className={styles.settingTitle}>Карты по умолчанию</span>
+            <span className={styles.settingSubtitle}>{PROVIDER_NAMES[defaultMapProvider]}</span>
+          </div>
+        </div>
+        <div className={styles.chevronIcon}>
+          <IconChevronRight size={18} color="#9CA3AF" />
         </div>
       </div>
 
@@ -70,7 +83,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
         onClick={onOpenNotificationsModal}
         role="button"
         tabIndex={0}
-        aria-label="Настроить уведомления"
+        aria-label="Настроить уведомления: События и рекомендации"
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -78,11 +91,17 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
           }
         }}
       >
-        <span className={styles.settingLabel}>Уведомления</span>
-        <div className={styles.settingRight}>
-          <span className={styles.chevronIcon}>
-            <IconChevronRight size={16} color="currentColor" />
-          </span>
+        <div className={styles.settingLeft}>
+          <div className={`${styles.iconTile} ${styles.tileOrange}`} aria-hidden="true">
+            <IconBell size={17} color="#EA580C" />
+          </div>
+          <div className={styles.settingText}>
+            <span className={styles.settingTitle}>Уведомления</span>
+            <span className={styles.settingSubtitle}>События и рекомендации</span>
+          </div>
+        </div>
+        <div className={styles.chevronIcon}>
+          <IconChevronRight size={18} color="#9CA3AF" />
         </div>
       </div>
     </section>

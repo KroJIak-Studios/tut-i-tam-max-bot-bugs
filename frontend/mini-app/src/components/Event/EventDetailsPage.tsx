@@ -17,7 +17,8 @@ import {
 } from '../Icons'
 import { ConfirmRemoveModal } from '../Plans/ConfirmRemoveModal'
 import { ReviewModal } from '../Plans/ReviewModal'
-import type { MapEvent } from '../../types'
+import { BottomNavigation } from '../BottomNavigation'
+import type { MapEvent, NavTabId } from '../../types'
 import type { PastEvent } from '../../mocks/plansData'
 import styles from './EventDetailsPage.module.css'
 
@@ -40,6 +41,26 @@ export const EventDetailsPage: React.FC = () => {
     setTimeout(() => {
       setToastMessage((cur) => (cur === msg ? null : cur))
     }, 2800)
+  }
+
+  const handleTabChange = (tab: NavTabId) => {
+    switch (tab) {
+      case 'home':
+        navigate('/')
+        break
+      case 'chat':
+        navigate('/chat')
+        break
+      case 'map':
+        navigate('/map')
+        break
+      case 'plans':
+        navigate('/plans')
+        break
+      case 'profile':
+        navigate('/profile')
+        break
+    }
   }
 
   // Lookup event
@@ -81,6 +102,11 @@ export const EventDetailsPage: React.FC = () => {
             </button>
           </div>
         </main>
+
+        <BottomNavigation
+          activeTab="none"
+          onTabChange={handleTabChange}
+        />
       </div>
     )
   }
@@ -306,7 +332,7 @@ export const EventDetailsPage: React.FC = () => {
                 {going ? (
                   <>
                     <IconCheck size={18} color="#FFFFFF" />
-                    <span>✓ Вы идёте</span>
+                    <span>Вы идёте</span>
                   </>
                 ) : (
                   <span>Я приду</span>
@@ -449,6 +475,12 @@ export const EventDetailsPage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation
+        activeTab="none"
+        onTabChange={handleTabChange}
+      />
 
       {/* Action Modals */}
       <ConfirmRemoveModal

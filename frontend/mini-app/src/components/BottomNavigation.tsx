@@ -10,7 +10,7 @@ import {
 import styles from './BottomNavigation.module.css'
 
 interface BottomNavigationProps {
-  activeTab?: NavTabId
+  activeTab?: NavTabId | 'none' | null
   onTabChange?: (tab: NavTabId) => void
 }
 
