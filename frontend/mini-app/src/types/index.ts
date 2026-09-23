@@ -1,21 +1,21 @@
 export type NavTabId = 'home' | 'chat' | 'map' | 'plans' | 'profile'
 
-export interface QuickActionItem {
+export type ActionIcon = 'grid' | 'calendar' | 'location' | 'heart'
+export type ActionTheme = 'purple' | 'orange' | 'green' | 'pink'
+
+export interface HomeActionItem {
   id: string
   title: string
   subtitle: string
-  icon: 'grid' | 'calendar'
-  theme: 'purple' | 'orange'
+  icon: ActionIcon
+  theme: ActionTheme
   badge?: string
 }
 
-export interface CompactActionItem {
-  id: string
-  title: string
-  subtitle: string
-  icon: 'location' | 'heart'
-  theme: 'green' | 'pink'
-}
+export type QuickActionItem = HomeActionItem
+export type CompactActionItem = HomeActionItem
+
+export type CatalogSort = 'distance' | 'date' | 'popular' | 'price'
 
 export interface EventItem {
   id: string
@@ -87,7 +87,7 @@ export interface MapFilterState {
   volunteerOnly: boolean
   minAttendees: number
   source: 'all' | 'external' | 'user'
-  timeSlotMinutes: number // minutes from 00:00 (e.g. 19:00 = 1140)
+  timeSlotMinutes?: number | null // minutes from 00:00 (e.g. 19:00 = 1140)
 }
 
 export * from './chat'

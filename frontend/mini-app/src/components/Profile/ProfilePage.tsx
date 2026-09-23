@@ -4,14 +4,13 @@ import type { NavTabId } from '../../types'
 import { useUserPreferences } from '../../context/useUserPreferences'
 import { ProfileTopBar } from './ProfileTopBar'
 import { ProfileHero } from './ProfileHero'
-import { EditProfileModal } from './EditProfileModal'
+import { ProfileCitySelect } from './ProfileCitySelect'
 import { ProfileInterests } from './ProfileInterests'
 import { InterestsModal } from './InterestsModal'
 import { ProfileSettings } from './ProfileSettings'
 import { DefaultMapModal } from './DefaultMapModal'
 import { NotificationsModal } from './NotificationsModal'
 import { BottomNavigation } from '../BottomNavigation'
-import { IconLocationPin } from '../Icons'
 import styles from './ProfilePage.module.css'
 
 export const ProfilePage: React.FC = () => {
@@ -20,12 +19,10 @@ export const ProfilePage: React.FC = () => {
     preferences,
     updateProfile,
     updateInterests,
-    togglePushkinCard,
     setDefaultMapProvider,
     updateNotifications,
   } = useUserPreferences()
 
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [isInterestsOpen, setIsInterestsOpen] = useState(false)
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
@@ -42,6 +39,10 @@ export const ProfilePage: React.FC = () => {
     }
   }
 
+  const handleCitySelect = (newCity: string) => {
+    updateProfile(preferences.name, newCity)
+  }
+
   return (
     <div className={styles.pageWrapper}>
       {/* 1. Header */}
@@ -49,12 +50,16 @@ export const ProfilePage: React.FC = () => {
 
       {/* 2. Scrollable content */}
       <main className={styles.scrollArea}>
-        {/* Hero: Avatar, Name, City, Edit */}
+        {/* Hero: Avatar, Name (Display only) */}
         <ProfileHero
           name={preferences.name}
-          city={preferences.city}
           avatarUrl={preferences.avatarUrl}
-          onEditProfile={() => setIsEditProfileOpen(true)}
+        />
+
+        {/* City Select Section before Interests */}
+        <ProfileCitySelect
+          currentCity={preferences.city}
+          onSelectCity={handleCitySelect}
         />
 
         {/* Interests Card */}
@@ -63,20 +68,12 @@ export const ProfilePage: React.FC = () => {
           onEditInterests={() => setIsInterestsOpen(true)}
         />
 
-        {/* Settings Card: Pushkin card, Default maps, Notifications */}
+        {/* Settings Card: Default maps, Notifications */}
         <ProfileSettings
-          pushkinCard={preferences.pushkinCard}
           defaultMapProvider={preferences.defaultMapProvider}
-          onTogglePushkinCard={togglePushkinCard}
           onOpenMapModal={() => setIsMapModalOpen(true)}
           onOpenNotificationsModal={() => setIsNotificationsOpen(true)}
         />
-
-        {/* Footer info note */}
-        <div className={styles.footerNote}>
-          <IconLocationPin size={13} color="#9CA3AF" />
-          <span>Пока сервис работает в Казани</span>
-        </div>
       </main>
 
       {/* 3. Bottom navigation */}
@@ -86,15 +83,6 @@ export const ProfilePage: React.FC = () => {
       />
 
       {/* Modals */}
-      {isEditProfileOpen && (
-        <EditProfileModal
-          currentName={preferences.name}
-          currentCity={preferences.city}
-          onClose={() => setIsEditProfileOpen(false)}
-          onSave={updateProfile}
-        />
-      )}
-
       {isInterestsOpen && (
         <InterestsModal
           currentInterests={preferences.interests}

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { MapEvent, MapFilterState, NavTabId, EventCategory } from '../../types'
+import type { MapEvent, MapFilterState, NavTabId, EventCategory, CatalogSort } from '../../types'
 import { getMapEvents } from '../../services/mapService'
 import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
 import { USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
-import { getIsoDate } from '../../utils/dateUtils'
+import { getIsoDate, formatFoundEventsCount } from '../../utils/dateUtils'
 import { CatalogTopBar } from './CatalogTopBar'
 import { CatalogFilterBar } from './CatalogFilterBar'
 import { CatalogEventCard } from './CatalogEventCard'
+import { CatalogSortDropdown } from './CatalogSortDropdown'
 import { CatalogEmptyState } from './CatalogEmptyState'
 import { MapDatePickerSheet } from '../Map/MapDatePickerSheet'
 import { MapFilterSheet } from '../Map/MapFilterSheet'
@@ -47,6 +48,7 @@ export const CatalogPage: React.FC = () => {
   const [rawEvents, setRawEvents] = useState<MapEvent[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortOrder, setSortOrder] = useState<CatalogSort>('distance')
 
   // Sheets state
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
@@ -75,12 +77,12 @@ export const CatalogPage: React.FC = () => {
     }
   }, [filters])
 
-  // Process events: calculate distance, filter out past events, sort by distance ascending
+  // Process events: calculate distance, filter out past events, sort according to sortOrder
   const sortedEvents: EventWithDistance[] = useMemo(() => {
     const userLat = USER_CURRENT_LOCATION[0]
     const userLon = USER_CURRENT_LOCATION[1]
 
-    return rawEvents
+    const list = rawEvents
       .filter((e) => !e.isPast)
       .map((event) => {
         const distanceMeters = calculateDistanceMeters(
@@ -91,8 +93,25 @@ export const CatalogPage: React.FC = () => {
         )
         return { event, distanceMeters }
       })
-      .sort((a, b) => a.distanceMeters - b.distanceMeters)
-  }, [rawEvents])
+
+    switch (sortOrder) {
+      case 'distance':
+        return list.sort((a, b) => a.distanceMeters - b.distanceMeters)
+      case 'date':
+        return list.sort((a, b) => {
+          if (a.event.date !== b.event.date) {
+            return a.event.date.localeCompare(b.event.date)
+          }
+          return a.event.startTime.localeCompare(b.event.startTime)
+        })
+      case 'popular':
+        return list.sort((a, b) => b.event.attendeesCount - a.event.attendeesCount)
+      case 'price':
+        return list.sort((a, b) => a.event.price - b.event.price)
+      default:
+        return list
+    }
+  }, [rawEvents, sortOrder])
 
   // Count active non-default filters for the "Фильтры" badge
   const extraFilterCount = useMemo(() => countExtraFilters(filters), [filters])
@@ -177,9 +196,9 @@ export const CatalogPage: React.FC = () => {
           {!loading && !error && sortedEvents.length > 0 && (
             <div className={styles.listMetaRow}>
               <span className={styles.countText}>
-                {sortedEvents.length === 1 ? 'Найдено 1 событие' : `Найдено ${sortedEvents.length} событий`}
+                {formatFoundEventsCount(sortedEvents.length)}
               </span>
-              <span className={styles.sortBadge}>Сначала рядом</span>
+              <CatalogSortDropdown value={sortOrder} onChange={setSortOrder} />
             </div>
           )}
 

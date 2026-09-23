@@ -45,7 +45,7 @@
 }
 
 .greetingTitle {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 700;
   letter-spacing: -0.4px;
   color: var(--color-text-main, #0F172A);
@@ -55,27 +55,19 @@
 .greetingSubtitleRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 3px;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.locationPinIcon {
+  color: #64748B;
+  flex-shrink: 0;
 }
 
 .cityText {
   font-size: 13.5px;
   font-weight: 600;
   color: #475569;
-}
-
-.dotSeparator {
-  font-size: 13px;
-  color: #94A3B8;
-  line-height: 1;
-}
-
-.greetingMeta {
-  font-size: 13px;
-  font-weight: 400;
-  color: #64748B;
-  white-space: nowrap;
 }
 
 @media (max-height: 700px) {

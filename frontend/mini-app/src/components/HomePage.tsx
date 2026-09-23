@@ -4,13 +4,11 @@ import type { NavTabId } from '../types'
 import { Header } from './Header'
 import { HomeHero } from './HomeHero'
 import { QuickActionCard } from './QuickActionCard'
-import { CompactActionCard } from './CompactActionCard'
 import { FeaturedEventCard } from './FeaturedEventCard'
 import { BottomNavigation } from './BottomNavigation'
 import {
   HERO_DATA,
-  QUICK_ACTIONS,
-  COMPACT_ACTIONS,
+  HOME_ACTIONS,
   FEATURED_EVENT,
 } from '../data/mockData'
 import styles from './HomePage.module.css'
@@ -36,16 +34,12 @@ export const HomePage: React.FC = () => {
     }
   }
 
-  const handleQuickAction = (id: string) => {
+  const handleActionClick = (id: string) => {
     if (id === 'catalog') {
       navigate('/catalog')
     } else if (id === 'tonight') {
       navigate('/map')
-    }
-  }
-
-  const handleCompactAction = (id: string) => {
-    if (id === 'pushkinskaya') {
+    } else if (id === 'pushkinskaya') {
       navigate('/map?pushkin=true')
     } else if (id === 'volunteers') {
       navigate('/map?category=volunteer')
@@ -59,14 +53,11 @@ export const HomePage: React.FC = () => {
   return (
     <div className={styles.pageContainer}>
       <main className={styles.scrollArea}>
-        {/* Шаг 5: Header и блок приветствия */}
-        <Header
-          city="Казань"
-          greeting="Добрый вечер"
-        />
+        {/* Header и блок приветствия */}
+        <Header city="Казань" />
 
         <div className={styles.contentBlock}>
-          {/* Шаг 6: Основная Hero-card */}
+          {/* Основная Hero-card */}
           <HomeHero
             title={HERO_DATA.title}
             subtitle={HERO_DATA.subtitle}
@@ -75,24 +66,13 @@ export const HomePage: React.FC = () => {
             onClick={handleHeroClick}
           />
 
-          {/* Шаг 7: Две большие Quick Action Cards */}
-          <div className={styles.gridTwoCols}>
-            {QUICK_ACTIONS.map((item) => (
+          {/* 4 Quick Action Cards в единой сетке 2x2 */}
+          <div className={styles.gridTwoByTwo}>
+            {HOME_ACTIONS.map((item) => (
               <QuickActionCard
                 key={item.id}
                 item={item}
-                onClick={handleQuickAction}
-              />
-            ))}
-          </div>
-
-          {/* Шаг 8: Две компактные карточки */}
-          <div className={styles.gridTwoCols}>
-            {COMPACT_ACTIONS.map((item) => (
-              <CompactActionCard
-                key={item.id}
-                item={item}
-                onClick={handleCompactAction}
+                onClick={handleActionClick}
               />
             ))}
           </div>

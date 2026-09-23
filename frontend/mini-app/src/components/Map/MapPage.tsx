@@ -9,7 +9,6 @@ import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapDatePickerSheet } from './MapDatePickerSheet'
 import { MapView } from './MapView'
-import { MapTimeSlider } from './MapTimeSlider'
 import { MapFilterSheet } from './MapFilterSheet'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './MapPage.module.css'
@@ -25,7 +24,7 @@ const DEFAULT_FILTERS: MapFilterState = {
   volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
-  timeSlotMinutes: 18 * 60, // 18:00
+  timeSlotMinutes: null,
 }
 
 export const MapPage: React.FC = () => {
@@ -65,9 +64,6 @@ export const MapPage: React.FC = () => {
       )
       if (found && found.date) {
         initial.selectedDate = found.date
-        if (found.date !== getIsoDate(0)) {
-          initial.timeSlotMinutes = 9 * 60
-        }
       }
     }
     return initial
@@ -104,9 +100,6 @@ export const MapPage: React.FC = () => {
         )
         if (found && found.date) {
           updated.selectedDate = found.date
-          if (found.date !== getIsoDate(0)) {
-            updated.timeSlotMinutes = 9 * 60
-          }
         }
       }
       setFilters(updated)
@@ -157,14 +150,6 @@ export const MapPage: React.FC = () => {
     return count
   }, [filters])
 
-  // Time slider change
-  const handleTimeChange = (minutes: number) => {
-    setFilters((prev) => ({
-      ...prev,
-      timeSlotMinutes: minutes,
-    }))
-  }
-
   // Event Selection
   const handleSelectEvent = useCallback((event: MapEvent) => {
     setUserSelectedId(event.id)
@@ -205,12 +190,10 @@ export const MapPage: React.FC = () => {
 
   // Date selection change
   const handleDateChange = (newIsoDate: string) => {
-    const isNewToday = newIsoDate === getIsoDate(0)
     setUserSelectedId(null)
     setFilters((prev) => ({
       ...prev,
       selectedDate: newIsoDate,
-      timeSlotMinutes: isNewToday ? 18 * 60 : 9 * 60,
     }))
   }
 
@@ -309,14 +292,7 @@ export const MapPage: React.FC = () => {
         />
       </div>
 
-      {/* 4. Ползунок времени (Сейчас / Утро -> Поздний вечер) */}
-      <MapTimeSlider
-        currentMinutes={filters.timeSlotMinutes}
-        onChangeMinutes={handleTimeChange}
-        isToday={isToday}
-      />
-
-      {/* 5. Нижняя навигация */}
+      {/* Нижняя навигация */}
       <BottomNavigation
         activeTab="map"
         onTabChange={handleTabChange}

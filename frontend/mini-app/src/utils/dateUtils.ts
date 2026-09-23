@@ -187,3 +187,39 @@ export function formatEventDateTime(dateStr: string, startTime?: string): string
 
   return `${dateStr}${time}`
 }
+
+/**
+ * Returns time-based greeting for client local time:
+ * 05:00–11:59 => Доброе утро
+ * 12:00–17:59 => Добрый день
+ * 18:00–04:59 => Добрый вечер
+ */
+export function getGreeting(date: Date = new Date()): string {
+  const hours = date.getHours()
+  if (hours >= 5 && hours < 12) {
+    return 'Доброе утро'
+  }
+  if (hours >= 12 && hours < 18) {
+    return 'Добрый день'
+  }
+  return 'Добрый вечер'
+}
+
+/**
+ * Correct Russian pluralization for "Найдено N событие / события / событий"
+ */
+export function formatFoundEventsCount(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+
+  let word = 'событий'
+  if (mod100 < 11 || mod100 > 19) {
+    if (mod10 === 1) {
+      word = 'событие'
+    } else if (mod10 >= 2 && mod10 <= 4) {
+      word = 'события'
+    }
+  }
+
+  return `Найдено ${count} ${word}`
+}

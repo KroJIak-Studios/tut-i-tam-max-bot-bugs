@@ -1,12 +1,12 @@
 import React from 'react'
 import type { MapProvider } from '../../types'
-import { IconChevronRight, IconTicket, IconGlobe, IconBell } from '../Icons'
+import { IconChevronRight, IconGlobe, IconBell } from '../Icons'
 import styles from './ProfileSettings.module.css'
 
 interface ProfileSettingsProps {
-  pushkinCard: boolean
+  pushkinCard?: boolean
   defaultMapProvider: MapProvider
-  onTogglePushkinCard: () => void
+  onTogglePushkinCard?: () => void
   onOpenMapModal: () => void
   onOpenNotificationsModal: () => void
 }
@@ -18,36 +18,12 @@ const PROVIDER_NAMES: Record<MapProvider, string> = {
 }
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
-  pushkinCard,
   defaultMapProvider,
-  onTogglePushkinCard,
   onOpenMapModal,
   onOpenNotificationsModal,
 }) => {
   return (
     <section className={styles.card} aria-label="Настройки">
-      {/* 1. Пушкинская карта */}
-      <label className={styles.settingRow}>
-        <div className={styles.settingLeft}>
-          <div className={`${styles.iconTile} ${styles.tileViolet}`} aria-hidden="true">
-            <IconTicket size={17} color="#7C3AED" />
-          </div>
-          <div className={styles.settingText}>
-            <span className={styles.settingTitle}>Пушкинская карта</span>
-            <span className={styles.settingSubtitle}>Показывать подходящие события</span>
-          </div>
-        </div>
-        <div className={styles.switchControl}>
-          <input
-            type="checkbox"
-            className={styles.switchInput}
-            checked={pushkinCard}
-            onChange={onTogglePushkinCard}
-            aria-label="Пушкинская карта"
-          />
-          <span className={styles.switchTrack} />
-        </div>
-      </label>
 
       {/* 2. Карты по умолчанию */}
       <div

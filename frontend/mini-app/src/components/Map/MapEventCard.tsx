@@ -1,6 +1,6 @@
 import React from 'react'
 import type { MapEvent } from '../../types'
-import { IconClock, IconTag, IconUsers, IconMore, IconCheck } from '../Icons'
+import { IconClock, IconTag, IconUsers, IconCheck } from '../Icons'
 import styles from './MapEventCard.module.css'
 
 interface MapEventCardProps {
@@ -36,17 +36,6 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
             )}
             <h2 className={styles.title}>{event.title}</h2>
           </div>
-          <button
-            type="button"
-            className={styles.moreButton}
-            onClick={(e) => {
-              e.stopPropagation()
-              onMoreDetails?.(event)
-            }}
-            aria-label="Подробнее о мероприятии"
-          >
-            <IconMore size={18} color="currentColor" />
-          </button>
         </div>
 
         <div className={styles.infoList}>

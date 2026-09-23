@@ -1,4 +1,4 @@
-import type { QuickActionItem, CompactActionItem, EventItem } from '../types'
+import type { HomeActionItem, QuickActionItem, CompactActionItem, EventItem } from '../types'
 
 export const HERO_DATA = {
   title: 'Куда пойти рядом',
@@ -7,39 +7,39 @@ export const HERO_DATA = {
   alt: 'Казанский Кремль и мечеть Кул-Шариф',
 }
 
-export const QUICK_ACTIONS: QuickActionItem[] = [
+export const HOME_ACTIONS: HomeActionItem[] = [
   {
     id: 'catalog',
     title: 'Каталог',
-    subtitle: 'Места и активности',
+    subtitle: 'Все места рядом',
     icon: 'grid',
     theme: 'purple',
   },
   {
     id: 'tonight',
     title: 'Сегодня вечером',
-    subtitle: 'Интересное рядом',
+    subtitle: 'События в Казани',
     icon: 'calendar',
     theme: 'orange',
   },
-]
-
-export const COMPACT_ACTIONS: CompactActionItem[] = [
   {
     id: 'pushkinskaya',
     title: 'Пушкинская',
-    subtitle: 'События по карте',
+    subtitle: 'Рядом с вами',
     icon: 'location',
     theme: 'green',
   },
   {
     id: 'volunteers',
     title: 'Волонтёры',
-    subtitle: 'Добрые дела рядом',
+    subtitle: 'Делать добро рядом',
     icon: 'heart',
     theme: 'pink',
   },
 ]
+
+export const QUICK_ACTIONS: QuickActionItem[] = HOME_ACTIONS.slice(0, 2)
+export const COMPACT_ACTIONS: CompactActionItem[] = HOME_ACTIONS.slice(2, 4)
 
 export const FEATURED_EVENT: EventItem = {
   id: 'event-naberezhnaya',

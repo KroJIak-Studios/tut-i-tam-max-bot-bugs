@@ -1,0 +1,168 @@
+.card {
+  background: #FFFFFF;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.headerRow:focus-visible {
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px var(--color-primary, #2563EB);
+}
+
+.leftCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconTile {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.2px;
+}
+
+.cityPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8FAFC;
+  border-radius: 9999px;
+  padding: 6px 12px 6px 14px;
+  border: 1px solid #E2E8F0;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.headerRow:hover .cityPill {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.cityName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+  letter-spacing: -0.1px;
+}
+
+.chevronWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdownArea {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.citiesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cityOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cityOption:hover {
+  background: #F1F5F9;
+}
+
+.cityOptionSelected {
+  background: #EFF6FF;
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+.optionName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.cityOptionSelected .optionName {
+  color: #2563EB;
+}
+
+.checkIcon {
+  flex-shrink: 0;
+}
+
+.noteRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 2px;
+}
+
+.noteDot {
+  color: #94A3B8;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.noteText {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 400;
+  line-height: 1.3;
+}

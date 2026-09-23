@@ -1,4 +1,6 @@
 import React from 'react'
+import { getGreeting } from '../utils/dateUtils'
+import { IconLocationPinFilled } from './Icons'
 import styles from './Header.module.css'
 
 interface HeaderProps {
@@ -8,8 +10,10 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   city = 'Казань',
-  greeting = 'Добрый вечер',
+  greeting,
 }) => {
+  const currentGreeting = greeting || getGreeting()
+
   return (
     <header className={styles.headerWrapper}>
       <div className={styles.topBar}>
@@ -24,11 +28,10 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className={styles.greetingSection}>
-        <div className={styles.greetingTitle}>{greeting}</div>
+        <div className={styles.greetingTitle}>{currentGreeting}</div>
         <div className={styles.greetingSubtitleRow}>
+          <IconLocationPinFilled size={13} className={styles.locationPinIcon} />
           <span className={styles.cityText}>{city}</span>
-          <span className={styles.dotSeparator}>·</span>
-          <span className={styles.greetingMeta}>Что интересного рядом?</span>
         </div>
       </div>
     </header>

@@ -1,0 +1,118 @@
+.dropdownContainer {
+  position: relative;
+  display: inline-flex;
+}
+
+.triggerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563EB;
+  background: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  padding: 4px 10px 4px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  letter-spacing: -0.1px;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.triggerButton:hover {
+  background: #DBEAFE;
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.triggerActive {
+  background: #DBEAFE;
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #2563EB;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.12), 0 3px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  padding: 5px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.12s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menuItem:hover {
+  background: #F1F5F9;
+}
+
+.menuItemSelected {
+  background: #EFF6FF;
+}
+
+.menuItemSelected:hover {
+  background: #E0E7FF;
+}
+
+.optionLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  letter-spacing: -0.15px;
+}
+
+.menuItemSelected .optionLabel {
+  color: #2563EB;
+  font-weight: 600;
+}
+
+.checkIcon {
+  flex-shrink: 0;
+}

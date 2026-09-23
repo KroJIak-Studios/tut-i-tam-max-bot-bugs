@@ -12,7 +12,7 @@ export const DEFAULT_FILTERS: MapFilterState = {
   volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
-  timeSlotMinutes: 18 * 60, // 18:00
+  timeSlotMinutes: null,
 }
 
 /**
