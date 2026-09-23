@@ -36,12 +36,20 @@ export const HomePage: React.FC = () => {
     }
   }
 
-  const handleQuickAction = (_id: string) => {
-    // В будущих шагах: переход к Каталогу / Сегодня вечером
+  const handleQuickAction = (id: string) => {
+    if (id === 'catalog') {
+      navigate('/catalog')
+    } else if (id === 'tonight') {
+      navigate('/map')
+    }
   }
 
-  const handleCompactAction = (_id: string) => {
-    // В будущих шагах: переход к Пушкинской / Волонтёрам
+  const handleCompactAction = (id: string) => {
+    if (id === 'pushkinskaya') {
+      navigate('/map?pushkin=true')
+    } else if (id === 'volunteers') {
+      navigate('/map?category=volunteer')
+    }
   }
 
   const handleEventClick = (id: string) => {

@@ -350,15 +350,17 @@ export const EventDetailsPage: React.FC = () => {
                 <span>{event.address}</span>
               </div>
 
-              {/* In-app navigation to map */}
-              <button
-                type="button"
-                className={styles.onMapAppBtn}
-                onClick={() => navigate(`/map?event=${event.id}`)}
-              >
-                <IconLocationPin size={15} color="currentColor" />
-                <span>Показать на карте приложения</span>
-              </button>
+              {/* In-app navigation to map (only for active/upcoming events) */}
+              {!event.isPast && (
+                <button
+                  type="button"
+                  className={styles.onMapAppBtn}
+                  onClick={() => navigate(`/map?event=${event.id}`)}
+                >
+                  <IconLocationPin size={15} color="currentColor" />
+                  <span>Показать на карте приложения</span>
+                </button>
+              )}
 
               {/* Preferred Map Provider Button */}
               <button

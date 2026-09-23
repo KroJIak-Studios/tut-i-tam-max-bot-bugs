@@ -1,6 +1,9 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 import { getIsoDate } from '../utils/dateUtils'
+import { filterEvents, parseTimeToMinutes } from './eventFilters'
+
+export { parseTimeToMinutes }
 
 const STORAGE_KEY_USER_EVENTS = 'tut_i_tam_user_events'
 const STORAGE_KEY_ATTENDANCE = 'tut_i_tam_event_attendance'
@@ -53,15 +56,6 @@ export function saveAttendanceMap(map: Record<string, boolean>): void {
   }
 }
 
-// Convert "HH:MM" to minutes from 00:00
-export function parseTimeToMinutes(timeStr: string): number {
-  const parts = timeStr.split(':')
-  if (parts.length < 2) return 0
-  const hours = parseInt(parts[0], 10) || 0
-  const minutes = parseInt(parts[1], 10) || 0
-  return hours * 60 + minutes
-}
-
 export async function getMapZones(): Promise<MapZone[]> {
   // Simulate lightweight async response
   await new Promise((resolve) => setTimeout(resolve, 60))
@@ -93,77 +87,7 @@ export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<M
     return allEvents
   }
 
-  // Date filtering by selectedDate (default today)
-  const targetDate = filters.selectedDate || getIsoDate(0)
-  const todayIso = getIsoDate(0)
-
-  allEvents = allEvents.filter((e) => {
-    if (targetDate === todayIso) {
-      return e.date === 'сегодня' || e.date === todayIso
-    }
-    return e.date === targetDate
-  })
-
-  // Quick chips filtering
-  if (filters.quickChip) {
-    switch (filters.quickChip) {
-      case 'free':
-        allEvents = allEvents.filter((e) => e.isFree || e.price === 0)
-        break
-      case 'pushkin':
-        allEvents = allEvents.filter((e) => e.pushkinCard)
-        break
-      case 'under500':
-        allEvents = allEvents.filter((e) => e.price <= 500)
-        break
-      case 'volunteer':
-        allEvents = allEvents.filter((e) => e.category === 'volunteer')
-        break
-      default:
-        break
-    }
-  }
-
-  // Advanced sheet filters
-  if (filters.category && filters.category !== 'all') {
-    allEvents = allEvents.filter((e) => e.category === filters.category)
-  }
-
-  if (filters.isFreeOnly) {
-    allEvents = allEvents.filter((e) => e.isFree || e.price === 0)
-  }
-
-  if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
-    allEvents = allEvents.filter((e) => e.price <= (filters.maxPrice ?? 10000))
-  }
-
-  if (filters.pushkinCardOnly) {
-    allEvents = allEvents.filter((e) => e.pushkinCard)
-  }
-
-  if (filters.volunteerOnly) {
-    allEvents = allEvents.filter((e) => e.category === 'volunteer')
-  }
-
-  if (filters.source && filters.source !== 'all') {
-    allEvents = allEvents.filter((e) => e.source === filters.source)
-  }
-
-  if (filters.minAttendees && filters.minAttendees > 0) {
-    allEvents = allEvents.filter((e) => e.attendeesCount >= (filters.minAttendees || 0))
-  }
-
-  // Time slider filter: show events scheduled at or after the selected minutes
-  if (filters.timeSlotMinutes !== undefined && filters.timeSlotMinutes !== null) {
-    allEvents = allEvents.filter((e) => {
-      const eventStartMinutes = parseTimeToMinutes(e.startTime)
-      const eventEndMinutes = e.endTime ? parseTimeToMinutes(e.endTime) : eventStartMinutes + 120
-      // Show events that are active at or start after timeSlot
-      return eventEndMinutes >= (filters.timeSlotMinutes ?? 0)
-    })
-  }
-
-  return allEvents
+  return filterEvents(allEvents, filters)
 }
 
 export async function toggleEventAttendance(eventId: string): Promise<MapEvent> {

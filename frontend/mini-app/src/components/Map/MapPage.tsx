@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
+import type { MapEvent, MapZone, MapFilterState, NavTabId, EventCategory } from '../../types'
 import { getMapEvents, getMapZones } from '../../services/mapService'
+import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
 import { getIsoDate, formatChipDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
 import { MapTopBar } from './MapTopBar'
@@ -40,10 +41,77 @@ export const MapPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Filters state
-  const [filters, setFilters] = useState<MapFilterState>(DEFAULT_FILTERS)
+  // Filters state initialized from query params
+  const [filters, setFilters] = useState<MapFilterState>(() => {
+    const pushkin = searchParams.get('pushkin') === 'true'
+    const categoryParam = searchParams.get('category')
+    const eventIdParam = searchParams.get('event')
+
+    const initial = { ...DEFAULT_FILTERS }
+    if (pushkin) {
+      initial.pushkinCardOnly = true
+    }
+    if (categoryParam) {
+      if (categoryParam === 'volunteer') {
+        initial.category = 'volunteer'
+        initial.volunteerOnly = true
+      } else {
+        initial.category = categoryParam as EventCategory
+      }
+    }
+    if (eventIdParam) {
+      const found = INITIAL_MAP_EVENTS.find(
+        (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
+      )
+      if (found && found.date) {
+        initial.selectedDate = found.date
+        if (found.date !== getIsoDate(0)) {
+          initial.timeSlotMinutes = 9 * 60
+        }
+      }
+    }
+    return initial
+  })
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+
+  // Sync searchParams when they change dynamically (React render-phase adjustment)
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams.toString())
+  const currentSearchParams = searchParams.toString()
+
+  if (currentSearchParams !== prevSearchParams) {
+    setPrevSearchParams(currentSearchParams)
+    const pushkin = searchParams.get('pushkin') === 'true'
+    const categoryParam = searchParams.get('category')
+    const eventIdParam = searchParams.get('event')
+
+    if (pushkin || categoryParam || eventIdParam) {
+      const updated = { ...filters }
+      if (pushkin) {
+        updated.pushkinCardOnly = true
+      }
+      if (categoryParam) {
+        if (categoryParam === 'volunteer') {
+          updated.category = 'volunteer'
+          updated.volunteerOnly = true
+        } else {
+          updated.category = categoryParam as EventCategory
+        }
+      }
+      if (eventIdParam) {
+        const found = INITIAL_MAP_EVENTS.find(
+          (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
+        )
+        if (found && found.date) {
+          updated.selectedDate = found.date
+          if (found.date !== getIsoDate(0)) {
+            updated.timeSlotMinutes = 9 * 60
+          }
+        }
+      }
+      setFilters(updated)
+    }
+  }
 
   const isToday = filters.selectedDate === getIsoDate(0)
 
