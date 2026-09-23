@@ -42,7 +42,7 @@ export const COMPACT_ACTIONS: CompactActionItem[] = [
 ]
 
 export const FEATURED_EVENT: EventItem = {
-  id: 'event-embankment',
+  id: 'event-naberezhnaya',
   title: 'Вечер на набережной',
   date: 'сегодня · 19:00',
   price: 'Бесплатно',

@@ -236,7 +236,7 @@ export const MapPage: React.FC = () => {
           onDeselect={handleDeselect}
           onToggleGoing={handleToggleGoing}
           onMoreDetails={(e) => {
-            console.log('Open event details (future route):', e.id)
+            navigate(`/events/${e.id}`)
           }}
         />
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { MapEvent } from '../../types'
 import { useAttendance } from '../../context/useAttendance'
 import { IconClock, IconTag, IconUsers, IconCheck, IconChat, IconLocationPin } from '../Icons'
@@ -16,6 +17,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
   onOpenOnMap,
   onToast,
 }) => {
+  const navigate = useNavigate()
   const { isGoing, toggleAttendance } = useAttendance()
   const going = isGoing(event.id)
   const [isToggling, setIsToggling] = useState(false)
@@ -38,31 +40,49 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
     onToast('Чат мероприятия появится в следующем обновлении')
   }
 
+  const handleOpenDetails = () => {
+    navigate(`/events/${event.id}`)
+  }
+
   return (
     <div className={styles.recommendationContainer}>
       <div className={styles.divider} />
-      <div className={styles.header}>
-        <h4 className={styles.title}>{event.title}</h4>
-        {event.address && (
-          <div className={styles.addressRow}>
-            <IconLocationPin size={13} color="#6B7280" />
-            <span className={styles.addressText}>{event.address}</span>
-          </div>
-        )}
-      </div>
+      <div
+        className={styles.eventInfoLink}
+        onClick={handleOpenDetails}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleOpenDetails()
+          }
+        }}
+        aria-label={`Подробнее о событии: ${event.title}`}
+      >
+        <div className={styles.header}>
+          <h4 className={styles.title}>{event.title}</h4>
+          {event.address && (
+            <div className={styles.addressRow}>
+              <IconLocationPin size={13} color="#6B7280" />
+              <span className={styles.addressText}>{event.address}</span>
+            </div>
+          )}
+        </div>
 
-      <div className={styles.metaRow}>
-        <div className={styles.metaItem}>
-          <IconClock size={14} color="#6B7280" />
-          <span>{event.date} {event.startTime}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <IconTag size={14} color="#6B7280" />
-          <span>{event.isFree || event.price === 0 ? 'Бесплатно' : `${event.price} ₽`}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <IconUsers size={14} color="#6B7280" />
-          <span>{event.attendeesCount} идут</span>
+        <div className={styles.metaRow}>
+          <div className={styles.metaItem}>
+            <IconClock size={14} color="#6B7280" />
+            <span>{event.date} {event.startTime}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <IconTag size={14} color="#6B7280" />
+            <span>{event.isFree || event.price === 0 ? 'Бесплатно' : `${event.price} ₽`}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <IconUsers size={14} color="#6B7280" />
+            <span>{event.attendeesCount} идут</span>
+          </div>
         </div>
       </div>
 

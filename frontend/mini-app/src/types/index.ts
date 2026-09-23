@@ -34,6 +34,15 @@ export type EventCategory =
   | 'parks'
   | 'user'
 
+export interface EventReview {
+  id: string
+  userName: string
+  rating: number
+  dateText: string
+  text: string
+  avatarUrl?: string
+}
+
 export interface MapEvent {
   id: string
   title: string
@@ -51,7 +60,12 @@ export interface MapEvent {
   isGoing?: boolean
   source: 'external' | 'user'
   image?: string
+  images?: string[]
   address?: string
+  reviews?: EventReview[]
+  isPast?: boolean
+  visitedDate?: string
+  aliasIds?: string[]
 }
 
 export interface MapZone {

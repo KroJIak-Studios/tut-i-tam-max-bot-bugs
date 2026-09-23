@@ -12,6 +12,18 @@
   width: 100%;
 }
 
+.eventInfoLink {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.eventInfoLink:hover .title {
+  color: var(--color-primary, #2563EB);
+}
+
 .header {
   display: flex;
   flex-direction: column;

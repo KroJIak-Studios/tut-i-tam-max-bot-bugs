@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MapEvent, NavTabId } from '../../types'
 import { useAttendance } from '../../context/useAttendance'
-import { INITIAL_PAST_EVENTS, type PastEvent } from '../../mocks/plansData'
+import { useReviews } from '../../context/useReviews'
+import type { PastEvent } from '../../mocks/plansData'
 import { PlansTopBar } from './PlansTopBar'
 import { PlansSegmentControl, type PlansTab } from './PlansSegmentControl'
 import { PlanEventCard } from './PlanEventCard'
@@ -17,9 +18,9 @@ import styles from './PlansPage.module.css'
 export const PlansPage: React.FC = () => {
   const navigate = useNavigate()
   const { goingEvents, loading, removeAttendance } = useAttendance()
+  const { pastEvents, submitReview } = useReviews()
 
   const [activeSegment, setActiveSegment] = useState<PlansTab>('going')
-  const [pastEvents, setPastEvents] = useState<PastEvent[]>(INITIAL_PAST_EVENTS)
 
   // Modals state
   const [removeTargetEvent, setRemoveTargetEvent] = useState<MapEvent | null>(null)
@@ -49,7 +50,7 @@ export const PlansPage: React.FC = () => {
   }
 
   const handleEventClick = (eventId: string) => {
-    navigate(`/map?event=${eventId}`)
+    navigate(`/events/${eventId}`)
   }
 
   // Removal confirmation
@@ -65,18 +66,7 @@ export const PlansPage: React.FC = () => {
 
   // Review submission
   const handleReviewSubmit = (eventId: string, rating: number, comment: string) => {
-    setPastEvents((prev) =>
-      prev.map((e) =>
-        e.id === eventId
-          ? {
-              ...e,
-              hasReview: true,
-              rating,
-              reviewComment: comment,
-            }
-          : e
-      )
-    )
+    submitReview(eventId, rating, comment)
     showToast('Спасибо за ваш отзыв!')
   }
 

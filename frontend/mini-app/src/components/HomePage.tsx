@@ -44,8 +44,8 @@ export const HomePage: React.FC = () => {
     // В будущих шагах: переход к Пушкинской / Волонтёрам
   }
 
-  const handleEventClick = (_id: string) => {
-    // В будущих шагах: переход к карточке мероприятия
+  const handleEventClick = (id: string) => {
+    navigate(`/events/${id}`)
   }
 
   return (

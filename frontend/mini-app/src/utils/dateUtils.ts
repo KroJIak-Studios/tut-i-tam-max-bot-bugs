@@ -162,3 +162,28 @@ export function generateMonthCalendar(
 
   return days
 }
+
+export function formatEventDateTime(dateStr: string, startTime?: string): string {
+  const today = getIsoDate(0)
+  const tomorrow = getIsoDate(1)
+  const time = startTime ? ` · ${startTime}` : ''
+
+  if (dateStr === 'сегодня' || dateStr === today) {
+    return `Сегодня${time}`
+  }
+  if (dateStr === 'завтра' || dateStr === tomorrow) {
+    return `Завтра${time}`
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const d = parseIsoDate(dateStr)
+    const day = d.getDate()
+    const months = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
+    ]
+    return `${day} ${months[d.getMonth()]}${time}`
+  }
+
+  return `${dateStr}${time}`
+}

@@ -74,6 +74,28 @@
   color: #4B5563;
 }
 
+.clickableBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.clickableBody:hover .title {
+  color: var(--color-primary, #2563EB);
+}
+
+.detailsLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary, #2563EB);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 1px;
+}
+
 .infoList {
   display: flex;
   flex-direction: column;
