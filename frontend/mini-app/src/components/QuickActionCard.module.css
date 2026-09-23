@@ -14,8 +14,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 142px;
-  height: 142px;
+  min-height: 148px;
+  height: 100%;
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
@@ -75,10 +75,11 @@
 
 .bottomRow {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 6px;
   width: 100%;
+  margin-top: 8px;
 }
 
 .textContent {
@@ -94,18 +95,20 @@
   color: #0F172A;
   line-height: 1.18;
   letter-spacing: -0.3px;
-  margin: 0 0 2px 0;
+  margin: 0 0 3px 0;
 }
 
 .cardSubtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 400;
   color: #64748B;
   line-height: 1.25;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .arrowIcon {
@@ -123,8 +126,8 @@
 
 @media (max-height: 700px) {
   .actionCard {
-    min-height: 124px;
-    height: 124px;
+    min-height: 132px;
+    height: 100%;
     padding: 12px 12px 10px 12px;
     border-radius: 16px;
   }
@@ -136,12 +139,13 @@
   }
 
   .cardTitle {
-    font-size: 15px;
-    margin-bottom: 1px;
+    font-size: 14.5px;
+    margin-bottom: 2px;
   }
 
   .cardSubtitle {
     font-size: 11.5px;
+    line-height: 1.2;
   }
 }
 

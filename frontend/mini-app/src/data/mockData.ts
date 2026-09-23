@@ -2,7 +2,6 @@ import type { HomeActionItem, QuickActionItem, CompactActionItem, EventItem } fr
 
 export const HERO_DATA = {
   title: 'Куда пойти рядом',
-  subtitle: 'по интересам и где вы сейчас',
   imageUrl: '/home-kazan-hero.jpg',
   alt: 'Казанский Кремль и мечеть Кул-Шариф',
 }
@@ -11,7 +10,7 @@ export const HOME_ACTIONS: HomeActionItem[] = [
   {
     id: 'catalog',
     title: 'Каталог',
-    subtitle: 'Все места рядом',
+    subtitle: 'Места и активности',
     icon: 'grid',
     theme: 'purple',
   },
@@ -25,7 +24,7 @@ export const HOME_ACTIONS: HomeActionItem[] = [
   {
     id: 'pushkinskaya',
     title: 'Пушкинская',
-    subtitle: 'Рядом с вами',
+    subtitle: 'События по карте',
     icon: 'location',
     theme: 'green',
   },

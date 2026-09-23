@@ -60,7 +60,6 @@ export const HomePage: React.FC = () => {
           {/* Основная Hero-card */}
           <HomeHero
             title={HERO_DATA.title}
-            subtitle={HERO_DATA.subtitle}
             imageUrl={HERO_DATA.imageUrl}
             alt={HERO_DATA.alt}
             onClick={handleHeroClick}
