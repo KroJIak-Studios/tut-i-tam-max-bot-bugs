@@ -30,7 +30,7 @@ services:
     build:
       context: ./frontend/admin-panel
     environment:
-      USE_MOCKS: ${PANEL_USE_MOCKS:-true}
+      USE_MOCKS: ${PANEL_USE_MOCKS:-false}
       BACKEND_URL: ${BACKEND_URL:-http://api:8000}
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
@@ -43,7 +43,7 @@ services:
     build:
       context: ./frontend/mini-app
     environment:
-      USE_MOCKS: ${MINIAPP_USE_MOCKS:-true}
+      USE_MOCKS: ${MINIAPP_USE_MOCKS:-false}
       BACKEND_URL: ${BACKEND_URL:-http://api:8000}
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
