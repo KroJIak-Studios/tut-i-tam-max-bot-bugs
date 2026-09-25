@@ -12,6 +12,7 @@ npm-debug.log*
 !.env.local.example
 *.pem
 *.key
+!certs/*.crt
 
 .idea
 .vscode

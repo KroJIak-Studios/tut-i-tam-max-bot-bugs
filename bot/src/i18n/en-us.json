@@ -1,0 +1,25 @@
+{
+  "locale_name": "English",
+  "language_names": {
+    "ru-ru": "Russian",
+    "en-us": "English"
+  },
+  "start": {
+    "title": "🧭 Tut & Tam",
+    "greeting": "Hello, {name}!",
+    "description": "I will help you find events, places, and leisure opportunities in Kazan.",
+    "quote": "Choose where you would like to start.",
+    "open_mini_app": "Open Mini App",
+    "nearby_events": "Nearby events",
+    "my_meetings": "My meetings",
+    "ai_assistant": "AI assistant chat",
+    "settings": "Settings"
+  },
+  "access": {
+    "request_code": "🔐 Enter the access code to continue.",
+    "invalid_code": "The access code is incorrect. Please try again."
+  },
+  "common": {
+    "not_ready": "This section will be available later."
+  }
+}
