@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { ChatMessage } from '../../types'
 import { IconSparkles } from '../Icons'
 import { ChatRecommendationCard } from './ChatRecommendationCard'
@@ -28,6 +29,7 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
     },
     ref
   ) => {
+    const { t } = useTranslation()
     const isUser = message.sender === 'user'
 
     if (isUser) {
@@ -40,19 +42,21 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
       )
     }
 
+    const messageText = message.id === 'msg-welcome' ? t('chat.welcomeText') : message.text
+
     return (
       <div ref={ref} className={styles.aiMessageRow}>
         {showAiBadge && (
           <div className={styles.aiHeader}>
             <div className={styles.aiBadge}>
               <IconSparkles size={13} color="#2563EB" />
-              <span>Ассистент</span>
+              <span>{t('chat.assistant')}</span>
             </div>
           </div>
         )}
 
         <div className={styles.aiBubble}>
-          <p className={styles.messageText}>{message.text}</p>
+          <p className={styles.messageText}>{messageText}</p>
 
           {message.event && (
             <ChatRecommendationCard

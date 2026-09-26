@@ -71,6 +71,26 @@ export function formatEventDateTime(
     }
   }
 
+  // Handle Russian month names like "21 сентября"
+  const ruMonthMatch = dateStr.trim().match(/^(\d{1,2})\s+([а-яё]+)$/i)
+  if (ruMonthMatch) {
+    const day = parseInt(ruMonthMatch[1], 10)
+    const monthWord = ruMonthMatch[2].toLowerCase()
+    const monthsRu = [
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
+    ]
+    const mIdx = monthsRu.indexOf(monthWord)
+    if (mIdx !== -1 && !isNaN(day)) {
+      const d = new Date(2026, mIdx, day)
+      const datePart = new Intl.DateTimeFormat(norm, {
+        day: 'numeric',
+        month: 'long',
+      }).format(d)
+      return `${datePart}${timeSuffix}`
+    }
+  }
+
   return `${dateStr}${timeSuffix}`
 }
 

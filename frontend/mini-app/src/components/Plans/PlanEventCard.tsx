@@ -1,5 +1,7 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
+import { formatEventDateTime } from '../../utils/formatters'
 import { IconCheck, IconUsers, IconCalendar } from '../Icons'
 import styles from './PlanEventCard.module.css'
 
@@ -14,13 +16,15 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
   onClick,
   onRequestRemove,
 }) => {
+  const { t, i18n } = useTranslation()
+
   const handleBadgeClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     onRequestRemove(event)
   }
 
-  // Format date display: e.g. "сегодня 19:00" or "завтра 08:00"
-  const timeDisplay = `${event.date} ${event.startTime}`
+  // Format date display: locale-aware, e.g. "Сегодня · 19:00" or "Today · 7:00 PM"
+  const timeDisplay = formatEventDateTime(event.date, event.startTime, i18n.language)
 
   return (
     <article
@@ -60,7 +64,7 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
           {event.attendeesCount > 0 && (
             <div className={styles.attendeesRow}>
               <IconUsers size={14} color="#6B7280" />
-              <span>{event.attendeesCount} идут</span>
+              <span>{t('events.attendeesCount', { count: event.attendeesCount })}</span>
             </div>
           )}
         </div>
@@ -70,11 +74,11 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
           type="button"
           className={styles.goingBadge}
           onClick={handleBadgeClick}
-          aria-label="Управление участием в событии"
-          title="Нажмите, чтобы изменить участие"
+          aria-label={t('plans.manageAttendanceAriaLabel')}
+          title={t('plans.manageAttendanceTitle')}
         >
           <IconCheck size={14} color="#2563EB" />
-          <span>Я приду</span>
+          <span>{t('events.imGoing')}</span>
         </button>
       </div>
     </article>

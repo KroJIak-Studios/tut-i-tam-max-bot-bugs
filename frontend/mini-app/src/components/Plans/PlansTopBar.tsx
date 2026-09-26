@@ -1,7 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './PlansTopBar.module.css'
 
 export const PlansTopBar: React.FC = () => {
+  const { t } = useTranslation()
+
   return (
     <header className={styles.topBarWrapper}>
       <div className={styles.topBar}>
@@ -13,7 +16,7 @@ export const PlansTopBar: React.FC = () => {
           />
           <span className={styles.brandTitle}>Тут и Там</span>
         </div>
-        <h1 className={styles.pageTitle}>Планы</h1>
+        <h1 className={styles.pageTitle}>{t('plans.title')}</h1>
       </div>
     </header>
   )

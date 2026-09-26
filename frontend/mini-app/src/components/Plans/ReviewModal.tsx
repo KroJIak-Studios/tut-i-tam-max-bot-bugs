@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PastEvent } from '../../mocks/plansData'
 import { IconStar, IconClose } from '../Icons'
 import styles from './ReviewModal.module.css'
@@ -16,6 +17,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const { t } = useTranslation()
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
 
@@ -38,19 +40,25 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('reviews.modalTitle')}
+    >
       <div
         className={styles.modalSheet}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
           <div className={styles.headerTop}>
-            <h3 className={styles.title}>Оставить отзыв</h3>
+            <h3 className={styles.title}>{t('reviews.modalTitle')}</h3>
             <button
               type="button"
               className={styles.closeBtn}
               onClick={onClose}
-              aria-label="Закрыть"
+              aria-label={t('common.close')}
             >
               <IconClose size={20} color="#6B7280" />
             </button>
@@ -60,7 +68,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.ratingRow}>
-            <span className={styles.ratingLabel}>Ваша оценка:</span>
+            <span className={styles.ratingLabel}>{t('reviews.ratingLabel')}</span>
             <div className={styles.stars}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -68,7 +76,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   type="button"
                   className={styles.starBtn}
                   onClick={() => setRating(star)}
-                  aria-label={`${star} звезд`}
+                  aria-label={t('reviews.starsAriaLabel', { count: star })}
                 >
                   <IconStar
                     size={26}
@@ -82,20 +90,20 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           <div className={styles.fieldGroup}>
             <label htmlFor="review-comment" className={styles.fieldLabel}>
-              Комментарий (необязательно)
+              {t('reviews.commentLabel')}
             </label>
             <textarea
               id="review-comment"
               className={styles.textarea}
               rows={3}
-              placeholder="Поделитесь впечатлениями о мероприятии..."
+              placeholder={t('reviews.commentPlaceholder')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
           </div>
 
           <button type="submit" className={styles.submitBtn}>
-            Отправить отзыв
+            {t('reviews.submit')}
           </button>
         </form>
       </div>

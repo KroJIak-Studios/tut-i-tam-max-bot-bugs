@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './PlansSegmentControl.module.css'
 
 export type PlansTab = 'going' | 'past'
@@ -16,9 +17,11 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
   goingCount,
   pastCount,
 }) => {
+  const { t } = useTranslation()
+
   return (
     <div className={styles.container}>
-      <div className={styles.pillTrack} role="tablist" aria-label="Разделы планов">
+      <div className={styles.pillTrack} role="tablist" aria-label={t('plans.sectionsAriaLabel')}>
         {/* Animated sliding highlight */}
         <div
           className={`${styles.sliderIndicator} ${
@@ -34,7 +37,7 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
           className={`${styles.tabBtn} ${activeTab === 'going' ? styles.tabBtnActive : ''}`}
           onClick={() => onChange('going')}
         >
-          <span>Иду</span>
+          <span>{t('plans.tabs.going')}</span>
           {goingCount !== undefined && goingCount > 0 && (
             <span className={styles.tabBadge}>{goingCount}</span>
           )}
@@ -47,7 +50,7 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
           className={`${styles.tabBtn} ${activeTab === 'past' ? styles.tabBtnActive : ''}`}
           onClick={() => onChange('past')}
         >
-          <span>Были</span>
+          <span>{t('plans.tabs.past')}</span>
           {pastCount !== undefined && pastCount > 0 && (
             <span className={styles.tabBadge}>{pastCount}</span>
           )}

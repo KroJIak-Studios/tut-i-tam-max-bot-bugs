@@ -185,6 +185,94 @@ export interface TranslationSchema {
     editProfile: string
     name: string
   }
+  chat: {
+    title: string
+    assistant: string
+    placeholder: string
+    sendAriaLabel: string
+    welcomeText: string
+    errorText: string
+    onMap: string
+    eventChat: string
+    eventChatToast: string
+    detailsAriaLabel: string
+    quickPromptsAriaLabel: string
+    tapToOpenMap: string
+    suggestions: {
+      evening: string
+      free: string
+      kids: string
+      volunteer: string
+      sports: string
+      nearby: string
+      culture: string
+    }
+  }
+  plans: {
+    title: string
+    sectionsAriaLabel: string
+    tabs: {
+      going: string
+      past: string
+    }
+    empty: {
+      goingTitle: string
+      goingDescription: string
+      pastTitle: string
+      pastDescription: string
+      openMap: string
+      askAssistant: string
+    }
+    manageAttendanceAriaLabel: string
+    manageAttendanceTitle: string
+    visitedOn: string
+    leaveReview: string
+    reviewSubmitted: string
+    pastCardAriaLabel: string
+    removedToast: string
+    updateErrorToast: string
+    reviewThanksToast: string
+    removeModal: {
+      title: string
+      description: string
+      confirm: string
+    }
+  }
+  reviews: {
+    title: string
+    modalTitle: string
+    ratingLabel: string
+    commentLabel: string
+    commentPlaceholder: string
+    submit: string
+    leaveReview: string
+    yourReview: string
+    you: string
+    noReviewsYet: string
+    starsAriaLabel_one: string
+    starsAriaLabel_few: string
+    starsAriaLabel_many: string
+    starsAriaLabel_other: string
+    count_one: string
+    count_few: string
+    count_many: string
+    count_other: string
+  }
+  eventDetails: {
+    title: string
+    back: string
+    notFoundTitle: string
+    notFoundDescription: string
+    backToMap: string
+    description: string
+    location: string
+    showOnMap: string
+    openInPreferredMap: string
+    yandexMaps: string
+    gisMaps: string
+    systemMaps: string
+    addedToPlansToast: string
+  }
 }
 
 export const ruRU: TranslationSchema = {
@@ -373,5 +461,93 @@ export const ruRU: TranslationSchema = {
     systemMaps: 'Системные карты',
     editProfile: 'Изменить профиль',
     name: 'Имя',
+  },
+  chat: {
+    title: 'Чат',
+    assistant: 'Ассистент',
+    placeholder: 'Спросить, куда сходить...',
+    sendAriaLabel: 'Отправить сообщение',
+    welcomeText: 'Привет! Помогу найти, куда сходить в Казани. Спроси меня о местах, событиях или активностях рядом.',
+    errorText: 'Не получилось подобрать варианты. Попробуйте задать вопрос иначе или повторить чуть позже.',
+    onMap: 'На карте',
+    eventChat: 'Чат события',
+    eventChatToast: 'Чат мероприятия появится в следующем обновлении',
+    detailsAriaLabel: 'Подробнее о событии: {{title}}',
+    quickPromptsAriaLabel: 'Быстрые подсказки',
+    tapToOpenMap: 'Нажмите, чтобы открыть карту',
+    suggestions: {
+      evening: 'Куда пойти вечером?',
+      free: 'Что есть бесплатного рядом?',
+      kids: 'Куда сходить с детьми?',
+      volunteer: 'Есть волонтёрство?',
+      sports: 'Спортивные активности',
+      nearby: 'Что интересного рядом?',
+      culture: 'Культура и выставки',
+    },
+  },
+  plans: {
+    title: 'Планы',
+    sectionsAriaLabel: 'Разделы планов',
+    tabs: {
+      going: 'Иду',
+      past: 'Были',
+    },
+    empty: {
+      goingTitle: 'Пока ничего не запланировано',
+      goingDescription: 'Найдите интересные события на карте Казани или попросите персональные рекомендации у ассистента.',
+      pastTitle: 'История посещений пока пустая',
+      pastDescription: 'Здесь будут сохраняться мероприятия, которые вы уже посетили в Казани.',
+      openMap: 'Открыть карту',
+      askAssistant: 'Спросить ассистента',
+    },
+    manageAttendanceAriaLabel: 'Управление участием в событии',
+    manageAttendanceTitle: 'Нажмите, чтобы изменить участие',
+    visitedOn: 'Посещено {{date}}',
+    leaveReview: 'Оставить отзыв',
+    reviewSubmitted: 'Отзыв оставлен',
+    pastCardAriaLabel: '{{title}}, посещено {{date}}',
+    removedToast: 'Удалено из ваших планов',
+    updateErrorToast: 'Не удалось обновить планы',
+    reviewThanksToast: 'Спасибо за ваш отзыв!',
+    removeModal: {
+      title: 'Убрать из планов?',
+      description: 'Мероприятие «{{title}}» будет удалено из ваших запланированных событий.',
+      confirm: 'Убрать',
+    },
+  },
+  reviews: {
+    title: 'Отзывы',
+    modalTitle: 'Оставить отзыв',
+    ratingLabel: 'Ваша оценка:',
+    commentLabel: 'Комментарий (необязательно)',
+    commentPlaceholder: 'Поделитесь впечатлениями о мероприятии...',
+    submit: 'Отправить отзыв',
+    leaveReview: 'Оставить отзыв',
+    yourReview: 'Ваш отзыв',
+    you: 'Вы',
+    noReviewsYet: 'Пока нет отзывов. Станьте первым!',
+    starsAriaLabel_one: '{{count}} звезда',
+    starsAriaLabel_few: '{{count}} звезды',
+    starsAriaLabel_many: '{{count}} звёзд',
+    starsAriaLabel_other: '{{count}} звёзд',
+    count_one: '{{count}} отзыв',
+    count_few: '{{count}} отзыва',
+    count_many: '{{count}} отзывов',
+    count_other: '{{count}} отзывов',
+  },
+  eventDetails: {
+    title: 'Событие',
+    back: 'Назад',
+    notFoundTitle: 'Событие не найдено',
+    notFoundDescription: 'Возможно, мероприятие было перенесено, удалено или ссылка содержит опечатку.',
+    backToMap: 'На карту',
+    description: 'Описание',
+    location: 'Место',
+    showOnMap: 'Показать на карте приложения',
+    openInPreferredMap: 'Открыть в {{provider}} ↗',
+    yandexMaps: 'Яндекс Карты ↗',
+    gisMaps: '2ГИС ↗',
+    systemMaps: 'Системные карты ↗',
+    addedToPlansToast: 'Добавлено в ваши планы!',
   },
 }
