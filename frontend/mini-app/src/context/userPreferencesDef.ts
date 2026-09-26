@@ -14,25 +14,25 @@ export interface UserPreferencesContextValue {
 }
 
 export const AVAILABLE_INTERESTS: string[] = [
-  'прогулки',
-  'музеи',
-  'спорт',
-  'волонтёрство',
-  'концерты',
-  'театры',
-  'парки',
-  'лекции',
-  'кино',
-  'гастрономия',
-  'фестивали',
-  'настолки',
+  'walks',
+  'museums',
+  'sport',
+  'volunteering',
+  'concerts',
+  'theatres',
+  'parks',
+  'lectures',
+  'cinema',
+  'food',
+  'festivals',
+  'boardgames',
 ]
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   name: 'Анна',
-  city: 'Казань',
+  city: 'kazan',
   avatarUrl: '/avatar-anna.jpg',
-  interests: ['прогулки', 'музеи', 'спорт', 'волонтёрство'],
+  interests: ['walks', 'museums', 'sport', 'volunteering'],
   pushkinCard: true,
   defaultMapProvider: 'yandex',
   notifications: {

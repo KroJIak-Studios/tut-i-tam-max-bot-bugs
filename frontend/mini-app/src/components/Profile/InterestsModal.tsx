@@ -10,13 +10,36 @@ interface InterestsModalProps {
   onSave: (interests: string[]) => void
 }
 
+const LEGACY_INTEREST_TO_ID: Record<string, string> = {
+  'прогулки': 'walks',
+  'музеи': 'museums',
+  'спорт': 'sport',
+  'волонтёрство': 'volunteering',
+  'волонтерство': 'volunteering',
+  'концерты': 'concerts',
+  'театры': 'theatres',
+  'парки': 'parks',
+  'лекции': 'lectures',
+  'кино': 'cinema',
+  'гастрономия': 'food',
+  'фестивали': 'festivals',
+  'настолки': 'boardgames',
+}
+
+const normalizeInterestList = (list: string[]): string[] => {
+  return list.map((item) => {
+    const lower = item.toLowerCase().trim()
+    return LEGACY_INTEREST_TO_ID[lower] || lower
+  })
+}
+
 export const InterestsModal: React.FC<InterestsModalProps> = ({
   currentInterests,
   onClose,
   onSave,
 }) => {
   const { t } = useTranslation()
-  const [selected, setSelected] = useState<string[]>(currentInterests)
+  const [selected, setSelected] = useState<string[]>(() => normalizeInterestList(currentInterests))
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,6 +92,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
         <div className={styles.interestsGrid} role="group" aria-label={t('profile.interests')}>
           {AVAILABLE_INTERESTS.map((interest) => {
             const isSelected = selected.includes(interest)
+            const label = t(`interests.${interest}`, { defaultValue: interest })
             return (
               <button
                 key={interest}
@@ -82,7 +106,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
                     <IconCheck size={14} color="#FFFFFF" />
                   </span>
                 )}
-                <span>{interest}</span>
+                <span>{label}</span>
               </button>
             )
           })}

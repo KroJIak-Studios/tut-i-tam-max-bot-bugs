@@ -5,6 +5,48 @@ import { resolveInitialLocale, normalizeLocale, i18n } from '../i18n'
 
 const STORAGE_KEY_PREFERENCES = 'tut_i_tam_user_preferences'
 
+const LEGACY_INTEREST_TO_ID: Record<string, string> = {
+  'прогулки': 'walks',
+  'музеи': 'museums',
+  'спорт': 'sport',
+  'волонтёрство': 'volunteering',
+  'волонтерство': 'volunteering',
+  'концерты': 'concerts',
+  'театры': 'theatres',
+  'парки': 'parks',
+  'лекции': 'lectures',
+  'кино': 'cinema',
+  'гастрономия': 'food',
+  'фестивали': 'festivals',
+  'настолки': 'boardgames',
+}
+
+const LEGACY_CITY_TO_ID: Record<string, string> = {
+  'казань': 'kazan',
+  'kazan': 'kazan',
+}
+
+function normalizeInterests(interests: unknown): string[] {
+  if (!Array.isArray(interests)) {
+    return DEFAULT_PREFERENCES.interests
+  }
+  const normalized = interests
+    .map((item) => {
+      if (typeof item !== 'string') return ''
+      const lower = item.toLowerCase().trim()
+      return LEGACY_INTEREST_TO_ID[lower] || lower
+    })
+    .filter(Boolean)
+
+  return normalized.length > 0 ? normalized : DEFAULT_PREFERENCES.interests
+}
+
+function normalizeCity(city: unknown): string {
+  if (typeof city !== 'string') return DEFAULT_PREFERENCES.city
+  const lower = city.toLowerCase().trim()
+  return LEGACY_CITY_TO_ID[lower] || city.trim() || DEFAULT_PREFERENCES.city
+}
+
 function loadPreferences(): UserPreferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PREFERENCES)
@@ -20,6 +62,8 @@ function loadPreferences(): UserPreferences {
     return {
       ...DEFAULT_PREFERENCES,
       ...parsed,
+      city: normalizeCity(parsed.city),
+      interests: normalizeInterests(parsed.interests),
       locale: resolvedLocale,
       notifications: {
         ...DEFAULT_PREFERENCES.notifications,
@@ -73,14 +117,14 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
     setPreferences((prev) => ({
       ...prev,
       name: name.trim() || prev.name,
-      city: city.trim() || prev.city,
+      city: normalizeCity(city),
     }))
   }, [])
 
   const updateInterests = useCallback((interests: string[]) => {
     setPreferences((prev) => ({
       ...prev,
-      interests,
+      interests: normalizeInterests(interests),
     }))
   }, [])
 

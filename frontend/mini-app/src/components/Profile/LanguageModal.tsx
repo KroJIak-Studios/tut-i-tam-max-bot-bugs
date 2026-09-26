@@ -83,9 +83,6 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
               >
                 <div className={styles.labelCol}>
                   <span className={styles.optionLabel}>{opt.nativeName}</span>
-                  {opt.name !== opt.nativeName && (
-                    <span className={styles.optionSub}>{opt.name}</span>
-                  )}
                 </div>
                 <div className={styles.radioCircle}>
                   {isSelected && <div className={styles.radioDot} />}

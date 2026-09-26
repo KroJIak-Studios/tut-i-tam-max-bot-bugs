@@ -9,7 +9,7 @@ interface ProfileCitySelectProps {
 }
 
 const AVAILABLE_CITIES = [
-  { id: 'kazan', name: 'Казань', available: true },
+  { id: 'kazan', available: true },
 ]
 
 export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
@@ -23,10 +23,13 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
     setIsOpen((prev) => !prev)
   }
 
-  const handleSelectCity = (cityName: string) => {
-    onSelectCity?.(cityName)
+  const handleSelectCity = (cityId: string) => {
+    onSelectCity?.(cityId)
     setIsOpen(false)
   }
+
+  const normalizedCityId = currentCity.toLowerCase().trim() === 'казань' ? 'kazan' : currentCity.toLowerCase().trim()
+  const displayCityName = normalizedCityId === 'kazan' ? t('cities.kazan') : currentCity
 
   return (
     <section className={styles.card} aria-label={t('profile.city')}>
@@ -54,7 +57,7 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
         </div>
 
         <div className={styles.cityPill}>
-          <span className={styles.cityName}>{currentCity}</span>
+          <span className={styles.cityName}>{displayCityName}</span>
           <span
             className={`${styles.chevronWrapper} ${isOpen ? styles.chevronOpen : ''}`}
             aria-hidden="true"
@@ -68,15 +71,16 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
         <div id="city-select-dropdown" className={styles.dropdownArea}>
           <div className={styles.citiesList}>
             {AVAILABLE_CITIES.map((city) => {
-              const isSelected = city.name === currentCity
+              const isSelected = normalizedCityId === city.id
+              const cityName = t(`cities.${city.id}` as 'cities.kazan')
               return (
                 <button
                   key={city.id}
                   type="button"
                   className={`${styles.cityOption} ${isSelected ? styles.cityOptionSelected : ''}`}
-                  onClick={() => handleSelectCity(city.name)}
+                  onClick={() => handleSelectCity(city.id)}
                 >
-                  <span className={styles.optionName}>{city.name}</span>
+                  <span className={styles.optionName}>{cityName}</span>
                   {isSelected && (
                     <IconCheck size={16} color="#2563EB" className={styles.checkIcon} />
                   )}

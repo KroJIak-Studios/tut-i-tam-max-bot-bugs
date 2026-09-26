@@ -7,8 +7,34 @@ export interface TranslationSchema {
     save: string
     edit: string
   }
+  nav: {
+    mainNav: string
+    home: string
+    chat: string
+    map: string
+    plans: string
+    profile: string
+  }
+  cities: {
+    kazan: string
+  }
+  interests: {
+    walks: string
+    museums: string
+    sport: string
+    volunteering: string
+    concerts: string
+    theatres: string
+    parks: string
+    lectures: string
+    cinema: string
+    food: string
+    festivals: string
+    boardgames: string
+  }
   profile: {
     title: string
+    heroAriaLabel: string
     city: string
     cityNotice: string
     interests: string
@@ -45,8 +71,34 @@ export const ruRU: TranslationSchema = {
     save: 'Сохранить',
     edit: 'Изменить',
   },
+  nav: {
+    mainNav: 'Основная навигация',
+    home: 'Главная',
+    chat: 'Чат',
+    map: 'Карта',
+    plans: 'Планы',
+    profile: 'Профиль',
+  },
+  cities: {
+    kazan: 'Казань',
+  },
+  interests: {
+    walks: 'прогулки',
+    museums: 'музеи',
+    sport: 'спорт',
+    volunteering: 'волонтёрство',
+    concerts: 'концерты',
+    theatres: 'театры',
+    parks: 'парки',
+    lectures: 'лекции',
+    cinema: 'кино',
+    food: 'гастрономия',
+    festivals: 'фестивали',
+    boardgames: 'настолки',
+  },
   profile: {
     title: 'Профиль',
+    heroAriaLabel: 'Карточка профиля',
     city: 'Город',
     cityNotice: 'Пока сервис работает только в Казани',
     interests: 'Интересы',

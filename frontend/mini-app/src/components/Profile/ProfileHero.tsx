@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './ProfileHero.module.css'
 
 interface ProfileHeroProps {
@@ -12,8 +13,10 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
   name,
   avatarUrl,
 }) => {
+  const { t } = useTranslation()
+
   return (
-    <section className={styles.heroCard} aria-label="Карточка профиля">
+    <section className={styles.heroCard} aria-label={t('profile.heroAriaLabel')}>
       <div className={styles.avatarContainer}>
         <img
           src={avatarUrl}
