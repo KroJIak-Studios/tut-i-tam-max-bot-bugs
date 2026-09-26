@@ -1,0 +1,152 @@
+/**
+ * Unified locale-aware formatters layer for Mini-App
+ * Provides consistent formatting for dates, times, distances, and prices using Intl API.
+ */
+import { getIsoDate, parseIsoDate } from './dateUtils'
+
+export type SupportedLocale = 'ru-RU' | 'en-US'
+
+function normalizeLocale(locale?: string): SupportedLocale {
+  if (locale && locale.startsWith('en')) {
+    return 'en-US'
+  }
+  return 'ru-RU'
+}
+
+/**
+ * Formats time string (e.g. "19:00" -> "19:00" in RU, "7:00 PM" in EN)
+ */
+export function formatTime(timeStr?: string, locale?: string): string {
+  if (!timeStr) return ''
+  const parts = timeStr.trim().split(':')
+  if (parts.length < 2) return timeStr
+  const h = Number(parts[0])
+  const m = Number(parts[1])
+  if (isNaN(h) || isNaN(m)) return timeStr
+
+  const norm = normalizeLocale(locale)
+  const d = new Date(2026, 0, 1, h, m)
+  return new Intl.DateTimeFormat(norm, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(d)
+}
+
+/**
+ * Formats event date and time according to locale:
+ * RU: "Сегодня · 19:00", "Завтра · 10:00", "27 сентября · 18:30"
+ * EN: "Today · 7:00 PM", "Tomorrow · 10:00 AM", "September 27 · 6:30 PM"
+ */
+export function formatEventDateTime(
+  dateStr: string,
+  startTime?: string,
+  locale?: string
+): string {
+  const norm = normalizeLocale(locale)
+  const isEn = norm === 'en-US'
+  const today = getIsoDate(0)
+  const tomorrow = getIsoDate(1)
+  const formattedTime = startTime ? formatTime(startTime, norm) : ''
+  const timeSuffix = formattedTime ? ` · ${formattedTime}` : ''
+
+  const lower = dateStr.trim().toLowerCase()
+  if (lower === 'сегодня' || lower === 'today' || dateStr === today) {
+    return `${isEn ? 'Today' : 'Сегодня'}${timeSuffix}`
+  }
+  if (lower === 'завтра' || lower === 'tomorrow' || dateStr === tomorrow) {
+    return `${isEn ? 'Tomorrow' : 'Завтра'}${timeSuffix}`
+  }
+
+  // Handle standard YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    try {
+      const d = parseIsoDate(dateStr)
+      const datePart = new Intl.DateTimeFormat(norm, {
+        day: 'numeric',
+        month: 'long',
+      }).format(d)
+      return `${datePart}${timeSuffix}`
+    } catch {
+      return `${dateStr}${timeSuffix}`
+    }
+  }
+
+  return `${dateStr}${timeSuffix}`
+}
+
+/**
+ * Formats chip date (e.g. for filter bar):
+ * RU: "Сегодня", "Завтра", "27 сент."
+ * EN: "Today", "Tomorrow", "Sep 27"
+ */
+export function formatChipDate(isoDate: string, locale?: string): string {
+  const norm = normalizeLocale(locale)
+  const isEn = norm === 'en-US'
+  const today = getIsoDate(0)
+  const tomorrow = getIsoDate(1)
+
+  if (isoDate === today) return isEn ? 'Today' : 'Сегодня'
+  if (isoDate === tomorrow) return isEn ? 'Tomorrow' : 'Завтра'
+
+  try {
+    const d = parseIsoDate(isoDate)
+    return new Intl.DateTimeFormat(norm, {
+      day: 'numeric',
+      month: 'short',
+    }).format(d)
+  } catch {
+    return isoDate
+  }
+}
+
+/**
+ * Formats month and year for calendar navigation:
+ * RU: "Сентябрь 2026"
+ * EN: "September 2026"
+ */
+export function formatMonthYear(date: Date, locale?: string): string {
+  const norm = normalizeLocale(locale)
+  const formatted = new Intl.DateTimeFormat(norm, {
+    month: 'long',
+    year: 'numeric',
+  }).format(date)
+
+  // Remove " г." in Russian if present
+  const cleaned = norm === 'ru-RU' ? formatted.replace(/\s*г\.?$/, '') : formatted
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+}
+
+/**
+ * Formats distance with locale-native number formatting and unit:
+ * RU: "390 м", "1,4 км"
+ * EN: "390 m", "1.4 km"
+ */
+export function formatDistance(meters: number, locale?: string): string {
+  const norm = normalizeLocale(locale)
+  const isEn = norm === 'en-US'
+
+  if (meters < 1000) {
+    const rounded = Math.round(meters / 10) * 10 || 50
+    const formattedNum = new Intl.NumberFormat(norm).format(rounded)
+    return `${formattedNum} ${isEn ? 'm' : 'м'}`
+  }
+
+  const km = meters / 1000
+  const formattedKm = new Intl.NumberFormat(norm, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(km)
+
+  return `${formattedKm} ${isEn ? 'km' : 'км'}`
+}
+
+/**
+ * Formats price in RUB preserving the currency symbol ₽:
+ * RU: "450 ₽", "1 200 ₽"
+ * EN: "450 ₽", "1,200 ₽"
+ */
+export function formatPrice(price: number, locale?: string): string {
+  const norm = normalizeLocale(locale)
+  const formatted = new Intl.NumberFormat(norm).format(price)
+  return `${formatted} ₽`
+}

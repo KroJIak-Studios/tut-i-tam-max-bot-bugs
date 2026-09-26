@@ -1,6 +1,8 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { IconClock, IconTag, IconUsers, IconCheck } from '../Icons'
+import { formatEventDateTime } from '../../utils/dateUtils'
 import styles from './MapEventCard.module.css'
 
 interface MapEventCardProps {
@@ -14,8 +16,20 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
   onToggleGoing,
   onMoreDetails,
 }) => {
+  const { t, i18n } = useTranslation()
+  const dateTimeText = formatEventDateTime(event.date, event.startTime, i18n.language)
+
+  const priceDisplay =
+    event.isFree || event.price === 0
+      ? t('events.free')
+      : `${event.price} ₽${event.pushkinCard ? ` • ${t('events.pushkinCard')}` : ''}`
+
   return (
-    <div className={styles.cardWrapper} role="region" aria-label={`Событие: ${event.title}`}>
+    <div
+      className={styles.cardWrapper}
+      role="region"
+      aria-label={t('map.eventAriaLabel', { title: event.title })}
+    >
       <div
         className={styles.clickableBody}
         onClick={() => onMoreDetails?.(event)}
@@ -27,12 +41,12 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
             onMoreDetails?.(event)
           }
         }}
-        aria-label={`Подробнее о событии: ${event.title}`}
+        aria-label={t('map.eventDetailsAriaLabel', { title: event.title })}
       >
         <div className={styles.headerRow}>
           <div className={styles.titleArea}>
             {event.source === 'user' && (
-              <span className={styles.userBadge}>Добавлено пользователем</span>
+              <span className={styles.userBadge}>{t('events.userAdded')}</span>
             )}
             <h2 className={styles.title}>{event.title}</h2>
           </div>
@@ -43,30 +57,26 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
             <span className={styles.infoIcon}>
               <IconClock size={15} color="currentColor" />
             </span>
-            <span>{event.date} {event.startTime}</span>
+            <span>{dateTimeText}</span>
           </div>
 
           <div className={styles.infoItem}>
             <span className={styles.infoIcon}>
               <IconTag size={15} color="currentColor" />
             </span>
-            <span>
-              {event.isFree || event.price === 0
-                ? 'бесплатно'
-                : `${event.price} ₽${event.pushkinCard ? ' • Пушкинская карта' : ''}`}
-            </span>
+            <span>{priceDisplay}</span>
           </div>
 
           <div className={styles.infoItem}>
             <span className={styles.infoIcon}>
               <IconUsers size={15} color="currentColor" />
             </span>
-            <span>{event.attendeesCount} идут</span>
+            <span>{t('events.attendeesCount', { count: event.attendeesCount })}</span>
           </div>
         </div>
 
         <div className={styles.detailsLink}>
-          <span>Подробнее</span>
+          <span>{t('map.details')}</span>
           <span aria-hidden="true">→</span>
         </div>
       </div>
@@ -79,10 +89,10 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
         {event.isGoing ? (
           <>
             <IconCheck size={16} color="#FFFFFF" />
-            <span>Вы идёте</span>
+            <span>{t('events.youreGoing')}</span>
           </>
         ) : (
-          <span>Я приду</span>
+          <span>{t('events.imGoing')}</span>
         )}
       </button>
     </div>

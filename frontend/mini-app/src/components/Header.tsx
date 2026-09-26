@@ -1,5 +1,6 @@
 import React from 'react'
-import { getGreeting } from '../utils/dateUtils'
+import { useTranslation } from 'react-i18next'
+import { getGreetingKey } from '../utils/dateUtils'
 import { IconLocationPinFilled } from './Icons'
 import styles from './Header.module.css'
 
@@ -9,10 +10,18 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  city = 'Казань',
+  city = 'kazan',
   greeting,
 }) => {
-  const currentGreeting = greeting || getGreeting()
+  const { t } = useTranslation()
+  const greetingKey = getGreetingKey()
+  const currentGreeting = greeting || t(`home.greetings.${greetingKey}`)
+
+  const normalizedCity = city.toLowerCase().trim()
+  const displayCity =
+    normalizedCity === 'kazan' || normalizedCity === 'казань'
+      ? t('cities.kazan')
+      : city
 
   return (
     <header className={styles.headerWrapper}>
@@ -31,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className={styles.greetingTitle}>{currentGreeting}</div>
         <div className={styles.greetingSubtitleRow}>
           <IconLocationPinFilled size={13} className={styles.locationPinIcon} />
-          <span className={styles.cityText}>{city}</span>
+          <span className={styles.cityText}>{displayCity}</span>
         </div>
       </div>
     </header>

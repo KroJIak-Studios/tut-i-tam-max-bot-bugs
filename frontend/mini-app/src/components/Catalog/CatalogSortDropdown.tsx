@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { CatalogSort } from '../../types'
 import { IconChevronDown, IconCheck } from '../Icons'
 import styles from './CatalogSortDropdown.module.css'
@@ -8,21 +9,17 @@ interface CatalogSortDropdownProps {
   onChange: (sort: CatalogSort) => void
 }
 
-const SORT_OPTIONS: Array<{ id: CatalogSort; label: string }> = [
-  { id: 'distance', label: 'Сначала рядом' },
-  { id: 'date', label: 'Сначала раньше' },
-  { id: 'popular', label: 'Сначала популярные' },
-  { id: 'price', label: 'Сначала дешевле' },
-]
+const SORT_IDS: CatalogSort[] = ['distance', 'date', 'popular', 'price']
 
 export const CatalogSortDropdown: React.FC<CatalogSortDropdownProps> = ({
   value,
   onChange,
 }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const activeOption = SORT_OPTIONS.find((opt) => opt.id === value) || SORT_OPTIONS[0]
+  const activeLabel = t(`catalog.sortOptions.${value}`)
 
   useEffect(() => {
     if (!isOpen) return
@@ -63,9 +60,9 @@ export const CatalogSortDropdown: React.FC<CatalogSortDropdownProps> = ({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        aria-label={`Сортировка: ${activeOption.label}`}
+        aria-label={`${t('catalog.sortLabel')}: ${activeLabel}`}
       >
-        <span>{activeOption.label}</span>
+        <span>{activeLabel}</span>
         <span
           className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}
           aria-hidden="true"
@@ -75,19 +72,20 @@ export const CatalogSortDropdown: React.FC<CatalogSortDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className={styles.menu} role="listbox" aria-label="Варианты сортировки">
-          {SORT_OPTIONS.map((option) => {
-            const isSelected = option.id === value
+        <div className={styles.menu} role="listbox" aria-label={t('catalog.sortOptionsAriaLabel')}>
+          {SORT_IDS.map((sortId) => {
+            const isSelected = sortId === value
+            const label = t(`catalog.sortOptions.${sortId}`)
             return (
               <button
-                key={option.id}
+                key={sortId}
                 type="button"
                 role="option"
                 aria-selected={isSelected}
                 className={`${styles.menuItem} ${isSelected ? styles.menuItemSelected : ''}`}
-                onClick={() => handleSelect(option.id)}
+                onClick={() => handleSelect(sortId)}
               >
-                <span className={styles.optionLabel}>{option.label}</span>
+                <span className={styles.optionLabel}>{label}</span>
                 {isSelected && (
                   <IconCheck size={15} color="#2563EB" className={styles.checkIcon} />
                 )}
@@ -99,3 +97,4 @@ export const CatalogSortDropdown: React.FC<CatalogSortDropdownProps> = ({
     </div>
   )
 }
+

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapFilterState, NavTabId, EventCategory, CatalogSort } from '../../types'
 import { getMapEvents } from '../../services/mapService'
 import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
 import { USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
-import { getIsoDate, formatFoundEventsCount } from '../../utils/dateUtils'
+import { getIsoDate } from '../../utils/dateUtils'
 import { CatalogTopBar } from './CatalogTopBar'
 import { CatalogFilterBar } from './CatalogFilterBar'
 import { CatalogEventCard } from './CatalogEventCard'
@@ -22,6 +23,7 @@ interface EventWithDistance {
 }
 
 export const CatalogPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -47,7 +49,7 @@ export const CatalogPage: React.FC = () => {
 
   const [rawEvents, setRawEvents] = useState<MapEvent[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [hasError, setHasError] = useState<boolean>(false)
   const [sortOrder, setSortOrder] = useState<CatalogSort>('distance')
 
   // Sheets state
@@ -63,12 +65,12 @@ export const CatalogPage: React.FC = () => {
         if (!active) return
         setRawEvents(data)
         setLoading(false)
-        setError(null)
+        setHasError(false)
       })
       .catch((err) => {
         if (!active) return
         console.error('Failed to load catalog events:', err)
-        setError('Не удалось загрузить события каталога')
+        setHasError(true)
         setLoading(false)
       })
 
@@ -193,10 +195,10 @@ export const CatalogPage: React.FC = () => {
           </div>
 
           {/* List Meta Row (Result count & sorting indication) */}
-          {!loading && !error && sortedEvents.length > 0 && (
+          {!loading && !hasError && sortedEvents.length > 0 && (
             <div className={styles.listMetaRow}>
               <span className={styles.countText}>
-                {formatFoundEventsCount(sortedEvents.length)}
+                {t('catalog.foundEvents', { count: sortedEvents.length })}
               </span>
               <CatalogSortDropdown value={sortOrder} onChange={setSortOrder} />
             </div>
@@ -219,21 +221,21 @@ export const CatalogPage: React.FC = () => {
           )}
 
           {/* Error State */}
-          {!loading && error && (
+          {!loading && hasError && (
             <div className={styles.errorContainer} role="alert">
-              <p className={styles.errorText}>{error}</p>
+              <p className={styles.errorText}>{t('catalog.loadError')}</p>
               <button
                 type="button"
                 className={styles.retryBtn}
                 onClick={() => setFilters({ ...filters })}
               >
-                Повторить
+                {t('common.retry')}
               </button>
             </div>
           )}
 
           {/* Empty State */}
-          {!loading && !error && sortedEvents.length === 0 && (
+          {!loading && !hasError && sortedEvents.length === 0 && (
             <CatalogEmptyState
               onResetFilters={handleResetFilters}
               onShowToday={handleShowToday}
@@ -242,7 +244,7 @@ export const CatalogPage: React.FC = () => {
           )}
 
           {/* Events List */}
-          {!loading && !error && sortedEvents.length > 0 && (
+          {!loading && !hasError && sortedEvents.length > 0 && (
             <div className={styles.cardsList}>
               {sortedEvents.map(({ event, distanceMeters }) => (
                 <CatalogEventCard

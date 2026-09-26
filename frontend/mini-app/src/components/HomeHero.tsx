@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconChevronRight } from './Icons'
 import styles from './HomeHero.module.css'
 
@@ -10,27 +11,31 @@ interface HomeHeroProps {
 }
 
 export const HomeHero: React.FC<HomeHeroProps> = ({
-  title = 'Куда пойти рядом',
+  title,
   imageUrl = '/home-kazan-hero.jpg',
-  alt = 'Вид на Казанский Кремль и мечеть Кул-Шариф',
+  alt,
   onClick,
 }) => {
+  const { t } = useTranslation()
+  const heroTitle = title || t('home.heroTitle')
+  const heroAlt = alt || t('home.heroImageAlt')
+
   return (
     <button
       type="button"
       className={styles.heroCard}
       onClick={onClick}
-      aria-label={title}
+      aria-label={heroTitle}
     >
       <div className={styles.imageLayer}>
-        <img src={imageUrl} alt={alt} className={styles.heroImage} />
+        <img src={imageUrl} alt={heroAlt} className={styles.heroImage} />
       </div>
 
       <div className={styles.contentLayer}>
-        <h2 className={styles.heroTitle}>{title}</h2>
+        <h2 className={styles.heroTitle}>{heroTitle}</h2>
 
         <div className={styles.heroCta} aria-hidden="true">
-          <span>Найти рядом</span>
+          <span>{t('home.heroCta')}</span>
           <IconChevronRight size={14} color="#FFFFFF" />
         </div>
       </div>

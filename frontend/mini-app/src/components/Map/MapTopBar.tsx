@@ -1,7 +1,10 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './MapTopBar.module.css'
 
 export const MapTopBar: React.FC = () => {
+  const { t } = useTranslation()
+
   return (
     <header className={styles.topBarWrapper}>
       <div className={styles.topBar}>
@@ -13,8 +16,9 @@ export const MapTopBar: React.FC = () => {
           />
           <span className={styles.brandTitle}>Тут и Там</span>
         </div>
-        <h1 className={styles.pageTitle}>Карта</h1>
+        <h1 className={styles.pageTitle}>{t('map.title')}</h1>
       </div>
     </header>
   )
 }
+

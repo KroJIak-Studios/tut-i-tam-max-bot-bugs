@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconClose, IconChevronLeft, IconChevronRight } from '../Icons'
 import {
   getIsoDate,
@@ -16,13 +17,16 @@ interface MapDatePickerSheetProps {
   onSelectDate: (isoDate: string) => void
 }
 
-const WEEKDAY_NAMES = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAY_NAMES_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAY_NAMES_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   selectedDate,
   onClose,
   onSelectDate,
 }) => {
+  const { t, i18n } = useTranslation()
+
   // Calendar month navigation state
   const initialMonth = useMemo(() => {
     try {
@@ -50,7 +54,8 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   const todayIso = useMemo(() => getIsoDate(0), [])
   const tomorrowIso = useMemo(() => getIsoDate(1), [])
   const weekendIso = useMemo(() => getWeekendIsoDate(), [])
-  const next7Days = useMemo(() => getNextDays(7), [])
+  const next7Days = useMemo(() => getNextDays(7, i18n.language), [i18n.language])
+  const weekdayNames = i18n.language.startsWith('en') ? WEEKDAY_NAMES_EN : WEEKDAY_NAMES_RU
 
   // Can user navigate to previous month?
   const canGoPrev = useMemo(() => {
@@ -86,31 +91,31 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Выбор даты"
+      aria-label={t('dates.selectDate')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         {/* Шапка: Заголовок и кнопка закрытия */}
         <div className={styles.headerRow}>
-          <h2 className={styles.title}>Выбор даты</h2>
+          <h2 className={styles.title}>{t('dates.selectDate')}</h2>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         {/* Быстрые кнопки: Сегодня, Завтра, Выходные */}
-        <div className={styles.quickRow} role="group" aria-label="Быстрый выбор даты">
+        <div className={styles.quickRow} role="group" aria-label={t('dates.quickSelectAriaLabel')}>
           <button
             type="button"
             className={`${styles.quickBtn} ${selectedDate === todayIso ? styles.quickBtnActive : ''}`}
             onClick={() => handlePickDate(todayIso)}
             aria-pressed={selectedDate === todayIso}
           >
-            Сегодня
+            {t('dates.today')}
           </button>
           <button
             type="button"
@@ -118,7 +123,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
             onClick={() => handlePickDate(tomorrowIso)}
             aria-pressed={selectedDate === tomorrowIso}
           >
-            Завтра
+            {t('dates.tomorrow')}
           </button>
           <button
             type="button"
@@ -126,7 +131,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
             onClick={() => handlePickDate(weekendIso)}
             aria-pressed={selectedDate === weekendIso}
           >
-            Выходные
+            {t('dates.weekend')}
           </button>
         </div>
 
@@ -134,7 +139,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
         <div
           className={styles.daysStrip}
           role="listbox"
-          aria-label="Ближайшие дни"
+          aria-label={t('dates.upcomingDaysAriaLabel')}
           tabIndex={0}
         >
           {next7Days.map((day) => {
@@ -163,28 +168,28 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
               className={styles.navArrowBtn}
               onClick={handlePrevMonth}
               disabled={!canGoPrev}
-              aria-label="Предыдущий месяц"
+              aria-label={t('dates.prevMonth')}
             >
               <IconChevronLeft size={16} color="currentColor" />
             </button>
-            <span className={styles.monthTitle}>{formatMonthYear(viewMonthDate)}</span>
+            <span className={styles.monthTitle}>{formatMonthYear(viewMonthDate, i18n.language)}</span>
             <button
               type="button"
               className={styles.navArrowBtn}
               onClick={handleNextMonth}
-              aria-label="Следующий месяц"
+              aria-label={t('dates.nextMonth')}
             >
               <IconChevronRight size={16} color="currentColor" />
             </button>
           </div>
 
           <div className={styles.weekdayHeader} aria-hidden="true">
-            {WEEKDAY_NAMES.map((w) => (
+            {weekdayNames.map((w) => (
               <span key={w}>{w}</span>
             ))}
           </div>
 
-          <div className={styles.calendarGrid} role="grid" aria-label="Календарь дней месяца">
+          <div className={styles.calendarGrid} role="grid" aria-label={t('dates.calendarAriaLabel')}>
             {calendarDays.map((day, idx) => {
               const classNames = [
                 styles.dayCell,

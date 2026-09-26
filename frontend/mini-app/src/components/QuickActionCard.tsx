@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { HomeActionItem, ActionIcon, ActionTheme } from '../types'
 import {
   IconChevronRight,
@@ -15,6 +16,10 @@ interface QuickActionCardProps {
 }
 
 export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick }) => {
+  const { t } = useTranslation()
+  const cardTitle = t(`home.actions.${item.id}.title`, { defaultValue: item.title })
+  const cardSubtitle = t(`home.actions.${item.id}.subtitle`, { defaultValue: item.subtitle })
+
   const getThemeClass = (theme: ActionTheme) => {
     switch (theme) {
       case 'purple':
@@ -50,7 +55,7 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick 
       type="button"
       className={styles.actionCard}
       onClick={() => onClick?.(item.id)}
-      aria-label={`${item.title}, ${item.subtitle}`}
+      aria-label={`${cardTitle}, ${cardSubtitle}`}
     >
       <div className={styles.topRow}>
         <div className={`${styles.iconContainer} ${getThemeClass(item.theme)}`}>
@@ -60,8 +65,8 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick 
 
       <div className={styles.bottomRow}>
         <div className={styles.textContent}>
-          <h3 className={styles.cardTitle}>{item.title}</h3>
-          <p className={styles.cardSubtitle}>{item.subtitle}</p>
+          <h3 className={styles.cardTitle}>{cardTitle}</h3>
+          <p className={styles.cardSubtitle}>{cardSubtitle}</p>
         </div>
         <div className={styles.arrowIcon} aria-hidden="true">
           <IconChevronRight size={14} />

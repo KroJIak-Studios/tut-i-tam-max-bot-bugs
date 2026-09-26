@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapZone, MapFilterState, NavTabId, EventCategory } from '../../types'
 import { getMapEvents, getMapZones } from '../../services/mapService'
 import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
@@ -28,6 +29,7 @@ const DEFAULT_FILTERS: MapFilterState = {
 }
 
 export const MapPage: React.FC = () => {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -38,7 +40,7 @@ export const MapPage: React.FC = () => {
   const [userSelectedId, setUserSelectedId] = useState<string | null | undefined>(undefined)
   const selectedEventId = userSelectedId !== undefined ? userSelectedId : eventParam
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [hasError, setHasError] = useState<boolean>(false)
 
   // Filters state initialized from query params
   const [filters, setFilters] = useState<MapFilterState>(() => {
@@ -124,12 +126,12 @@ export const MapPage: React.FC = () => {
         if (!active) return
         setEvents(data)
         setLoading(false)
-        setError(null)
+        setHasError(false)
       })
       .catch((err) => {
         if (!active) return
         console.error(err)
-        setError('Не удалось загрузить данные карты')
+        setHasError(true)
         setLoading(false)
       })
 
@@ -234,14 +236,14 @@ export const MapPage: React.FC = () => {
       {loading && (
         <div className={styles.loadingPill}>
           <div className={styles.spinner} />
-          <span>Обновление карты...</span>
+          <span>{t('map.updating')}</span>
         </div>
       )}
 
       {/* Баннер ошибки */}
-      {error && (
+      {hasError && (
         <div className={styles.emptyBanner}>
-          <span>{error}</span>
+          <span>{t('map.loadError')}</span>
           <button
             type="button"
             className={styles.emptyResetBtn}
@@ -250,18 +252,18 @@ export const MapPage: React.FC = () => {
               setFilters({ ...filters })
             }}
           >
-            Повторить
+            {t('common.retry')}
           </button>
         </div>
       )}
 
       {/* Баннер пустого результата при фильтрах */}
-      {!loading && !error && events.length === 0 && (
+      {!loading && !hasError && events.length === 0 && (
         <div className={styles.emptyBanner}>
           <span>
             {!isToday
-              ? `На ${formatChipDate(filters.selectedDate)} событий не найдено`
-              : 'Нет событий по выбранным фильтрам'}
+              ? t('map.noEventsOnDate', { date: formatChipDate(filters.selectedDate, i18n.language) })
+              : t('map.noEventsForFilters')}
           </span>
           <button
             type="button"
@@ -271,7 +273,7 @@ export const MapPage: React.FC = () => {
               setFilters(DEFAULT_FILTERS)
             }}
           >
-            {!isToday ? 'Показать сегодня' : 'Сбросить'}
+            {!isToday ? t('map.showToday') : t('common.reset')}
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { IconClock, IconLocationPin, IconUsers } from '../Icons'
 import { formatEventDateTime } from '../../utils/dateUtils'
@@ -18,9 +19,10 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
   onCardClick,
   onMapClick,
 }) => {
+  const { t, i18n } = useTranslation()
   const imgSrc = event.image || event.images?.[0] || '/event-embankment.jpg'
-  const dateTimeText = formatEventDateTime(event.date, event.startTime)
-  const distanceText = formatDistance(distanceMeters)
+  const dateTimeText = formatEventDateTime(event.date, event.startTime, i18n.language)
+  const distanceText = formatDistance(distanceMeters, i18n.language)
   const locationText = event.address ? `${distanceText} · ${event.address}` : distanceText
 
   const handleCardClick = () => {
@@ -68,7 +70,7 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
             </span>
 
             {event.isFree || event.price === 0 ? (
-              <span className={styles.freeBadge}>Бесплатно</span>
+              <span className={styles.freeBadge}>{t('events.free')}</span>
             ) : (
               <span className={styles.priceText}>{event.price} ₽</span>
             )}
@@ -80,16 +82,16 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
             {event.attendeesCount > 0 && (
               <span className={styles.attendees}>
                 <IconUsers size={12} color="currentColor" />
-                <span>{event.attendeesCount} идут</span>
+                <span>{t('events.attendeesCount', { count: event.attendeesCount })}</span>
               </span>
             )}
 
             {event.pushkinCard && (
-              <span className={styles.pushkinBadge}>Пушкинская</span>
+              <span className={styles.pushkinBadge}>{t('events.pushkinCardShort')}</span>
             )}
 
             {event.category === 'volunteer' && (
-              <span className={styles.volunteerBadge}>Волонтёрство</span>
+              <span className={styles.volunteerBadge}>{t('events.volunteering')}</span>
             )}
           </div>
         </div>
@@ -106,10 +108,10 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
           type="button"
           className={styles.mapBtn}
           onClick={handleMapAction}
-          aria-label={`Показать на карте: ${event.title}`}
+          aria-label={`${t('catalog.showOnMap')}: ${event.title}`}
         >
           <IconLocationPin size={12} color="currentColor" />
-          <span>На карте</span>
+          <span>{t('catalog.onMap')}</span>
         </button>
       </div>
     </article>
