@@ -9,6 +9,7 @@ import { PlansPage } from './components/Plans/PlansPage'
 import { ProfilePage } from './components/Profile/ProfilePage'
 import { CatalogPage } from './components/Catalog/CatalogPage'
 import { EventDetailsPage } from './components/Event/EventDetailsPage'
+import { CreateEventPage } from './components/CreateEvent/CreateEventPage'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/plans" element={<PlansPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/events/create" element={<CreateEventPage />} />
               <Route path="/events/:eventId" element={<EventDetailsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

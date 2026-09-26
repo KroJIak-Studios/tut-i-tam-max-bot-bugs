@@ -239,6 +239,7 @@ export const enUS: TranslationSchema = {
       description: '“{{title}}” will be removed from your scheduled events.',
       confirm: 'Remove',
     },
+    createEvent: '+ Create event',
   },
   reviews: {
     title: 'Reviews',
@@ -274,5 +275,36 @@ export const enUS: TranslationSchema = {
     gisMaps: '2GIS ↗',
     systemMaps: 'Maps ↗',
     addedToPlansToast: 'Added to your plans!',
+  },
+  createEvent: {
+    pageTitle: 'Create event',
+    stepOf: 'Step {{current}} of {{total}}',
+    steps: {
+      basics: {
+        title: 'Basics',
+        helper: 'Tell us what you want to organize',
+        placeholder: 'Title, description, and category fields will appear here',
+      },
+      datetime: {
+        title: 'Date and time',
+        helper: 'Choose when the event will take place',
+        placeholder: 'Date and time selectors will appear here',
+      },
+      location: {
+        title: 'Location',
+        helper: 'Choose where the event will take place',
+        placeholder: 'Location and address pickers will appear here',
+      },
+      review: {
+        title: 'Review',
+        helper: 'Review the details before submitting',
+        placeholder: 'Summary and final preview will appear here',
+      },
+    },
+    actions: {
+      next: 'Next',
+      back: 'Back',
+      submit: 'Submit request',
+    },
   },
 }

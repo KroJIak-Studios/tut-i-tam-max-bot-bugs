@@ -237,6 +237,7 @@ export interface TranslationSchema {
       description: string
       confirm: string
     }
+    createEvent: string
   }
   reviews: {
     title: string
@@ -272,6 +273,37 @@ export interface TranslationSchema {
     gisMaps: string
     systemMaps: string
     addedToPlansToast: string
+  }
+  createEvent: {
+    pageTitle: string
+    stepOf: string
+    steps: {
+      basics: {
+        title: string
+        helper: string
+        placeholder: string
+      }
+      datetime: {
+        title: string
+        helper: string
+        placeholder: string
+      }
+      location: {
+        title: string
+        helper: string
+        placeholder: string
+      }
+      review: {
+        title: string
+        helper: string
+        placeholder: string
+      }
+    }
+    actions: {
+      next: string
+      back: string
+      submit: string
+    }
   }
 }
 
@@ -514,6 +546,7 @@ export const ruRU: TranslationSchema = {
       description: 'Мероприятие «{{title}}» будет удалено из ваших запланированных событий.',
       confirm: 'Убрать',
     },
+    createEvent: '+ Создать мероприятие',
   },
   reviews: {
     title: 'Отзывы',
@@ -549,5 +582,36 @@ export const ruRU: TranslationSchema = {
     gisMaps: '2ГИС ↗',
     systemMaps: 'Системные карты ↗',
     addedToPlansToast: 'Добавлено в ваши планы!',
+  },
+  createEvent: {
+    pageTitle: 'Создать мероприятие',
+    stepOf: 'Шаг {{current}} из {{total}}',
+    steps: {
+      basics: {
+        title: 'Основное',
+        helper: 'Расскажите, что вы хотите организовать',
+        placeholder: 'Здесь будут название, описание и категория',
+      },
+      datetime: {
+        title: 'Дата и время',
+        helper: 'Выберите, когда пройдёт мероприятие',
+        placeholder: 'Здесь будут дата и время',
+      },
+      location: {
+        title: 'Место',
+        helper: 'Укажите место проведения',
+        placeholder: 'Здесь будет место проведения',
+      },
+      review: {
+        title: 'Проверка',
+        helper: 'Проверьте информацию перед отправкой',
+        placeholder: 'Здесь появится итоговая информация',
+      },
+    },
+    actions: {
+      next: 'Далее',
+      back: 'Назад',
+      submit: 'Отправить заявку',
+    },
   },
 }
