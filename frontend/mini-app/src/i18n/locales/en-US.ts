@@ -44,7 +44,7 @@ export const enUS: TranslationSchema = {
       afternoon: 'Good afternoon',
       evening: 'Good evening',
     },
-    heroTitle: 'Find something nearby',
+    heroTitle: 'Where to go nearby',
     heroImageAlt: 'Kazan Kremlin and Kul Sharif Mosque',
     heroCta: 'Explore nearby',
     actions: {

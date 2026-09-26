@@ -61,9 +61,7 @@ export const HomePage: React.FC = () => {
         <div className={styles.contentBlock}>
           {/* Основная Hero-card */}
           <HomeHero
-            title={HERO_DATA.title}
             imageUrl={HERO_DATA.imageUrl}
-            alt={HERO_DATA.alt}
             onClick={handleHeroClick}
           />
 

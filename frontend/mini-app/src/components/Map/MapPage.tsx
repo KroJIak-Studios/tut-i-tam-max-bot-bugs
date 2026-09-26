@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapZone, MapFilterState, NavTabId, EventCategory } from '../../types'
 import { getMapEvents, getMapZones } from '../../services/mapService'
 import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
-import { getIsoDate, formatChipDate } from '../../utils/dateUtils'
+import { getIsoDate, formatChipDate, getWeekendIsoDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
-import { MapDatePickerSheet } from './MapDatePickerSheet'
+import { MapDatePickerSheet, type DatePreset } from './MapDatePickerSheet'
 import { MapView } from './MapView'
 import { MapFilterSheet } from './MapFilterSheet'
 import { BottomNavigation } from '../BottomNavigation'
@@ -47,6 +47,7 @@ export const MapPage: React.FC = () => {
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category')
     const eventIdParam = searchParams.get('event')
+    const dateParam = searchParams.get('date')
 
     const initial = { ...DEFAULT_FILTERS }
     if (pushkin) {
@@ -68,6 +69,16 @@ export const MapPage: React.FC = () => {
         initial.selectedDate = found.date
       }
     }
+    if (dateParam === 'weekend') {
+      initial.dateFilter = 'weekend'
+      initial.selectedDate = getWeekendIsoDate()
+    } else if (dateParam === 'tomorrow') {
+      initial.dateFilter = 'tomorrow'
+      initial.selectedDate = getIsoDate(1)
+    } else if (dateParam === 'today') {
+      initial.dateFilter = 'today'
+      initial.selectedDate = getIsoDate(0)
+    }
     return initial
   })
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
@@ -82,8 +93,9 @@ export const MapPage: React.FC = () => {
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category')
     const eventIdParam = searchParams.get('event')
+    const dateParam = searchParams.get('date')
 
-    if (pushkin || categoryParam || eventIdParam) {
+    if (pushkin || categoryParam || eventIdParam || dateParam) {
       const updated = { ...filters }
       if (pushkin) {
         updated.pushkinCardOnly = true
@@ -103,6 +115,16 @@ export const MapPage: React.FC = () => {
         if (found && found.date) {
           updated.selectedDate = found.date
         }
+      }
+      if (dateParam === 'weekend') {
+        updated.dateFilter = 'weekend'
+        updated.selectedDate = getWeekendIsoDate()
+      } else if (dateParam === 'tomorrow') {
+        updated.dateFilter = 'tomorrow'
+        updated.selectedDate = getIsoDate(1)
+      } else if (dateParam === 'today') {
+        updated.dateFilter = 'today'
+        updated.selectedDate = getIsoDate(0)
       }
       setFilters(updated)
     }
@@ -191,11 +213,22 @@ export const MapPage: React.FC = () => {
   }, [displayedEvents, selectedEventId])
 
   // Date selection change
-  const handleDateChange = (newIsoDate: string) => {
+  const handleDateChange = (
+    newIsoDate: string,
+    preset?: DatePreset
+  ) => {
     setUserSelectedId(null)
     setFilters((prev) => ({
       ...prev,
       selectedDate: newIsoDate,
+      dateFilter:
+        preset === 'weekend'
+          ? 'weekend'
+          : preset === 'tomorrow'
+          ? 'tomorrow'
+          : preset === 'today'
+          ? 'today'
+          : 'all',
     }))
   }
 
@@ -304,6 +337,7 @@ export const MapPage: React.FC = () => {
       {isDatePickerOpen && (
         <MapDatePickerSheet
           selectedDate={filters.selectedDate}
+          activePreset={filters.dateFilter}
           onClose={() => setIsDatePickerOpen(false)}
           onSelectDate={handleDateChange}
         />

@@ -12,7 +12,7 @@ import { CatalogFilterBar } from './CatalogFilterBar'
 import { CatalogEventCard } from './CatalogEventCard'
 import { CatalogSortDropdown } from './CatalogSortDropdown'
 import { CatalogEmptyState } from './CatalogEmptyState'
-import { MapDatePickerSheet } from '../Map/MapDatePickerSheet'
+import { MapDatePickerSheet, type DatePreset } from '../Map/MapDatePickerSheet'
 import { MapFilterSheet } from '../Map/MapFilterSheet'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './CatalogPage.module.css'
@@ -127,12 +127,23 @@ export const CatalogPage: React.FC = () => {
     }))
   }, [])
 
-  const handleSelectDate = useCallback((isoDate: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      selectedDate: isoDate,
-    }))
-  }, [])
+  const handleSelectDate = useCallback(
+    (isoDate: string, preset?: DatePreset) => {
+      setFilters((prev) => ({
+        ...prev,
+        selectedDate: isoDate,
+        dateFilter:
+          preset === 'weekend'
+            ? 'weekend'
+            : preset === 'tomorrow'
+            ? 'tomorrow'
+            : preset === 'today'
+            ? 'today'
+            : 'all',
+      }))
+    },
+    []
+  )
 
   const handleApplyFilters = useCallback((newFilters: MapFilterState) => {
     setFilters(newFilters)
@@ -146,6 +157,7 @@ export const CatalogPage: React.FC = () => {
     setFilters((prev) => ({
       ...prev,
       selectedDate: getIsoDate(0),
+      dateFilter: 'today',
     }))
   }, [])
 
@@ -264,9 +276,10 @@ export const CatalogPage: React.FC = () => {
       {isDatePickerOpen && (
         <MapDatePickerSheet
           selectedDate={filters.selectedDate}
+          activePreset={filters.dateFilter}
           onClose={() => setIsDatePickerOpen(false)}
-          onSelectDate={(iso) => {
-            handleSelectDate(iso)
+          onSelectDate={(iso, preset) => {
+            handleSelectDate(iso, preset)
             setIsDatePickerOpen(false)
           }}
         />
