@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconChevronRight } from '../Icons'
 import styles from './ProfileInterests.module.css'
 
@@ -34,22 +35,24 @@ export const ProfileInterests: React.FC<ProfileInterestsProps> = ({
   interests,
   onEditInterests,
 }) => {
+  const { t } = useTranslation()
+
   return (
     <section className={styles.card} aria-labelledby="interests-title">
       <div className={styles.headerRow}>
         <div className={styles.headerTitles}>
           <h3 id="interests-title" className={styles.title}>
-            Интересы
+            {t('profile.interests')}
           </h3>
-          <span className={styles.subtitle}>Для персональных рекомендаций</span>
+          <span className={styles.subtitle}>{t('profile.interestsSubtitle')}</span>
         </div>
         <button
           type="button"
           className={styles.editBtn}
           onClick={onEditInterests}
-          aria-label="Изменить интересы"
+          aria-label={t('profile.editInterests')}
         >
-          <span>Изменить</span>
+          <span>{t('common.edit')}</span>
           <IconChevronRight size={14} color="currentColor" />
         </button>
       </div>

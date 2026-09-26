@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import type { UserPreferences, MapProvider, NotificationSettings } from '../types'
+import type { UserPreferences, MapProvider, NotificationSettings, SupportedLocaleCode } from '../types'
 import { UserPreferencesContext, DEFAULT_PREFERENCES } from './userPreferencesDef'
+import { resolveInitialLocale, normalizeLocale, i18n } from '../i18n'
 
 const STORAGE_KEY_PREFERENCES = 'tut_i_tam_user_preferences'
 
 function loadPreferences(): UserPreferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PREFERENCES)
-    if (!raw) return DEFAULT_PREFERENCES
+    if (!raw) {
+      const initialLocale = resolveInitialLocale(null)
+      return {
+        ...DEFAULT_PREFERENCES,
+        locale: initialLocale,
+      }
+    }
     const parsed = JSON.parse(raw)
+    const resolvedLocale = resolveInitialLocale(parsed.locale)
     return {
       ...DEFAULT_PREFERENCES,
       ...parsed,
+      locale: resolvedLocale,
       notifications: {
         ...DEFAULT_PREFERENCES.notifications,
         ...(parsed.notifications || {}),
@@ -36,6 +45,29 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   useEffect(() => {
     savePreferences(preferences)
   }, [preferences])
+
+  useEffect(() => {
+    if (i18n.language !== preferences.locale) {
+      void i18n.changeLanguage(preferences.locale)
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = preferences.locale
+    }
+  }, [preferences.locale])
+
+  const setLocale = useCallback((locale: SupportedLocaleCode) => {
+    const normalized = normalizeLocale(locale)
+    setPreferences((prev) => ({
+      ...prev,
+      locale: normalized,
+    }))
+    if (i18n.language !== normalized) {
+      void i18n.changeLanguage(normalized)
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = normalized
+    }
+  }, [])
 
   const updateProfile = useCallback((name: string, city: string) => {
     setPreferences((prev) => ({
@@ -97,6 +129,7 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
         setPushkinCard,
         setDefaultMapProvider,
         updateNotifications,
+        setLocale,
         resetPreferences,
       }}
     >

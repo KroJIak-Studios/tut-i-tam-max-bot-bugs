@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconClose, IconCheck } from '../Icons'
 import { AVAILABLE_INTERESTS } from '../../context/userPreferencesDef'
 import styles from './InterestsModal.module.css'
@@ -14,6 +15,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const { t } = useTranslation()
   const [selected, setSelected] = useState<string[]>(currentInterests)
 
   useEffect(() => {
@@ -45,26 +47,26 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Выбор интересов"
+      aria-label={t('profile.interests')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>Интересы</h3>
+          <h3 className={styles.title}>{t('profile.interests')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         <div className={styles.subtitle}>
-          Выберите темы для персональных рекомендаций:
+          {t('profile.chooseInterestsSubtitle')}
         </div>
 
-        <div className={styles.interestsGrid} role="group" aria-label="Список интересов">
+        <div className={styles.interestsGrid} role="group" aria-label={t('profile.interests')}>
           {AVAILABLE_INTERESTS.map((interest) => {
             const isSelected = selected.includes(interest)
             return (
@@ -92,7 +94,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
             className={styles.saveBtn}
             onClick={handleSave}
           >
-            Сохранить ({selected.length})
+            {t('common.save')} ({selected.length})
           </button>
         </div>
       </div>

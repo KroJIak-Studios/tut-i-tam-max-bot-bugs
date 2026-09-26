@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconLocationPinFilled, IconChevronDown, IconCheck } from '../Icons'
 import styles from './ProfileCitySelect.module.css'
 
@@ -15,6 +16,7 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
   currentCity,
   onSelectCity,
 }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
 
   const handleToggle = () => {
@@ -27,7 +29,7 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
   }
 
   return (
-    <section className={styles.card} aria-label="Выбор города">
+    <section className={styles.card} aria-label={t('profile.city')}>
       <div
         className={styles.headerRow}
         onClick={handleToggle}
@@ -48,7 +50,7 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
           <div className={styles.iconTile} aria-hidden="true">
             <IconLocationPinFilled size={18} color="#2563EB" />
           </div>
-          <span className={styles.label}>Город</span>
+          <span className={styles.label}>{t('profile.city')}</span>
         </div>
 
         <div className={styles.cityPill}>
@@ -85,7 +87,7 @@ export const ProfileCitySelect: React.FC<ProfileCitySelectProps> = ({
 
           <div className={styles.noteRow}>
             <span className={styles.noteDot}>•</span>
-            <span className={styles.noteText}>Пока сервис работает только в Казани</span>
+            <span className={styles.noteText}>{t('profile.cityNotice')}</span>
           </div>
         </div>
       )}

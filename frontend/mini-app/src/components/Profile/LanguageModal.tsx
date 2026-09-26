@@ -1,27 +1,21 @@
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { MapProvider } from '../../types'
+import { SUPPORTED_LOCALES, type SupportedLocaleCode } from '../../i18n'
 import { IconClose } from '../Icons'
-import styles from './DefaultMapModal.module.css'
+import styles from './LanguageModal.module.css'
 
-interface DefaultMapModalProps {
-  currentProvider: MapProvider
+interface LanguageModalProps {
+  currentLocale: SupportedLocaleCode
   onClose: () => void
-  onSelect: (provider: MapProvider) => void
+  onSelect: (locale: SupportedLocaleCode) => void
 }
 
-export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
-  currentProvider,
+export const LanguageModal: React.FC<LanguageModalProps> = ({
+  currentLocale,
   onClose,
   onSelect,
 }) => {
   const { t } = useTranslation()
-
-  const mapOptions: Array<{ id: MapProvider; label: string }> = [
-    { id: 'yandex', label: t('profile.yandexMaps') },
-    { id: '2gis', label: t('profile.gisMaps') },
-    { id: 'system', label: t('profile.systemMaps') },
-  ]
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,8 +29,8 @@ export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
     }
   }, [onClose])
 
-  const handleChoose = (provider: MapProvider) => {
-    onSelect(provider)
+  const handleChoose = (locale: SupportedLocaleCode) => {
+    onSelect(locale)
     onClose()
   }
 
@@ -46,11 +40,11 @@ export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={t('profile.defaultMaps')}
+      aria-label={t('profile.appLanguage')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>{t('profile.defaultMaps')}</h3>
+          <h3 className={styles.title}>{t('profile.appLanguage')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
@@ -62,28 +56,37 @@ export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
         </div>
 
         <div className={styles.subtitle}>
-          {t('profile.defaultMapsSubtitle')}
+          {t('profile.languageModalSubtitle')}
         </div>
 
-        <div className={styles.optionsList} role="radiogroup" aria-label={t('profile.defaultMaps')}>
-          {mapOptions.map((opt) => {
-            const isSelected = opt.id === currentProvider
+        <div
+          className={styles.optionsList}
+          role="radiogroup"
+          aria-label={t('profile.appLanguage')}
+        >
+          {SUPPORTED_LOCALES.map((opt) => {
+            const isSelected = opt.code === currentLocale
             return (
               <div
-                key={opt.id}
+                key={opt.code}
                 role="radio"
                 aria-checked={isSelected}
                 tabIndex={0}
                 className={`${styles.optionItem} ${isSelected ? styles.optionItemSelected : ''}`}
-                onClick={() => handleChoose(opt.id)}
+                onClick={() => handleChoose(opt.code)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    handleChoose(opt.id)
+                    handleChoose(opt.code)
                   }
                 }}
               >
-                <span className={styles.optionLabel}>{opt.label}</span>
+                <div className={styles.labelCol}>
+                  <span className={styles.optionLabel}>{opt.nativeName}</span>
+                  {opt.name !== opt.nativeName && (
+                    <span className={styles.optionSub}>{opt.name}</span>
+                  )}
+                </div>
                 <div className={styles.radioCircle}>
                   {isSelected && <div className={styles.radioDot} />}
                 </div>

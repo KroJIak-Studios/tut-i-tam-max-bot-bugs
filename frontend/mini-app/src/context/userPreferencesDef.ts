@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { UserPreferences, MapProvider, NotificationSettings } from '../types'
+import type { UserPreferences, MapProvider, NotificationSettings, SupportedLocaleCode } from '../types'
 
 export interface UserPreferencesContextValue {
   preferences: UserPreferences
@@ -9,6 +9,7 @@ export interface UserPreferencesContextValue {
   setPushkinCard: (enabled: boolean) => void
   setDefaultMapProvider: (provider: MapProvider) => void
   updateNotifications: (settings: Partial<NotificationSettings>) => void
+  setLocale: (locale: SupportedLocaleCode) => void
   resetPreferences: () => void
 }
 
@@ -40,6 +41,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
     aiRecommendations: true,
     scheduleChanges: true,
   },
+  locale: 'ru-RU',
 }
 
 export const UserPreferencesContext = createContext<UserPreferencesContextValue | null>(null)

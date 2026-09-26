@@ -1,29 +1,67 @@
 import React from 'react'
-import type { MapProvider } from '../../types'
-import { IconChevronRight, IconGlobe, IconBell } from '../Icons'
+import { useTranslation } from 'react-i18next'
+import type { MapProvider, SupportedLocaleCode } from '../../types'
+import { SUPPORTED_LOCALES } from '../../i18n'
+import { IconChevronRight, IconGlobe, IconBell, IconLanguage } from '../Icons'
 import styles from './ProfileSettings.module.css'
 
 interface ProfileSettingsProps {
   pushkinCard?: boolean
   defaultMapProvider: MapProvider
+  currentLocale: SupportedLocaleCode
   onTogglePushkinCard?: () => void
   onOpenMapModal: () => void
   onOpenNotificationsModal: () => void
-}
-
-const PROVIDER_NAMES: Record<MapProvider, string> = {
-  yandex: 'Яндекс Карты',
-  '2gis': '2ГИС',
-  system: 'Системные карты',
+  onOpenLanguageModal: () => void
 }
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
   defaultMapProvider,
+  currentLocale,
   onOpenMapModal,
   onOpenNotificationsModal,
+  onOpenLanguageModal,
 }) => {
+  const { t } = useTranslation()
+
+  const currentLocaleItem = SUPPORTED_LOCALES.find((l) => l.code === currentLocale)
+  const currentLocaleLabel = currentLocaleItem ? currentLocaleItem.nativeName : 'Русский'
+
+  const providerNames: Record<MapProvider, string> = {
+    yandex: t('profile.yandexMaps'),
+    '2gis': t('profile.gisMaps'),
+    system: t('profile.systemMaps'),
+  }
+
   return (
-    <section className={styles.card} aria-label="Настройки">
+    <section className={styles.card} aria-label={t('profile.settings')}>
+      {/* 1. Язык приложения */}
+      <div
+        className={`${styles.settingRow} ${styles.settingRowClickable}`}
+        onClick={onOpenLanguageModal}
+        role="button"
+        tabIndex={0}
+        aria-label={`${t('profile.language')}: ${currentLocaleLabel}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onOpenLanguageModal()
+          }
+        }}
+      >
+        <div className={styles.settingLeft}>
+          <div className={`${styles.iconTile} ${styles.tileViolet}`} aria-hidden="true">
+            <IconLanguage size={17} color="#7C3AED" />
+          </div>
+          <div className={styles.settingText}>
+            <span className={styles.settingTitle}>{t('profile.language')}</span>
+            <span className={styles.settingSubtitle}>{currentLocaleLabel}</span>
+          </div>
+        </div>
+        <div className={styles.chevronIcon}>
+          <IconChevronRight size={18} color="#9CA3AF" />
+        </div>
+      </div>
 
       {/* 2. Карты по умолчанию */}
       <div
@@ -31,7 +69,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
         onClick={onOpenMapModal}
         role="button"
         tabIndex={0}
-        aria-label={`Карты по умолчанию: ${PROVIDER_NAMES[defaultMapProvider]}`}
+        aria-label={`${t('profile.defaultMaps')}: ${providerNames[defaultMapProvider]}`}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -44,8 +82,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
             <IconGlobe size={17} color="#2563EB" />
           </div>
           <div className={styles.settingText}>
-            <span className={styles.settingTitle}>Карты по умолчанию</span>
-            <span className={styles.settingSubtitle}>{PROVIDER_NAMES[defaultMapProvider]}</span>
+            <span className={styles.settingTitle}>{t('profile.defaultMaps')}</span>
+            <span className={styles.settingSubtitle}>{providerNames[defaultMapProvider]}</span>
           </div>
         </div>
         <div className={styles.chevronIcon}>
@@ -59,7 +97,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
         onClick={onOpenNotificationsModal}
         role="button"
         tabIndex={0}
-        aria-label="Настроить уведомления: События и рекомендации"
+        aria-label={`${t('profile.notifications')}: ${t('profile.notificationsSubtitle')}`}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -72,8 +110,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
             <IconBell size={17} color="#EA580C" />
           </div>
           <div className={styles.settingText}>
-            <span className={styles.settingTitle}>Уведомления</span>
-            <span className={styles.settingSubtitle}>События и рекомендации</span>
+            <span className={styles.settingTitle}>{t('profile.notifications')}</span>
+            <span className={styles.settingSubtitle}>{t('profile.notificationsSubtitle')}</span>
           </div>
         </div>
         <div className={styles.chevronIcon}>

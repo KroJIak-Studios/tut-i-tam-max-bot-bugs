@@ -1,7 +1,9 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './ProfileTopBar.module.css'
 
 export const ProfileTopBar: React.FC = () => {
+  const { t } = useTranslation()
   return (
     <header className={styles.topBarWrapper}>
       <div className={styles.topBar}>
@@ -13,7 +15,7 @@ export const ProfileTopBar: React.FC = () => {
           />
           <span className={styles.brandTitle}>Тут и Там</span>
         </div>
-        <h1 className={styles.pageTitle}>Профиль</h1>
+        <h1 className={styles.pageTitle}>{t('profile.title')}</h1>
       </div>
     </header>
   )

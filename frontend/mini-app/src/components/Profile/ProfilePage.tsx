@@ -10,6 +10,7 @@ import { InterestsModal } from './InterestsModal'
 import { ProfileSettings } from './ProfileSettings'
 import { DefaultMapModal } from './DefaultMapModal'
 import { NotificationsModal } from './NotificationsModal'
+import { LanguageModal } from './LanguageModal'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './ProfilePage.module.css'
 
@@ -21,11 +22,13 @@ export const ProfilePage: React.FC = () => {
     updateInterests,
     setDefaultMapProvider,
     updateNotifications,
+    setLocale,
   } = useUserPreferences()
 
   const [isInterestsOpen, setIsInterestsOpen] = useState(false)
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false)
 
   const handleTabChange = (tab: NavTabId) => {
     if (tab === 'home') {
@@ -68,9 +71,11 @@ export const ProfilePage: React.FC = () => {
           onEditInterests={() => setIsInterestsOpen(true)}
         />
 
-        {/* Settings Card: Default maps, Notifications */}
+        {/* Settings Card: Language, Default maps, Notifications */}
         <ProfileSettings
           defaultMapProvider={preferences.defaultMapProvider}
+          currentLocale={preferences.locale}
+          onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
           onOpenMapModal={() => setIsMapModalOpen(true)}
           onOpenNotificationsModal={() => setIsNotificationsOpen(true)}
         />
@@ -83,6 +88,14 @@ export const ProfilePage: React.FC = () => {
       />
 
       {/* Modals */}
+      {isLanguageModalOpen && (
+        <LanguageModal
+          currentLocale={preferences.locale}
+          onClose={() => setIsLanguageModalOpen(false)}
+          onSelect={setLocale}
+        />
+      )}
+
       {isInterestsOpen && (
         <InterestsModal
           currentInterests={preferences.interests}
