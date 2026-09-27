@@ -170,3 +170,23 @@ export function formatPrice(price: number, locale?: string): string {
   const formatted = new Intl.NumberFormat(norm).format(price)
   return `${formatted} ₽`
 }
+
+/**
+ * Formats request submission date:
+ * RU: "5 октября 2026"
+ * EN: "October 5, 2026"
+ */
+export function formatSubmissionDate(isoString: string, locale?: string): string {
+  try {
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return isoString
+    const norm = normalizeLocale(locale)
+    return new Intl.DateTimeFormat(norm, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(d)
+  } catch {
+    return isoString
+  }
+}

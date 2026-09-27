@@ -107,15 +107,19 @@ export const CreateEventPage: React.FC = () => {
     }
   }, [navigate])
 
+  const handleSuccessDone = useCallback(() => {
+    navigate('/profile/requests')
+  }, [navigate])
+
   const handleBackClick = useCallback(() => {
     if (submittedRequest) {
-      handleExit()
+      navigate('/profile/requests')
     } else if (isDirty) {
       setIsExitConfirmOpen(true)
     } else {
       handleExit()
     }
-  }, [handleExit, isDirty, submittedRequest])
+  }, [handleExit, isDirty, navigate, submittedRequest])
 
   const handleStay = useCallback(() => {
     setIsExitConfirmOpen(false)
@@ -190,7 +194,7 @@ export const CreateEventPage: React.FC = () => {
           {submittedRequest ? (
             <CreateEventSuccessView
               request={submittedRequest}
-              onDone={handleExit}
+              onDone={handleSuccessDone}
               onCreateAnother={handleCreateAnother}
             />
           ) : (

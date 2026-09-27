@@ -2,14 +2,31 @@ import type { CreateEventDraft, CreateEventRequest } from '../components/CreateE
 import type { EventCategory } from '../types'
 
 const STORAGE_KEY = 'tut_i_tam_create_event_requests'
+export const REQUESTS_CHANGED_EVENT = 'tut_i_tam_requests_changed'
 
-function loadStoredRequests(): CreateEventRequest[] {
+export function getStoredRequestsSync(): CreateEventRequest[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return (parsed as CreateEventRequest[])
+      .map((item) => ({
+        ...item,
+        status: item.status || 'pending',
+        source: item.source || 'user',
+        isFree: true as const,
+        pushkinCard: false as const,
+        createdAt: item.createdAt || new Date().toISOString(),
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   } catch {
     return []
   }
+}
+
+function loadStoredRequests(): CreateEventRequest[] {
+  return getStoredRequestsSync()
 }
 
 export interface SubmitCreateEventResult {
@@ -19,10 +36,32 @@ export interface SubmitCreateEventResult {
 }
 
 /**
- * Service boundary for submitting user-created event requests.
+ * Service boundary for user-created event requests.
  * Currently uses local mock persistence and simulates network delay.
- * Ready for drop-in replacement with real backend API endpoint.
+ * Ready for drop-in replacement with real backend API endpoints.
  */
+export async function getCreateEventRequests(): Promise<CreateEventRequest[]> {
+  // Small delay to simulate async network boundary
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  return loadStoredRequests()
+}
+
+export async function getCreateEventRequestById(id: string): Promise<CreateEventRequest | null> {
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  const requests = loadStoredRequests()
+  const found = requests.find((r) => r.id === id)
+  return found || null
+}
+
+export function clearCreateEventRequests(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+    window.dispatchEvent(new Event(REQUESTS_CHANGED_EVENT))
+  } catch {
+    // ignore
+  }
+}
+
 export async function submitCreateEventRequest(
   draft: CreateEventDraft,
   locale: 'ru-RU' | 'en-US' = 'ru-RU',
@@ -52,6 +91,7 @@ export async function submitCreateEventRequest(
     const existing = loadStoredRequests()
     existing.unshift(newRequest)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
+    window.dispatchEvent(new Event(REQUESTS_CHANGED_EVENT))
 
     return {
       success: true,

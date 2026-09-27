@@ -38,9 +38,11 @@ export interface StepErrors {
   address?: string
 }
 
+export type CreateEventRequestStatus = 'pending' | 'approved' | 'rejected'
+
 export interface CreateEventRequest {
   id: string
-  status: 'pending'
+  status: CreateEventRequestStatus
   source: 'user'
   isFree: true
   pushkinCard: false

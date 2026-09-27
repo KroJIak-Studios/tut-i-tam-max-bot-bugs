@@ -184,6 +184,12 @@ export interface TranslationSchema {
     systemMaps: string
     editProfile: string
     name: string
+    myRequests: string
+    myRequestsSubtitle: string
+    requestsUnderReviewCount_one: string
+    requestsUnderReviewCount_few: string
+    requestsUnderReviewCount_many: string
+    requestsUnderReviewCount_other: string
   }
   chat: {
     title: string
@@ -353,6 +359,41 @@ export interface TranslationSchema {
       stay: string
       leave: string
     }
+  }
+  userRequests: {
+    title: string
+    emptyTitle: string
+    emptyDescription: string
+    submittedAt: string
+    status: {
+      pending: string
+      approved: string
+      rejected: string
+    }
+  }
+  requestDetail: {
+    title: string
+    back: string
+    notFoundTitle: string
+    notFoundDescription: string
+    backToRequests: string
+    statusTitle: string
+    statusPendingDesc: string
+    statusApprovedDesc: string
+    statusRejectedDesc: string
+    detailsTitle: string
+    titleLabel: string
+    categoryLabel: string
+    datetimeLabel: string
+    locationLabel: string
+    descriptionLabel: string
+    submittedLabel: string
+    freeNotice: string
+    reviewResultTitle: string
+    reviewResultPending: string
+    chatTitle: string
+    chatText: string
+    chatComingSoon: string
   }
 }
 
@@ -542,6 +583,12 @@ export const ruRU: TranslationSchema = {
     systemMaps: 'Системные карты',
     editProfile: 'Изменить профиль',
     name: 'Имя',
+    myRequests: 'Мои заявки',
+    myRequestsSubtitle: 'Статус созданных мероприятий',
+    requestsUnderReviewCount_one: '{{count}} на проверке',
+    requestsUnderReviewCount_few: '{{count}} на проверке',
+    requestsUnderReviewCount_many: '{{count}} на проверке',
+    requestsUnderReviewCount_other: '{{count}} на проверке',
   },
   chat: {
     title: 'Чат',
@@ -711,5 +758,40 @@ export const ruRU: TranslationSchema = {
       stay: 'Остаться',
       leave: 'Выйти',
     },
+  },
+  userRequests: {
+    title: 'Мои заявки',
+    emptyTitle: 'Заявок пока нет',
+    emptyDescription: 'Здесь появятся мероприятия, которые вы отправите на проверку.',
+    submittedAt: 'Отправлена {{date}}',
+    status: {
+      pending: 'На проверке',
+      approved: 'Одобрено',
+      rejected: 'Отклонено',
+    },
+  },
+  requestDetail: {
+    title: 'Заявка',
+    back: 'Назад',
+    notFoundTitle: 'Заявка не найдена',
+    notFoundDescription: 'Возможно, заявка была удалена или ссылка содержит опечатку.',
+    backToRequests: 'Вернуться к заявкам',
+    statusTitle: 'Статус',
+    statusPendingDesc: 'Мы проверим заявку и сообщим результат здесь.',
+    statusApprovedDesc: 'Мероприятие проверено и одобрено.',
+    statusRejectedDesc: 'Заявка была отклонена модератором.',
+    detailsTitle: 'Детали мероприятия',
+    titleLabel: 'Название',
+    categoryLabel: 'Категория',
+    datetimeLabel: 'Дата и время',
+    locationLabel: 'Место',
+    descriptionLabel: 'Описание',
+    submittedLabel: 'Дата отправки',
+    freeNotice: 'Пользовательские мероприятия всегда бесплатные',
+    reviewResultTitle: 'Результат проверки',
+    reviewResultPending: 'Пока заявка на проверке.',
+    chatTitle: 'Чат по заявке',
+    chatText: 'Если у модератора появятся вопросы, переписка будет здесь.',
+    chatComingSoon: 'Скоро',
   },
 }

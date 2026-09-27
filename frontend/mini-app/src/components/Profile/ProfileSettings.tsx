@@ -2,14 +2,16 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapProvider, SupportedLocaleCode } from '../../types'
 import { SUPPORTED_LOCALES } from '../../i18n'
-import { IconChevronRight, IconGlobe, IconBell, IconLanguage } from '../Icons'
+import { IconChevronRight, IconGlobe, IconBell, IconLanguage, IconClipboardList } from '../Icons'
 import styles from './ProfileSettings.module.css'
 
 interface ProfileSettingsProps {
   pushkinCard?: boolean
   defaultMapProvider: MapProvider
   currentLocale: SupportedLocaleCode
+  requestsCount?: number
   onTogglePushkinCard?: () => void
+  onOpenRequests: () => void
   onOpenMapModal: () => void
   onOpenNotificationsModal: () => void
   onOpenLanguageModal: () => void
@@ -18,6 +20,8 @@ interface ProfileSettingsProps {
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
   defaultMapProvider,
   currentLocale,
+  requestsCount = 0,
+  onOpenRequests,
   onOpenMapModal,
   onOpenNotificationsModal,
   onOpenLanguageModal,
@@ -35,7 +39,46 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
 
   return (
     <section className={styles.card} aria-label={t('profile.settings')}>
-      {/* 1. Язык приложения */}
+      {/* 1. Мои заявки */}
+      <div
+        className={`${styles.settingRow} ${styles.settingRowClickable}`}
+        onClick={onOpenRequests}
+        role="button"
+        tabIndex={0}
+        aria-label={`${t('profile.myRequests')}: ${requestsCount > 0 ? t('profile.requestsUnderReviewCount', { count: requestsCount }) : t('profile.myRequestsSubtitle')}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onOpenRequests()
+          }
+        }}
+      >
+        <div className={styles.settingLeft}>
+          <div className={`${styles.iconTile} ${styles.tileTeal}`} aria-hidden="true">
+            <IconClipboardList size={17} color="#059669" />
+          </div>
+          <div className={styles.settingText}>
+            <span className={styles.settingTitle}>{t('profile.myRequests')}</span>
+            <span className={styles.settingSubtitle}>
+              {requestsCount > 0
+                ? t('profile.requestsUnderReviewCount', { count: requestsCount })
+                : t('profile.myRequestsSubtitle')}
+            </span>
+          </div>
+        </div>
+        <div className={styles.settingRight}>
+          {requestsCount > 0 && (
+            <span className={styles.countBadge} aria-hidden="true">
+              {requestsCount}
+            </span>
+          )}
+          <div className={styles.chevronIcon}>
+            <IconChevronRight size={18} color="#9CA3AF" />
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Язык приложения */}
       <div
         className={`${styles.settingRow} ${styles.settingRowClickable}`}
         onClick={onOpenLanguageModal}

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NavTabId } from '../../types'
 import { useUserPreferences } from '../../context/useUserPreferences'
+import { useCreateEventRequests } from '../../services/useCreateEventRequests'
 import { ProfileTopBar } from './ProfileTopBar'
 import { ProfileHero } from './ProfileHero'
 import { ProfileCitySelect } from './ProfileCitySelect'
@@ -16,6 +17,7 @@ import styles from './ProfilePage.module.css'
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
+  const { pendingCount } = useCreateEventRequests()
   const {
     preferences,
     updateProfile,
@@ -75,6 +77,8 @@ export const ProfilePage: React.FC = () => {
         <ProfileSettings
           defaultMapProvider={preferences.defaultMapProvider}
           currentLocale={preferences.locale}
+          requestsCount={pendingCount}
+          onOpenRequests={() => navigate('/profile/requests')}
           onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
           onOpenMapModal={() => setIsMapModalOpen(true)}
           onOpenNotificationsModal={() => setIsNotificationsOpen(true)}

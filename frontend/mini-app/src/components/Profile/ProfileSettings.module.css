@@ -68,6 +68,34 @@
   background-color: #FFF7ED;
 }
 
+.tileTeal {
+  background-color: #ECFDF5;
+}
+
+.settingRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background-color: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  color: #2563EB;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
 .settingText {
   display: flex;
   flex-direction: column;
