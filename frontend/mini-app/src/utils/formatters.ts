@@ -25,11 +25,100 @@ export function formatTime(timeStr?: string, locale?: string): string {
   if (isNaN(h) || isNaN(m)) return timeStr
 
   const norm = normalizeLocale(locale)
+  if (norm === 'ru-RU') {
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  }
+
   const d = new Date(2026, 0, 1, h, m)
   return new Intl.DateTimeFormat(norm, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(d)
+}
+
+/**
+ * Safely parses date and time into local Date object without timezone skew.
+ */
+export function buildLocalDateTime(dateStr: string, timeStr: string): Date | null {
+  if (!dateStr || !timeStr) return null
+  const dateParts = dateStr.trim().split('-')
+  const timeParts = timeStr.trim().split(':')
+  if (dateParts.length < 3 || timeParts.length < 2) return null
+  const y = parseInt(dateParts[0], 10)
+  const m = parseInt(dateParts[1], 10)
+  const d = parseInt(dateParts[2], 10)
+  const h = parseInt(timeParts[0], 10)
+  const min = parseInt(timeParts[1], 10)
+  if (isNaN(y) || isNaN(m) || isNaN(d) || isNaN(h) || isNaN(min)) return null
+  return new Date(y, m - 1, d, h, min, 0, 0)
+}
+
+/**
+ * Checks if end datetime is strictly later than start datetime:
+ * - If startDate === endDate and endTime <= startTime -> false
+ * - If endDate > startDate -> true (even if endTime <= startTime)
+ * - If endDate < startDate -> false
+ */
+export function isEndDateTimeAfterStart(
+  startDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string
+): boolean {
+  if (!startDate || !startTime || !endDate || !endTime) return false
+  const start = buildLocalDateTime(startDate, startTime)
+  const end = buildLocalDateTime(endDate, endTime)
+  if (!start || !end) return false
+  return end.getTime() > start.getTime()
+}
+
+/**
+ * Calculates default end date and time (start + 2 hours).
+ * If crossing midnight, endDate advances to next day.
+ */
+export function calculateDefaultEndDateTime(
+  startDate: string,
+  startTime: string
+): { endDate: string; endTime: string } {
+  if (!startDate) {
+    return { endDate: '', endTime: '' }
+  }
+  if (!startTime) {
+    return { endDate: startDate, endTime: '' }
+  }
+
+  const timeParts = startTime.trim().split(':')
+  if (timeParts.length < 2) {
+    return { endDate: startDate, endTime: '' }
+  }
+  const h = parseInt(timeParts[0], 10)
+  const m = parseInt(timeParts[1], 10)
+  if (isNaN(h) || isNaN(m)) {
+    return { endDate: startDate, endTime: '' }
+  }
+
+  const endH = h + 2
+  if (endH >= 24) {
+    // Crosses midnight: advance date by 1 day
+    const dateParts = startDate.trim().split('-')
+    if (dateParts.length === 3) {
+      const y = parseInt(dateParts[0], 10)
+      const mon = parseInt(dateParts[1], 10)
+      const d = parseInt(dateParts[2], 10)
+      const nextDate = new Date(y, mon - 1, d + 1)
+      const nextY = nextDate.getFullYear()
+      const nextM = String(nextDate.getMonth() + 1).padStart(2, '0')
+      const nextD = String(nextDate.getDate()).padStart(2, '0')
+      const nextEndDate = `${nextY}-${nextM}-${nextD}`
+      const nextEndTime = `${String(endH - 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+      return { endDate: nextEndDate, endTime: nextEndTime }
+    }
+  }
+
+  return {
+    endDate: startDate,
+    endTime: `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+  }
 }
 
 /**
@@ -122,30 +211,79 @@ export function formatEventDateTime(
 }
 
 /**
- * Formats event date and time range:
- * RU: "5 октября · 14:00–16:00"
- * EN: "October 5 · 2:00 PM–4:00 PM"
+/**
+ * Formats event date and time range for same-day and multi-day events.
+ *
+ * Same-day:
+ *   RU: "5 октября · 14:00–16:00"
+ *   EN: "October 5 · 2:00 PM–4:00 PM"
+ *
+ * Multi-day:
+ *   RU: "5 октября 23:00 — 6 октября 01:00"
+ *   EN: "October 5, 11:00 PM — October 6, 1:00 AM"
  */
 export function formatEventDateTimeRange(
-  dateStr: string,
+  startDate: string,
   startTime?: string,
-  endTime?: string,
-  locale?: string
+  endDateOrEndTime?: string,
+  endTimeOrLocale?: string,
+  possibleLocale?: string
 ): string {
-  if (!startTime) {
-    return formatEventDateTime(dateStr, undefined, locale)
+  if (!startDate) return '—'
+
+  // Backward compatibility check for 4-argument call (startDate, startTime, endTime, locale)
+  let endDate = endDateOrEndTime
+  let endTime = endTimeOrLocale
+  let locale = possibleLocale
+
+  if (
+    endDateOrEndTime &&
+    /^\d{1,2}:\d{2}$/.test(endDateOrEndTime) &&
+    (!possibleLocale || possibleLocale === undefined)
+  ) {
+    endDate = startDate
+    endTime = endDateOrEndTime
+    locale = endTimeOrLocale
   }
-  if (!endTime) {
-    return formatEventDateTime(dateStr, startTime, locale)
+
+  if (!endDate) {
+    endDate = startDate
   }
 
   const norm = normalizeLocale(locale)
-  const formattedStart = formatTime(startTime, norm)
-  const formattedEnd = formatTime(endTime, norm)
-  const timeRange = `${formattedStart}–${formattedEnd}`
+  const isEn = norm === 'en-US'
 
-  const datePrefix = formatEventDateTime(dateStr, undefined, norm)
-  return `${datePrefix} · ${timeRange}`
+  const isSameDay = startDate === endDate
+
+  if (isSameDay) {
+    if (!startTime) {
+      return formatEventDateTime(startDate, undefined, norm)
+    }
+    if (!endTime) {
+      return formatEventDateTime(startDate, startTime, norm)
+    }
+    const formattedStart = formatTime(startTime, norm)
+    const formattedEnd = formatTime(endTime, norm)
+    const timeRange = `${formattedStart}–${formattedEnd}`
+    const datePrefix = formatEventDateTime(startDate, undefined, norm)
+    return `${datePrefix} · ${timeRange}`
+  }
+
+  // Multi-day
+  const startDatePart = formatEventDateTime(startDate, undefined, norm)
+  const endDatePart = formatEventDateTime(endDate, undefined, norm)
+  const formattedStart = startTime ? formatTime(startTime, norm) : ''
+  const formattedEnd = endTime ? formatTime(endTime, norm) : ''
+
+  if (isEn) {
+    const startStr = formattedStart ? `${startDatePart}, ${formattedStart}` : startDatePart
+    const endStr = formattedEnd ? `${endDatePart}, ${formattedEnd}` : endDatePart
+    return `${startStr} — ${endStr}`
+  }
+
+  const startStr = formattedStart ? `${startDatePart} ${formattedStart}` : startDatePart
+  const endStr = formattedEnd ? `${endDatePart} ${formattedEnd}` : endDatePart
+  return `${startStr} — ${endStr}`
 }
 
 /**

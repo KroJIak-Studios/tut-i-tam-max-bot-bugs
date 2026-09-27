@@ -9,7 +9,7 @@ import { CreateEventExitConfirmModal } from './CreateEventExitConfirmModal'
 import { CreateEventSuccessView } from './CreateEventSuccessView'
 import { useCreateEventWizard } from './useCreateEventWizard'
 import { submitCreateEventRequest } from '../../services/createEventRequestService'
-import { isTimeAfter } from '../../utils/formatters'
+import { isEndDateTimeAfterStart } from '../../utils/formatters'
 import type { CreateEventDraft, CreateEventRequest, StepErrors } from './types'
 import styles from './CreateEventPage.module.css'
 
@@ -33,18 +33,26 @@ function validateStep(
   }
 
   if (stepId === 'datetime') {
-    if (!draft.date) {
-      errors.date = 'createEvent.errors.dateRequired'
-    } else if (draft.date < today) {
-      errors.date = 'createEvent.errors.datePast'
+    const startDate = draft.startDate || draft.date
+    if (!startDate) {
+      errors.startDate = 'createEvent.errors.startDateRequired'
+    } else if (startDate < today) {
+      errors.startDate = 'createEvent.errors.datePast'
     }
     if (!draft.startTime) {
       errors.startTime = 'createEvent.errors.startTimeRequired'
     }
+    if (!draft.endDate) {
+      errors.endDate = 'createEvent.errors.endDateRequired'
+    }
     if (!draft.endTime) {
       errors.endTime = 'createEvent.errors.endTimeRequired'
-    } else if (draft.startTime && !isTimeAfter(draft.endTime, draft.startTime)) {
-      errors.endTime = 'createEvent.errors.endTimeAfterStart'
+    }
+
+    if (startDate && draft.startTime && draft.endDate && draft.endTime) {
+      if (!isEndDateTimeAfterStart(startDate, draft.startTime, draft.endDate, draft.endTime)) {
+        errors.range = 'createEvent.errors.endDateTimeAfterStart'
+      }
     }
   }
 

@@ -124,77 +124,121 @@ const StepDatetime: React.FC<{
 }> = ({ draft, errors, onUpdate, onClearError }) => {
   const { t } = useTranslation()
   const today = new Date().toISOString().slice(0, 10)
+  const currentStartDate = draft.startDate || draft.date || ''
 
   return (
     <>
-      {/* Date */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="ce-date">
-          {t('createEvent.fields.dateLabel')}
-        </label>
-        <input
-          id="ce-date"
-          type="date"
-          className={`${styles.input} ${errors.date ? styles.hasError : ''}`}
-          value={draft.date}
-          min={today}
-          onChange={(e) => {
-            onUpdate({ date: e.target.value })
-            if (errors.date) onClearError('date')
-          }}
-        />
-        {errors.date && (
-          <span className={styles.errorMsg} role="alert">
-            {t(errors.date)}
-          </span>
-        )}
+      {/* Group: Начало / Start */}
+      <div className={styles.subGroup}>
+        <div className={styles.subGroupTitle}>{t('createEvent.fields.startGroupTitle')}</div>
+
+        {/* Start Date */}
+        <div className={styles.formGroup}>
+          <label className={styles.label} htmlFor="ce-start-date">
+            {t('createEvent.fields.startDateLabel')}
+          </label>
+          <input
+            id="ce-start-date"
+            type="date"
+            className={`${styles.input} ${errors.startDate ? styles.hasError : ''}`}
+            value={currentStartDate}
+            min={today}
+            onChange={(e) => {
+              onUpdate({ startDate: e.target.value, date: e.target.value })
+              if (errors.startDate) onClearError('startDate')
+              if (errors.range) onClearError('range')
+            }}
+          />
+          {errors.startDate && (
+            <span className={styles.errorMsg} role="alert">
+              {t(errors.startDate)}
+            </span>
+          )}
+        </div>
+
+        {/* Start Time */}
+        <div className={styles.formGroup}>
+          <label className={styles.label} htmlFor="ce-start-time">
+            {t('createEvent.fields.startTimeLabel')}
+          </label>
+          <input
+            id="ce-start-time"
+            type="time"
+            className={`${styles.input} ${errors.startTime ? styles.hasError : ''}`}
+            value={draft.startTime}
+            onChange={(e) => {
+              onUpdate({ startTime: e.target.value })
+              if (errors.startTime) onClearError('startTime')
+              if (errors.range) onClearError('range')
+            }}
+          />
+          {errors.startTime && (
+            <span className={styles.errorMsg} role="alert">
+              {t(errors.startTime)}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Start Time */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="ce-time">
-          {t('createEvent.fields.startTimeLabel')}
-        </label>
-        <input
-          id="ce-time"
-          type="time"
-          className={`${styles.input} ${errors.startTime ? styles.hasError : ''}`}
-          value={draft.startTime}
-          onChange={(e) => {
-            onUpdate({ startTime: e.target.value })
-            if (errors.startTime) onClearError('startTime')
-            if (errors.endTime) onClearError('endTime')
-          }}
-        />
-        {errors.startTime && (
-          <span className={styles.errorMsg} role="alert">
-            {t(errors.startTime)}
-          </span>
-        )}
+      {/* Group: Окончание / End */}
+      <div className={styles.subGroup}>
+        <div className={styles.subGroupTitle}>{t('createEvent.fields.endGroupTitle')}</div>
+
+        {/* End Date */}
+        <div className={styles.formGroup}>
+          <label className={styles.label} htmlFor="ce-end-date">
+            {t('createEvent.fields.endDateLabel')}
+          </label>
+          <input
+            id="ce-end-date"
+            type="date"
+            className={`${styles.input} ${errors.endDate || errors.range ? styles.hasError : ''}`}
+            value={draft.endDate}
+            min={currentStartDate || today}
+            onChange={(e) => {
+              onUpdate({ endDate: e.target.value })
+              if (errors.endDate) onClearError('endDate')
+              if (errors.range) onClearError('range')
+            }}
+          />
+          {errors.endDate && (
+            <span className={styles.errorMsg} role="alert">
+              {t(errors.endDate)}
+            </span>
+          )}
+        </div>
+
+        {/* End Time */}
+        <div className={styles.formGroup}>
+          <label className={styles.label} htmlFor="ce-end-time">
+            {t('createEvent.fields.endTimeLabel')}
+          </label>
+          <input
+            id="ce-end-time"
+            type="time"
+            placeholder={t('createEvent.fields.endTimePlaceholder')}
+            className={`${styles.input} ${errors.endTime || errors.range ? styles.hasError : ''}`}
+            value={draft.endTime}
+            onChange={(e) => {
+              onUpdate({ endTime: e.target.value })
+              if (errors.endTime) onClearError('endTime')
+              if (errors.range) onClearError('range')
+            }}
+          />
+          {errors.endTime && (
+            <span className={styles.errorMsg} role="alert">
+              {t(errors.endTime)}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* End Time */}
-      <div className={styles.formGroup}>
-        <label className={styles.label} htmlFor="ce-end-time">
-          {t('createEvent.fields.endTimeLabel')}
-        </label>
-        <input
-          id="ce-end-time"
-          type="time"
-          placeholder={t('createEvent.fields.endTimePlaceholder')}
-          className={`${styles.input} ${errors.endTime ? styles.hasError : ''}`}
-          value={draft.endTime}
-          onChange={(e) => {
-            onUpdate({ endTime: e.target.value })
-            if (errors.endTime) onClearError('endTime')
-          }}
-        />
-        {errors.endTime && (
-          <span className={styles.errorMsg} role="alert">
-            {t(errors.endTime)}
-          </span>
-        )}
-      </div>
+      {/* Range error message */}
+      {errors.range && (
+        <span className={styles.errorMsg} role="alert">
+          {t(errors.range)}
+        </span>
+      )}
     </>
   )
 }
@@ -247,10 +291,18 @@ const StepReview: React.FC<{
   const categoryLabel =
     draft.category ? t(`createEvent.categories.${draft.category}`) : '—'
 
-  const datetimeFormatted =
-    draft.date
-      ? formatEventDateTimeRange(draft.date, draft.startTime, draft.endTime, i18n.language)
-      : '—'
+  const effectiveStartDate = draft.startDate || draft.date || ''
+  const effectiveEndDate = draft.endDate || effectiveStartDate
+
+  const datetimeFormatted = effectiveStartDate
+    ? formatEventDateTimeRange(
+        effectiveStartDate,
+        draft.startTime,
+        effectiveEndDate,
+        draft.endTime,
+        i18n.language
+      )
+    : '—'
 
   return (
     <>

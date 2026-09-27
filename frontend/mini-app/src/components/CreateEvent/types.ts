@@ -14,8 +14,10 @@ export interface CreateEventDraft {
   title: string
   description: string
   category: EventCategory | ''
-  date: string // YYYY-MM-DD
+  date?: string // legacy YYYY-MM-DD
+  startDate: string // YYYY-MM-DD
   startTime: string // HH:MM
+  endDate: string // YYYY-MM-DD
   endTime: string // HH:MM
   address: string
   isFree: true
@@ -35,8 +37,11 @@ export interface StepErrors {
   description?: string
   category?: string
   date?: string
+  startDate?: string
   startTime?: string
+  endDate?: string
   endTime?: string
+  range?: string
   address?: string
 }
 
@@ -51,8 +56,10 @@ export interface CreateEventRequest {
   title: string
   description: string
   category: EventCategory
-  date: string
+  date?: string // legacy
+  startDate: string
   startTime: string
+  endDate: string
   endTime?: string
   address: string
   createdAt: string

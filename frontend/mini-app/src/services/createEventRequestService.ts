@@ -1,6 +1,6 @@
 import type { CreateEventDraft, CreateEventRequest } from '../components/CreateEvent/types'
 import type { EventCategory } from '../types'
-import { calculateDefaultEndTime } from '../utils/formatters'
+import { calculateDefaultEndDateTime } from '../utils/formatters'
 
 const STORAGE_KEY = 'tut_i_tam_create_event_requests'
 export const REQUESTS_CHANGED_EVENT = 'tut_i_tam_requests_changed'
@@ -11,16 +11,43 @@ export function getStoredRequestsSync(): CreateEventRequest[] {
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return (parsed as CreateEventRequest[])
-      .map((item) => ({
-        ...item,
-        status: item.status || 'pending',
-        source: item.source || 'user',
-        isFree: true as const,
-        pushkinCard: false as const,
-        endTime: item.endTime || (item.startTime ? calculateDefaultEndTime(item.startTime) : undefined),
-        createdAt: item.createdAt || new Date().toISOString(),
-      }))
+    return (parsed as Array<Record<string, unknown>>)
+      .map((item) => {
+        const rawDate = typeof item.date === 'string' ? item.date : ''
+        const startDate = typeof item.startDate === 'string' && item.startDate ? item.startDate : rawDate
+        const startTime = typeof item.startTime === 'string' ? item.startTime : ''
+
+        let endDate = typeof item.endDate === 'string' && item.endDate ? item.endDate : startDate
+        let endTime = typeof item.endTime === 'string' ? item.endTime : undefined
+
+        if (!endTime && startTime) {
+          const defaultEnd = calculateDefaultEndDateTime(startDate, startTime)
+          endTime = defaultEnd.endTime
+          if (!item.endDate) {
+            endDate = defaultEnd.endDate
+          }
+        }
+
+        const req: CreateEventRequest = {
+          id: (typeof item.id === 'string' ? item.id : '') || `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          status: (item.status as CreateEventRequest['status']) || 'pending',
+          source: 'user',
+          isFree: true,
+          pushkinCard: false,
+          title: typeof item.title === 'string' ? item.title : '',
+          description: typeof item.description === 'string' ? item.description : '',
+          category: (item.category as EventCategory) || 'events',
+          date: startDate,
+          startDate,
+          startTime,
+          endDate,
+          endTime,
+          address: typeof item.address === 'string' ? item.address : '',
+          createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+          locale: (item.locale as 'ru-RU' | 'en-US') || 'ru-RU',
+        }
+        return req
+      })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   } catch {
     return []
@@ -73,6 +100,18 @@ export async function submitCreateEventRequest(
 
   try {
     const category: EventCategory = draft.category || 'events'
+    const startDate = draft.startDate || draft.date || ''
+    const startTime = draft.startTime
+    let endDate = draft.endDate || startDate
+    let endTime = draft.endTime
+
+    if (!endTime && startTime) {
+      const defaultEnd = calculateDefaultEndDateTime(startDate, startTime)
+      endTime = defaultEnd.endTime
+      if (!draft.endDate) {
+        endDate = defaultEnd.endDate
+      }
+    }
 
     const newRequest: CreateEventRequest = {
       id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -83,9 +122,11 @@ export async function submitCreateEventRequest(
       title: draft.title.trim(),
       description: draft.description.trim(),
       category,
-      date: draft.date,
-      startTime: draft.startTime,
-      endTime: draft.endTime.trim() || calculateDefaultEndTime(draft.startTime),
+      date: startDate,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
       address: draft.address.trim(),
       createdAt: new Date().toISOString(),
       locale,

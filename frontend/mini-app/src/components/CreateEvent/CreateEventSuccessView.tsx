@@ -28,8 +28,17 @@ export const CreateEventSuccessView: React.FC<CreateEventSuccessViewProps> = ({
     ? t(`createEvent.categories.${request.category}`)
     : '—'
 
-  const datetimeFormatted = request.date
-    ? formatEventDateTimeRange(request.date, request.startTime, request.endTime, i18n.language)
+  const effectiveStartDate = request.startDate || request.date || ''
+  const effectiveEndDate = request.endDate || effectiveStartDate
+
+  const datetimeFormatted = effectiveStartDate
+    ? formatEventDateTimeRange(
+        effectiveStartDate,
+        request.startTime,
+        effectiveEndDate,
+        request.endTime,
+        i18n.language
+      )
     : '—'
 
   return (

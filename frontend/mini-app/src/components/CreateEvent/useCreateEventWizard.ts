@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { CreateEventDraft, StepConfig, StepErrors } from './types'
-import { calculateDefaultEndTime } from '../../utils/formatters'
+import { calculateDefaultEndDateTime } from '../../utils/formatters'
 
 export const WIZARD_STEPS: StepConfig[] = [
   {
@@ -34,7 +34,9 @@ export const INITIAL_DRAFT: CreateEventDraft = {
   description: '',
   category: '',
   date: '',
+  startDate: '',
   startTime: '',
+  endDate: '',
   endTime: '',
   address: '',
   isFree: true,
@@ -71,13 +73,34 @@ export function useCreateEventWizard() {
   const updateDraft = useCallback((patch: Partial<CreateEventDraft>) => {
     setDraft((prev) => {
       const next = { ...prev, ...patch }
-      if (patch.startTime !== undefined && patch.endTime === undefined) {
-        if (!prev.endTime || (prev.startTime && prev.endTime === calculateDefaultEndTime(prev.startTime))) {
-          if (patch.startTime) {
-            next.endTime = calculateDefaultEndTime(patch.startTime)
+
+      if (patch.startDate !== undefined) {
+        next.date = patch.startDate
+      }
+
+      const isUpdatingStart = patch.startDate !== undefined || patch.startTime !== undefined
+      const isExplicitEnd = patch.endDate !== undefined || patch.endTime !== undefined
+
+      if (isUpdatingStart && !isExplicitEnd) {
+        const curStartD = next.startDate
+        const curStartT = next.startTime
+
+        const prevDefault = calculateDefaultEndDateTime(prev.startDate, prev.startTime)
+        const endUntouched = !prev.endDate && !prev.endTime
+        const endMatchesPrevDefault =
+          prev.endDate === prevDefault.endDate && prev.endTime === prevDefault.endTime
+
+        if (endUntouched || endMatchesPrevDefault) {
+          if (curStartD && curStartT) {
+            const nextDefault = calculateDefaultEndDateTime(curStartD, curStartT)
+            next.endDate = nextDefault.endDate
+            next.endTime = nextDefault.endTime
+          } else if (curStartD && !curStartT && (!prev.endDate || prev.endDate === prev.startDate)) {
+            next.endDate = curStartD
           }
         }
       }
+
       return next
     })
   }, [])
@@ -97,8 +120,9 @@ export function useCreateEventWizard() {
     draft.title.trim() ||
     draft.description.trim() ||
     draft.category ||
-    draft.date ||
+    draft.startDate ||
     draft.startTime ||
+    draft.endDate ||
     draft.endTime ||
     draft.address.trim()
   )

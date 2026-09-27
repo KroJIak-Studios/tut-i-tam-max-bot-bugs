@@ -307,8 +307,12 @@ export interface TranslationSchema {
       descriptionPlaceholder: string
       categoryLabel: string
       categoryPlaceholder: string
+      startGroupTitle: string
+      endGroupTitle: string
       dateLabel: string
+      startDateLabel: string
       startTimeLabel: string
+      endDateLabel: string
       endTimeLabel: string
       endTimePlaceholder: string
       addressLabel: string
@@ -326,9 +330,12 @@ export interface TranslationSchema {
       descriptionRequired: string
       categoryRequired: string
       dateRequired: string
+      startDateRequired: string
       startTimeRequired: string
+      endDateRequired: string
       endTimeRequired: string
       endTimeAfterStart: string
+      endDateTimeAfterStart: string
       datePast: string
       addressRequired: string
       submitFailed: string
@@ -710,8 +717,12 @@ export const ruRU: TranslationSchema = {
       descriptionPlaceholder: 'Расскажите, что будет происходить и кому подойдёт мероприятие',
       categoryLabel: 'Категория',
       categoryPlaceholder: 'Выберите категорию',
+      startGroupTitle: 'Начало',
+      endGroupTitle: 'Окончание',
       dateLabel: 'Дата',
+      startDateLabel: 'Дата начала',
       startTimeLabel: 'Время начала',
+      endDateLabel: 'Дата окончания',
       endTimeLabel: 'Время окончания',
       endTimePlaceholder: '16:00',
       addressLabel: 'Адрес или место',
@@ -729,9 +740,12 @@ export const ruRU: TranslationSchema = {
       descriptionRequired: 'Добавьте описание',
       categoryRequired: 'Выберите категорию',
       dateRequired: 'Выберите дату',
+      startDateRequired: 'Выберите дату начала',
       startTimeRequired: 'Укажите время начала',
+      endDateRequired: 'Выберите дату окончания',
       endTimeRequired: 'Укажите время окончания',
       endTimeAfterStart: 'Время окончания должно быть позже начала',
+      endDateTimeAfterStart: 'Окончание должно быть позже начала',
       datePast: 'Дата не может быть в прошлом',
       addressRequired: 'Укажите место',
       submitFailed: 'Не удалось отправить заявку. Попробуйте ещё раз.',
