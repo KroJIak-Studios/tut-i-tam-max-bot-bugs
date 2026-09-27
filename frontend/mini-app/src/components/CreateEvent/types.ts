@@ -16,6 +16,7 @@ export interface CreateEventDraft {
   category: EventCategory | ''
   date: string // YYYY-MM-DD
   startTime: string // HH:MM
+  endTime: string // HH:MM
   address: string
   isFree: true
   pushkinCard: false
@@ -35,6 +36,7 @@ export interface StepErrors {
   category?: string
   date?: string
   startTime?: string
+  endTime?: string
   address?: string
 }
 
@@ -51,6 +53,7 @@ export interface CreateEventRequest {
   category: EventCategory
   date: string
   startTime: string
+  endTime?: string
   address: string
   createdAt: string
   locale: 'ru-RU' | 'en-US'

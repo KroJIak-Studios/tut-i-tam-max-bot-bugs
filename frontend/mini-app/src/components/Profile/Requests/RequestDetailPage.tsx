@@ -7,7 +7,7 @@ import { getCreateEventRequestById, getStoredRequestsSync } from '../../../servi
 import { RequestsTopBar } from './RequestsTopBar'
 import { BottomNavigation } from '../../BottomNavigation'
 import { IconChat, IconTicket } from '../../Icons'
-import { formatEventDateTime, formatSubmissionDate } from '../../../utils/formatters'
+import { formatEventDateTimeRange, formatSubmissionDate } from '../../../utils/formatters'
 import styles from './RequestDetailPage.module.css'
 
 export const RequestDetailPage: React.FC = () => {
@@ -101,7 +101,7 @@ export const RequestDetailPage: React.FC = () => {
     : '—'
 
   const datetimeFormatted = request.date
-    ? formatEventDateTime(request.date, request.startTime || undefined, i18n.language)
+    ? formatEventDateTimeRange(request.date, request.startTime, request.endTime, i18n.language)
     : '—'
 
   const submittedFormatted = request.createdAt

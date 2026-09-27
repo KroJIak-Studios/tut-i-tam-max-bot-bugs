@@ -9,6 +9,7 @@ import { CreateEventExitConfirmModal } from './CreateEventExitConfirmModal'
 import { CreateEventSuccessView } from './CreateEventSuccessView'
 import { useCreateEventWizard } from './useCreateEventWizard'
 import { submitCreateEventRequest } from '../../services/createEventRequestService'
+import { isTimeAfter } from '../../utils/formatters'
 import type { CreateEventDraft, CreateEventRequest, StepErrors } from './types'
 import styles from './CreateEventPage.module.css'
 
@@ -39,6 +40,11 @@ function validateStep(
     }
     if (!draft.startTime) {
       errors.startTime = 'createEvent.errors.startTimeRequired'
+    }
+    if (!draft.endTime) {
+      errors.endTime = 'createEvent.errors.endTimeRequired'
+    } else if (draft.startTime && !isTimeAfter(draft.endTime, draft.startTime)) {
+      errors.endTime = 'createEvent.errors.endTimeAfterStart'
     }
   }
 

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { CreateEventDraft, StepConfig, StepErrors } from './types'
+import { calculateDefaultEndTime } from '../../utils/formatters'
 
 export const WIZARD_STEPS: StepConfig[] = [
   {
@@ -34,6 +35,7 @@ export const INITIAL_DRAFT: CreateEventDraft = {
   category: '',
   date: '',
   startTime: '',
+  endTime: '',
   address: '',
   isFree: true,
   pushkinCard: false,
@@ -67,7 +69,17 @@ export function useCreateEventWizard() {
   }, [])
 
   const updateDraft = useCallback((patch: Partial<CreateEventDraft>) => {
-    setDraft((prev) => ({ ...prev, ...patch }))
+    setDraft((prev) => {
+      const next = { ...prev, ...patch }
+      if (patch.startTime !== undefined && patch.endTime === undefined) {
+        if (!prev.endTime || (prev.startTime && prev.endTime === calculateDefaultEndTime(prev.startTime))) {
+          if (patch.startTime) {
+            next.endTime = calculateDefaultEndTime(patch.startTime)
+          }
+        }
+      }
+      return next
+    })
   }, [])
 
   const setStepErrors = useCallback((newErrors: StepErrors | ((prev: StepErrors) => StepErrors)) => {
@@ -87,6 +99,7 @@ export function useCreateEventWizard() {
     draft.category ||
     draft.date ||
     draft.startTime ||
+    draft.endTime ||
     draft.address.trim()
   )
 

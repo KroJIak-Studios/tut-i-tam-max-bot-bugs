@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CreateEventRequest } from './types'
 import { IconCheck } from '../Icons'
-import { formatEventDateTime } from '../../utils/formatters'
+import { formatEventDateTimeRange } from '../../utils/formatters'
 import styles from './CreateEventSuccessView.module.css'
 
 interface CreateEventSuccessViewProps {
@@ -29,7 +29,7 @@ export const CreateEventSuccessView: React.FC<CreateEventSuccessViewProps> = ({
     : '—'
 
   const datetimeFormatted = request.date
-    ? formatEventDateTime(request.date, request.startTime || undefined, i18n.language)
+    ? formatEventDateTimeRange(request.date, request.startTime, request.endTime, i18n.language)
     : '—'
 
   return (

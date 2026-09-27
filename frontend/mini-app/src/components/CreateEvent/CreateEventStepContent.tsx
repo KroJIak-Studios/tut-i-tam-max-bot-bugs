@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { CreateEventDraft, StepConfig, StepErrors } from './types'
 import { USER_EVENT_CATEGORIES } from './types'
 import type { EventCategory } from '../../types'
-import { formatEventDateTime } from '../../utils/formatters'
+import { formatEventDateTimeRange } from '../../utils/formatters'
 import styles from './CreateEventStepContent.module.css'
 
 interface CreateEventStepContentProps {
@@ -163,11 +163,35 @@ const StepDatetime: React.FC<{
           onChange={(e) => {
             onUpdate({ startTime: e.target.value })
             if (errors.startTime) onClearError('startTime')
+            if (errors.endTime) onClearError('endTime')
           }}
         />
         {errors.startTime && (
           <span className={styles.errorMsg} role="alert">
             {t(errors.startTime)}
+          </span>
+        )}
+      </div>
+
+      {/* End Time */}
+      <div className={styles.formGroup}>
+        <label className={styles.label} htmlFor="ce-end-time">
+          {t('createEvent.fields.endTimeLabel')}
+        </label>
+        <input
+          id="ce-end-time"
+          type="time"
+          placeholder={t('createEvent.fields.endTimePlaceholder')}
+          className={`${styles.input} ${errors.endTime ? styles.hasError : ''}`}
+          value={draft.endTime}
+          onChange={(e) => {
+            onUpdate({ endTime: e.target.value })
+            if (errors.endTime) onClearError('endTime')
+          }}
+        />
+        {errors.endTime && (
+          <span className={styles.errorMsg} role="alert">
+            {t(errors.endTime)}
           </span>
         )}
       </div>
@@ -225,7 +249,7 @@ const StepReview: React.FC<{
 
   const datetimeFormatted =
     draft.date
-      ? formatEventDateTime(draft.date, draft.startTime || undefined, i18n.language)
+      ? formatEventDateTimeRange(draft.date, draft.startTime, draft.endTime, i18n.language)
       : '—'
 
   return (

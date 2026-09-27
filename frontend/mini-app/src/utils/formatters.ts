@@ -33,6 +33,33 @@ export function formatTime(timeStr?: string, locale?: string): string {
 }
 
 /**
+ * Calculates default end time (startTime + 2 hours).
+ * For same-day constraints, caps at 23:59.
+ */
+export function calculateDefaultEndTime(startTime: string): string {
+  if (!startTime) return ''
+  const parts = startTime.trim().split(':')
+  if (parts.length < 2) return ''
+  const h = parseInt(parts[0], 10)
+  const m = parseInt(parts[1], 10)
+  if (isNaN(h) || isNaN(m)) return ''
+
+  const endH = h + 2
+  if (endH >= 24) {
+    return '23:59'
+  }
+  return `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/**
+ * Checks if timeB is strictly later than timeA on the same day.
+ */
+export function isTimeAfter(timeB: string, timeA: string): boolean {
+  if (!timeA || !timeB) return false
+  return timeB > timeA
+}
+
+/**
  * Formats event date and time according to locale:
  * RU: "Сегодня · 19:00", "Завтра · 10:00", "27 сентября · 18:30"
  * EN: "Today · 7:00 PM", "Tomorrow · 10:00 AM", "September 27 · 6:30 PM"
@@ -92,6 +119,33 @@ export function formatEventDateTime(
   }
 
   return `${dateStr}${timeSuffix}`
+}
+
+/**
+ * Formats event date and time range:
+ * RU: "5 октября · 14:00–16:00"
+ * EN: "October 5 · 2:00 PM–4:00 PM"
+ */
+export function formatEventDateTimeRange(
+  dateStr: string,
+  startTime?: string,
+  endTime?: string,
+  locale?: string
+): string {
+  if (!startTime) {
+    return formatEventDateTime(dateStr, undefined, locale)
+  }
+  if (!endTime) {
+    return formatEventDateTime(dateStr, startTime, locale)
+  }
+
+  const norm = normalizeLocale(locale)
+  const formattedStart = formatTime(startTime, norm)
+  const formattedEnd = formatTime(endTime, norm)
+  const timeRange = `${formattedStart}–${formattedEnd}`
+
+  const datePrefix = formatEventDateTime(dateStr, undefined, norm)
+  return `${datePrefix} · ${timeRange}`
 }
 
 /**

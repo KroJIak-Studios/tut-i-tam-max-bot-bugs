@@ -309,6 +309,8 @@ export interface TranslationSchema {
       categoryPlaceholder: string
       dateLabel: string
       startTimeLabel: string
+      endTimeLabel: string
+      endTimePlaceholder: string
       addressLabel: string
       addressPlaceholder: string
     }
@@ -325,6 +327,8 @@ export interface TranslationSchema {
       categoryRequired: string
       dateRequired: string
       startTimeRequired: string
+      endTimeRequired: string
+      endTimeAfterStart: string
       datePast: string
       addressRequired: string
       submitFailed: string
@@ -708,6 +712,8 @@ export const ruRU: TranslationSchema = {
       categoryPlaceholder: 'Выберите категорию',
       dateLabel: 'Дата',
       startTimeLabel: 'Время начала',
+      endTimeLabel: 'Время окончания',
+      endTimePlaceholder: '16:00',
       addressLabel: 'Адрес или место',
       addressPlaceholder: 'Например: Кремлёвская набережная',
     },
@@ -724,6 +730,8 @@ export const ruRU: TranslationSchema = {
       categoryRequired: 'Выберите категорию',
       dateRequired: 'Выберите дату',
       startTimeRequired: 'Укажите время начала',
+      endTimeRequired: 'Укажите время окончания',
+      endTimeAfterStart: 'Время окончания должно быть позже начала',
       datePast: 'Дата не может быть в прошлом',
       addressRequired: 'Укажите место',
       submitFailed: 'Не удалось отправить заявку. Попробуйте ещё раз.',

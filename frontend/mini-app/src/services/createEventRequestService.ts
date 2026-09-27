@@ -1,5 +1,6 @@
 import type { CreateEventDraft, CreateEventRequest } from '../components/CreateEvent/types'
 import type { EventCategory } from '../types'
+import { calculateDefaultEndTime } from '../utils/formatters'
 
 const STORAGE_KEY = 'tut_i_tam_create_event_requests'
 export const REQUESTS_CHANGED_EVENT = 'tut_i_tam_requests_changed'
@@ -17,6 +18,7 @@ export function getStoredRequestsSync(): CreateEventRequest[] {
         source: item.source || 'user',
         isFree: true as const,
         pushkinCard: false as const,
+        endTime: item.endTime || (item.startTime ? calculateDefaultEndTime(item.startTime) : undefined),
         createdAt: item.createdAt || new Date().toISOString(),
       }))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -83,6 +85,7 @@ export async function submitCreateEventRequest(
       category,
       date: draft.date,
       startTime: draft.startTime,
+      endTime: draft.endTime.trim() || calculateDefaultEndTime(draft.startTime),
       address: draft.address.trim(),
       createdAt: new Date().toISOString(),
       locale,

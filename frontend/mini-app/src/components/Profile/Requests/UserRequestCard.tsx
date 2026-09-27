@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CreateEventRequest } from '../../CreateEvent/types'
 import { IconChevronRight, IconLocationPin, IconClock } from '../../Icons'
-import { formatEventDateTime, formatSubmissionDate } from '../../../utils/formatters'
+import { formatEventDateTimeRange, formatSubmissionDate } from '../../../utils/formatters'
 import styles from './UserRequestCard.module.css'
 
 interface UserRequestCardProps {
@@ -18,7 +18,7 @@ export const UserRequestCard: React.FC<UserRequestCardProps> = ({ request, onCli
     : ''
 
   const datetimeFormatted = request.date
-    ? formatEventDateTime(request.date, request.startTime || undefined, i18n.language)
+    ? formatEventDateTimeRange(request.date, request.startTime, request.endTime, i18n.language)
     : '—'
 
   const submittedFormatted = request.createdAt
