@@ -321,6 +321,7 @@ export interface TranslationSchema {
       startTimeRequired: string
       datePast: string
       addressRequired: string
+      submitFailed: string
     }
     review: {
       titleLabel: string
@@ -336,6 +337,21 @@ export interface TranslationSchema {
       next: string
       back: string
       submit: string
+      submitting: string
+    }
+    success: {
+      title: string
+      description: string
+      statusLabel: string
+      statusUnderReview: string
+      doneBtn: string
+      createAnotherBtn: string
+    }
+    exitConfirm: {
+      title: string
+      description: string
+      stay: string
+      leave: string
     }
   }
 }
@@ -663,6 +679,7 @@ export const ruRU: TranslationSchema = {
       startTimeRequired: 'Укажите время начала',
       datePast: 'Дата не может быть в прошлом',
       addressRequired: 'Укажите место',
+      submitFailed: 'Не удалось отправить заявку. Попробуйте ещё раз.',
     },
     review: {
       titleLabel: 'Название',
@@ -678,6 +695,21 @@ export const ruRU: TranslationSchema = {
       next: 'Далее',
       back: 'Назад',
       submit: 'Отправить заявку',
+      submitting: 'Отправляем...',
+    },
+    success: {
+      title: 'Заявка отправлена',
+      description: 'Мы отправили мероприятие на проверку. После модерации оно появится в сервисе.',
+      statusLabel: 'Статус',
+      statusUnderReview: 'На проверке',
+      doneBtn: 'Готово',
+      createAnotherBtn: 'Создать ещё одно',
+    },
+    exitConfirm: {
+      title: 'Выйти без сохранения?',
+      description: 'Данные заявки будут потеряны.',
+      stay: 'Остаться',
+      leave: 'Выйти',
     },
   },
 }

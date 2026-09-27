@@ -5,17 +5,25 @@ import styles from './CreateEventBottomBar.module.css'
 interface CreateEventBottomBarProps {
   isFirstStep: boolean
   isLastStep: boolean
+  isSubmitting?: boolean
+  isDraftValid?: boolean
   onNext: () => void
   onPrev: () => void
+  onSubmit?: () => void
 }
 
 export const CreateEventBottomBar: React.FC<CreateEventBottomBarProps> = ({
   isFirstStep,
   isLastStep,
+  isSubmitting = false,
+  isDraftValid = true,
   onNext,
   onPrev,
+  onSubmit,
 }) => {
   const { t } = useTranslation()
+
+  const submitDisabled = isSubmitting || !isDraftValid
 
   return (
     <footer className={styles.bottomBarWrapper}>
@@ -25,6 +33,7 @@ export const CreateEventBottomBar: React.FC<CreateEventBottomBarProps> = ({
             type="button"
             className={styles.backBtn}
             onClick={onPrev}
+            disabled={isSubmitting}
           >
             <span>{t('createEvent.actions.back')}</span>
           </button>
@@ -33,11 +42,22 @@ export const CreateEventBottomBar: React.FC<CreateEventBottomBarProps> = ({
         {isLastStep ? (
           <button
             type="button"
-            className={`${styles.primaryBtn} ${styles.submitBtnDisabled}`}
-            disabled
-            aria-disabled="true"
+            className={`${styles.primaryBtn} ${
+              !isDraftValid
+                ? styles.submitBtnDisabled
+                : isSubmitting
+                  ? styles.submitBtnLoading
+                  : ''
+            }`}
+            onClick={onSubmit}
+            disabled={submitDisabled}
+            aria-disabled={submitDisabled}
           >
-            <span>{t('createEvent.actions.submit')}</span>
+            <span>
+              {isSubmitting
+                ? t('createEvent.actions.submitting')
+                : t('createEvent.actions.submit')}
+            </span>
           </button>
         ) : (
           <button

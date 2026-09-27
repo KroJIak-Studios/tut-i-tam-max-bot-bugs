@@ -37,3 +37,19 @@ export interface StepErrors {
   startTime?: string
   address?: string
 }
+
+export interface CreateEventRequest {
+  id: string
+  status: 'pending'
+  source: 'user'
+  isFree: true
+  pushkinCard: false
+  title: string
+  description: string
+  category: EventCategory
+  date: string
+  startTime: string
+  address: string
+  createdAt: string
+  locale: 'ru-RU' | 'en-US'
+}

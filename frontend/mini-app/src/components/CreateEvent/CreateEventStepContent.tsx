@@ -10,6 +10,7 @@ interface CreateEventStepContentProps {
   currentStep: StepConfig
   draft: CreateEventDraft
   errors: StepErrors
+  submitError?: string | null
   onUpdate: (patch: Partial<CreateEventDraft>) => void
   onGoToStep: (idx: number) => void
   onClearError: (field: keyof StepErrors) => void
@@ -214,8 +215,9 @@ const StepLocation: React.FC<{
 
 const StepReview: React.FC<{
   draft: CreateEventDraft
+  submitError?: string | null
   onGoToStep: (idx: number) => void
-}> = ({ draft, onGoToStep }) => {
+}> = ({ draft, submitError, onGoToStep }) => {
   const { t, i18n } = useTranslation()
 
   const categoryLabel =
@@ -228,6 +230,12 @@ const StepReview: React.FC<{
 
   return (
     <>
+      {submitError && (
+        <div className={styles.submitErrorBanner} role="alert">
+          <span>{submitError}</span>
+        </div>
+      )}
+
       <div className={styles.reviewRows}>
         {/* Title */}
         <div className={styles.reviewRow}>
@@ -331,6 +339,7 @@ export const CreateEventStepContent: React.FC<CreateEventStepContentProps> = ({
   currentStep,
   draft,
   errors,
+  submitError,
   onUpdate,
   onGoToStep,
   onClearError,
@@ -344,7 +353,7 @@ export const CreateEventStepContent: React.FC<CreateEventStepContentProps> = ({
       case 'location':
         return <StepLocation draft={draft} errors={errors} onUpdate={onUpdate} onClearError={onClearError} />
       case 'review':
-        return <StepReview draft={draft} onGoToStep={onGoToStep} />
+        return <StepReview draft={draft} submitError={submitError} onGoToStep={onGoToStep} />
     }
   }
 

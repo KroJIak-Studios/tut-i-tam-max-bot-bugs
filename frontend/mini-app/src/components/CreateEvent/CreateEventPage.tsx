@@ -1,12 +1,15 @@
-import React, { useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CreateEventTopBar } from './CreateEventTopBar'
 import { CreateEventProgress } from './CreateEventProgress'
 import { CreateEventStepContent } from './CreateEventStepContent'
 import { CreateEventBottomBar } from './CreateEventBottomBar'
+import { CreateEventExitConfirmModal } from './CreateEventExitConfirmModal'
+import { CreateEventSuccessView } from './CreateEventSuccessView'
 import { useCreateEventWizard } from './useCreateEventWizard'
-import type { CreateEventDraft, StepErrors } from './types'
+import { submitCreateEventRequest } from '../../services/createEventRequestService'
+import type { CreateEventDraft, CreateEventRequest, StepErrors } from './types'
 import styles from './CreateEventPage.module.css'
 
 function validateStep(
@@ -48,9 +51,34 @@ function validateStep(
   return errors
 }
 
+function validateAll(draft: CreateEventDraft): {
+  valid: boolean
+  firstInvalidStepIndex?: number
+  errors?: StepErrors
+} {
+  const basicsErrors = validateStep('basics', draft)
+  if (Object.keys(basicsErrors).length > 0) {
+    return { valid: false, firstInvalidStepIndex: 0, errors: basicsErrors }
+  }
+  const datetimeErrors = validateStep('datetime', draft)
+  if (Object.keys(datetimeErrors).length > 0) {
+    return { valid: false, firstInvalidStepIndex: 1, errors: datetimeErrors }
+  }
+  const locationErrors = validateStep('location', draft)
+  if (Object.keys(locationErrors).length > 0) {
+    return { valid: false, firstInvalidStepIndex: 2, errors: locationErrors }
+  }
+  return { valid: true }
+}
+
 export const CreateEventPage: React.FC = () => {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submittedRequest, setSubmittedRequest] = useState<CreateEventRequest | null>(null)
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = useState<boolean>(false)
 
   const {
     currentStep,
@@ -60,12 +88,16 @@ export const CreateEventPage: React.FC = () => {
     isLastStep,
     draft,
     errors,
+    isDirty,
     nextStep,
     prevStep,
     goToStep,
     updateDraft,
     setStepErrors,
+    resetDraft,
   } = useCreateEventWizard()
+
+  const isDraftValid = validateAll(draft).valid
 
   const handleExit = useCallback(() => {
     if (window.history.length > 1) {
@@ -75,10 +107,27 @@ export const CreateEventPage: React.FC = () => {
     }
   }, [navigate])
 
-  const handleNext = useCallback(() => {
-    // Review step — submit is disabled, so nothing to do
-    if (isLastStep) return
+  const handleBackClick = useCallback(() => {
+    if (submittedRequest) {
+      handleExit()
+    } else if (isDirty) {
+      setIsExitConfirmOpen(true)
+    } else {
+      handleExit()
+    }
+  }, [handleExit, isDirty, submittedRequest])
 
+  const handleStay = useCallback(() => {
+    setIsExitConfirmOpen(false)
+  }, [])
+
+  const handleLeave = useCallback(() => {
+    setIsExitConfirmOpen(false)
+    resetDraft()
+    handleExit()
+  }, [handleExit, resetDraft])
+
+  const handleNext = useCallback(() => {
     const stepErrors = validateStep(currentStep.id, draft)
 
     if (Object.keys(stepErrors).length > 0) {
@@ -87,7 +136,40 @@ export const CreateEventPage: React.FC = () => {
     }
 
     nextStep()
-  }, [currentStep.id, draft, isLastStep, nextStep, setStepErrors])
+  }, [currentStep.id, draft, nextStep, setStepErrors])
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return
+
+    const validation = validateAll(draft)
+    if (!validation.valid && validation.firstInvalidStepIndex !== undefined) {
+      goToStep(validation.firstInvalidStepIndex)
+      if (validation.errors) {
+        setStepErrors(validation.errors)
+      }
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    const locale = (i18n.language === 'en-US' ? 'en-US' : 'ru-RU') as 'ru-RU' | 'en-US'
+    const result = await submitCreateEventRequest(draft, locale)
+
+    if (result.success && result.data) {
+      setSubmittedRequest(result.data)
+      setIsSubmitting(false)
+    } else {
+      setSubmitError(result.error || t('createEvent.errors.submitFailed'))
+      setIsSubmitting(false)
+    }
+  }, [draft, goToStep, i18n.language, isSubmitting, setStepErrors, t])
+
+  const handleCreateAnother = useCallback(() => {
+    setSubmittedRequest(null)
+    setSubmitError(null)
+    resetDraft()
+  }, [resetDraft])
 
   const clearFieldError = useCallback((field: keyof StepErrors) => {
     setStepErrors((prev: StepErrors) => {
@@ -100,34 +182,57 @@ export const CreateEventPage: React.FC = () => {
   return (
     <div className={styles.pageContainer}>
       {/* 1. Header */}
-      <CreateEventTopBar onBack={handleExit} />
+      <CreateEventTopBar onBack={handleBackClick} />
 
       {/* 2. Scrollable body */}
       <main className={styles.scrollArea} aria-label={t('createEvent.pageTitle')}>
         <div className={styles.contentWrapper}>
-          <CreateEventProgress
-            currentStep={currentStep}
-            currentStepIndex={currentStepIndex}
-            totalSteps={totalSteps}
-          />
+          {submittedRequest ? (
+            <CreateEventSuccessView
+              request={submittedRequest}
+              onDone={handleExit}
+              onCreateAnother={handleCreateAnother}
+            />
+          ) : (
+            <>
+              <CreateEventProgress
+                currentStep={currentStep}
+                currentStepIndex={currentStepIndex}
+                totalSteps={totalSteps}
+              />
 
-          <CreateEventStepContent
-            currentStep={currentStep}
-            draft={draft}
-            errors={errors}
-            onUpdate={updateDraft}
-            onGoToStep={goToStep}
-            onClearError={clearFieldError}
-          />
+              <CreateEventStepContent
+                currentStep={currentStep}
+                draft={draft}
+                errors={errors}
+                submitError={submitError}
+                onUpdate={updateDraft}
+                onGoToStep={goToStep}
+                onClearError={clearFieldError}
+              />
+            </>
+          )}
         </div>
       </main>
 
-      {/* 3. Sticky bottom bar */}
-      <CreateEventBottomBar
-        isFirstStep={isFirstStep}
-        isLastStep={isLastStep}
-        onNext={handleNext}
-        onPrev={prevStep}
+      {/* 3. Sticky bottom bar (hidden when success screen is active) */}
+      {!submittedRequest && (
+        <CreateEventBottomBar
+          isFirstStep={isFirstStep}
+          isLastStep={isLastStep}
+          isSubmitting={isSubmitting}
+          isDraftValid={isDraftValid}
+          onNext={handleNext}
+          onPrev={prevStep}
+          onSubmit={handleSubmit}
+        />
+      )}
+
+      {/* 4. Exit confirmation modal for unsaved drafts */}
+      <CreateEventExitConfirmModal
+        isOpen={isExitConfirmOpen}
+        onStay={handleStay}
+        onLeave={handleLeave}
       />
     </div>
   )

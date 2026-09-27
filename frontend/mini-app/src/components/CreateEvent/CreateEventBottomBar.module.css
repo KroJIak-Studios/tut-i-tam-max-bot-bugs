@@ -96,6 +96,11 @@
   transform: none;
 }
 
+.submitBtnLoading {
+  opacity: 0.85;
+  cursor: wait;
+}
+
 @media (max-width: 340px) {
   .bottomBarWrapper {
     padding: 10px 12px calc(10px + max(env(safe-area-inset-bottom, 0px), 6px));

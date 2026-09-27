@@ -323,6 +323,7 @@ export const enUS: TranslationSchema = {
       startTimeRequired: 'Choose a start time',
       datePast: 'The date cannot be in the past',
       addressRequired: 'Add a location',
+      submitFailed: 'Could not submit the request. Please try again.',
     },
     review: {
       titleLabel: 'Title',
@@ -338,6 +339,21 @@ export const enUS: TranslationSchema = {
       next: 'Next',
       back: 'Back',
       submit: 'Submit request',
+      submitting: 'Submitting...',
+    },
+    success: {
+      title: 'Request submitted',
+      description: 'We sent your event for review. After moderation, it can appear in the service.',
+      statusLabel: 'Status',
+      statusUnderReview: 'Under review',
+      doneBtn: 'Done',
+      createAnotherBtn: 'Create another',
+    },
+    exitConfirm: {
+      title: 'Leave without saving?',
+      description: 'Your request draft will be lost.',
+      stay: 'Stay',
+      leave: 'Leave',
     },
   },
 }

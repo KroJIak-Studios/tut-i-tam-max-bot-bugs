@@ -81,6 +81,15 @@ export function useCreateEventWizard() {
     setErrors({})
   }, [])
 
+  const isDirty = Boolean(
+    draft.title.trim() ||
+    draft.description.trim() ||
+    draft.category ||
+    draft.date ||
+    draft.startTime ||
+    draft.address.trim()
+  )
+
   return {
     currentStepIndex,
     currentStep,
@@ -89,6 +98,7 @@ export function useCreateEventWizard() {
     totalSteps: WIZARD_STEPS.length,
     draft,
     errors,
+    isDirty,
     nextStep,
     prevStep,
     goToStep,
