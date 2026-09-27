@@ -237,7 +237,6 @@ export interface TranslationSchema {
       description: string
       confirm: string
     }
-    createEvent: string
   }
   reviews: {
     title: string
@@ -281,23 +280,57 @@ export interface TranslationSchema {
       basics: {
         title: string
         helper: string
-        placeholder: string
       }
       datetime: {
         title: string
         helper: string
-        placeholder: string
       }
       location: {
         title: string
         helper: string
-        placeholder: string
       }
       review: {
         title: string
         helper: string
-        placeholder: string
       }
+    }
+    fields: {
+      titleLabel: string
+      titlePlaceholder: string
+      descriptionLabel: string
+      descriptionPlaceholder: string
+      categoryLabel: string
+      categoryPlaceholder: string
+      dateLabel: string
+      startTimeLabel: string
+      addressLabel: string
+      addressPlaceholder: string
+    }
+    categories: {
+      events: string
+      places: string
+      parks: string
+      sports: string
+      volunteer: string
+    }
+    errors: {
+      titleRequired: string
+      descriptionRequired: string
+      categoryRequired: string
+      dateRequired: string
+      startTimeRequired: string
+      datePast: string
+      addressRequired: string
+    }
+    review: {
+      titleLabel: string
+      descriptionLabel: string
+      categoryLabel: string
+      datetimeLabel: string
+      locationLabel: string
+      editLabel: string
+      freeNotice: string
+      moderationNotice: string
     }
     actions: {
       next: string
@@ -546,7 +579,6 @@ export const ruRU: TranslationSchema = {
       description: 'Мероприятие «{{title}}» будет удалено из ваших запланированных событий.',
       confirm: 'Убрать',
     },
-    createEvent: '+ Создать мероприятие',
   },
   reviews: {
     title: 'Отзывы',
@@ -590,23 +622,57 @@ export const ruRU: TranslationSchema = {
       basics: {
         title: 'Основное',
         helper: 'Расскажите, что вы хотите организовать',
-        placeholder: 'Здесь будут название, описание и категория',
       },
       datetime: {
         title: 'Дата и время',
         helper: 'Выберите, когда пройдёт мероприятие',
-        placeholder: 'Здесь будут дата и время',
       },
       location: {
         title: 'Место',
         helper: 'Укажите место проведения',
-        placeholder: 'Здесь будет место проведения',
       },
       review: {
         title: 'Проверка',
         helper: 'Проверьте информацию перед отправкой',
-        placeholder: 'Здесь появится итоговая информация',
       },
+    },
+    fields: {
+      titleLabel: 'Название мероприятия',
+      titlePlaceholder: 'Например: Вечер настольных игр',
+      descriptionLabel: 'Описание',
+      descriptionPlaceholder: 'Расскажите, что будет происходить и кому подойдёт мероприятие',
+      categoryLabel: 'Категория',
+      categoryPlaceholder: 'Выберите категорию',
+      dateLabel: 'Дата',
+      startTimeLabel: 'Время начала',
+      addressLabel: 'Адрес или место',
+      addressPlaceholder: 'Например: Кремлёвская набережная',
+    },
+    categories: {
+      events: 'Мероприятия',
+      places: 'Места',
+      parks: 'Парки',
+      sports: 'Спорт',
+      volunteer: 'Волонтёрство',
+    },
+    errors: {
+      titleRequired: 'Введите название',
+      descriptionRequired: 'Добавьте описание',
+      categoryRequired: 'Выберите категорию',
+      dateRequired: 'Выберите дату',
+      startTimeRequired: 'Укажите время начала',
+      datePast: 'Дата не может быть в прошлом',
+      addressRequired: 'Укажите место',
+    },
+    review: {
+      titleLabel: 'Название',
+      descriptionLabel: 'Описание',
+      categoryLabel: 'Категория',
+      datetimeLabel: 'Дата и время',
+      locationLabel: 'Место',
+      editLabel: 'Изменить',
+      freeNotice: 'Пользовательские мероприятия всегда бесплатные',
+      moderationNotice: 'После отправки заявка попадёт на проверку',
     },
     actions: {
       next: 'Далее',

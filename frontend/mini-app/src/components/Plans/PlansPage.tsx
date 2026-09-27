@@ -88,17 +88,6 @@ export const PlansPage: React.FC = () => {
             pastCount={pastEvents.length}
           />
 
-          {/* Action: Create Event */}
-          <div className={styles.createActionWrapper}>
-            <button
-              type="button"
-              className={styles.createEventBtn}
-              onClick={() => navigate('/events/create')}
-            >
-              <span>{t('plans.createEvent')}</span>
-            </button>
-          </div>
-
           {/* Toast alert if active */}
           {toastMessage && (
             <div className={styles.toast} role="status">
