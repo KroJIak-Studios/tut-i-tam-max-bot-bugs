@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str = Field(validation_alias="DATABASE_URL")
     access_code_enabled: bool = Field(default=False, validation_alias="ACCESS_CODE_ENABLED")
     access_code: str = Field(default="", validation_alias="ACCESS_CODE")
+    bot_token: str = Field(default="", validation_alias="BOT_TOKEN")
     fallback_locale: str = Field(default="ru-ru", validation_alias="FALLBACK_LOCALE")
 
     @property

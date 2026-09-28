@@ -1,176 +1,90 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
-import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 import { getIsoDate } from '../utils/dateUtils'
-import { calculateDefaultEndDateTime } from '../utils/formatters'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
+import { apiRequest } from './api'
 
 export { parseTimeToMinutes }
 
-const STORAGE_KEY_USER_EVENTS = 'tut_i_tam_user_events'
-const STORAGE_KEY_ATTENDANCE = 'tut_i_tam_event_attendance'
+export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
+export function loadAttendanceMap(): Record<string, boolean> { return {} }
+export function getAttendanceMap(): Record<string, boolean> { return {} }
+export function saveAttendanceMap(_map: Record<string, boolean>): void { /* API is the source of truth. */ }
 
-function loadUserEvents(): MapEvent[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_USER_EVENTS)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+interface ApiMapEvent {
+  id: string | number
+  title: string
+  description?: string
+  latitude: number
+  longitude: number
+  category?: EventCategory
+  date?: string
+  starts_at: string
+  ends_at?: string
+  address?: string
+  origin?: 'official' | 'user'
+  price_rub?: number | null
+  pushkin_card?: boolean | null
+  attendees_count?: number
+  image?: string
+  images?: string[]
+  area?: [number, number][]
 }
 
-function saveUserEvents(events: MapEvent[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY_USER_EVENTS, JSON.stringify(events))
-  } catch {
-    // ignore
-  }
-}
-
-export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {
-  'event-naberezhnaya': true,
-  'event-yoga-park': true,
-  'event-volunteer-kazanka': true,
-}
-
-export function loadAttendanceMap(): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_ATTENDANCE)
-    if (raw === null) {
-      saveAttendanceMap(DEFAULT_INITIAL_ATTENDANCE)
-      return { ...DEFAULT_INITIAL_ATTENDANCE }
-    }
-    return JSON.parse(raw)
-  } catch {
-    return { ...DEFAULT_INITIAL_ATTENDANCE }
-  }
-}
-
-export function getAttendanceMap(): Record<string, boolean> {
-  return loadAttendanceMap()
-}
-
-export function saveAttendanceMap(map: Record<string, boolean>): void {
-  try {
-    localStorage.setItem(STORAGE_KEY_ATTENDANCE, JSON.stringify(map))
-  } catch {
-    // ignore
+function mapEvent(item: ApiMapEvent): MapEvent {
+  const start = new Date(item.starts_at)
+  const end = item.ends_at ? new Date(item.ends_at) : undefined
+  const source = item.origin === 'user' ? 'user' : 'external'
+  const price = source === 'user' || item.price_rub == null ? 0 : item.price_rub
+  return {
+    id: String(item.id), title: item.title, description: item.description || '',
+    latitude: item.latitude, longitude: item.longitude,
+    category: (item.category === 'sport' ? 'sports' : item.category || 'events') as EventCategory,
+    date: item.starts_at.slice(0, 10),
+    startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
+    startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
+    price, isFree: source === 'user' || price === 0,
+    pushkinCard: source === 'user' ? false : Boolean(item.pushkin_card),
+    attendeesCount: item.attendees_count ?? 0, source, image: item.image,
+    images: item.images, address: item.address, area: item.area,
   }
 }
 
 export async function getMapZones(): Promise<MapZone[]> {
-  // Simulate lightweight async response
-  await new Promise((resolve) => setTimeout(resolve, 60))
-  return MAP_ZONES
+  const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
+  return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+}
+
+export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEvent[]> {
+  const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
+  return items.map((item) => ({ ...mapEvent(item), isGoing: when === 'upcoming', isPast: when === 'past' }))
 }
 
 export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<MapEvent[]> {
-  await new Promise((resolve) => setTimeout(resolve, 120))
-
-  const userEvents = loadUserEvents()
-  const attendance = loadAttendanceMap()
-
-  let allEvents = [...INITIAL_MAP_EVENTS, ...userEvents].map((evt) => {
-    const isGoing = attendance[evt.id] ?? evt.isGoing ?? false
-    const base = evt.source === 'user' ? {
-      ...evt,
-      price: 0,
-      isFree: true,
-      pushkinCard: false,
-    } : evt
-    return {
-      ...base,
-      isGoing,
-      attendeesCount: base.attendeesCount + (isGoing && !base.isGoing ? 1 : 0),
-    }
-  })
-
-  if (!filters) {
-    return allEvents
-  }
-
-  return filterEvents(allEvents, filters)
+  const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
+  let events = items.map(mapEvent)
+  if (filters) events = filterEvents(events, filters)
+  return events
 }
 
 export async function toggleEventAttendance(eventId: string): Promise<MapEvent> {
-  await new Promise((resolve) => setTimeout(resolve, 80))
-
-  const attendance = loadAttendanceMap()
-  const currentStatus = !!attendance[eventId]
-  const newStatus = !currentStatus
-  attendance[eventId] = newStatus
-  saveAttendanceMap(attendance)
-
-  const events = await getMapEvents()
-  const event = events.find((e) => e.id === eventId)
-  if (!event) {
-    throw new Error(`Event ${eventId} not found`)
-  }
-
-  return event
+  const current = await getMapEvents()
+  const event = current.find((item) => item.id === eventId)
+  if (!event) throw new Error(`Event ${eventId} not found`)
+  const going = !event.isGoing
+  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  return { ...event, isGoing: going }
 }
 
 export async function setEventAttendance(eventId: string, going: boolean): Promise<MapEvent> {
-  await new Promise((resolve) => setTimeout(resolve, 60))
-
-  const attendance = loadAttendanceMap()
-  attendance[eventId] = going
-  saveAttendanceMap(attendance)
-
-  const events = await getMapEvents()
-  const event = events.find((e) => e.id === eventId)
-  if (!event) {
-    throw new Error(`Event ${eventId} not found`)
-  }
-
-  return event
+  const current = await getMapEvents()
+  const event = current.find((item) => item.id === eventId)
+  if (!event) throw new Error(`Event ${eventId} not found`)
+  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  return { ...event, isGoing: going }
 }
 
-export interface NewUserMarkerInput {
-  title: string
-  category: EventCategory
-  startTime: string
-  latitude: number
-  longitude: number
-  description?: string
-  address?: string
-}
-
+export interface NewUserMarkerInput { title: string; category: EventCategory; startTime: string; latitude: number; longitude: number; description?: string; address?: string }
 export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent> {
-  await new Promise((resolve) => setTimeout(resolve, 100))
-
-  const today = getIsoDate(0)
-  const startTime = input.startTime || '19:00'
-  const defEnd = calculateDefaultEndDateTime(today, startTime)
-
-  const newEvent: MapEvent = {
-    id: `user-event-${Date.now()}`,
-    title: input.title.trim(),
-    description: input.description?.trim() || 'Пользовательская активность в Казани',
-    latitude: input.latitude,
-    longitude: input.longitude,
-    category: input.category,
-    date: today,
-    startDate: today,
-    endDate: defEnd.endDate,
-    startTime: startTime,
-    endTime: defEnd.endTime,
-    price: 0,
-    isFree: true,
-    pushkinCard: false,
-    attendeesCount: 1,
-    isGoing: true,
-    source: 'user',
-    address: input.address?.trim() || 'Точка на карте Казани',
-  }
-
-  const existing = loadUserEvents()
-  const updated = [newEvent, ...existing]
-  saveUserEvents(updated)
-
-  // mark attendance for creator
-  const attendance = loadAttendanceMap()
-  attendance[newEvent.id] = true
-  saveAttendanceMap(attendance)
-
-  return newEvent
+  const events = await getMapEvents()
+  return events.find((event) => event.title === input.title) || { ...events[0], ...input, id: `user-${Date.now()}`, source: 'user', price: 0, isFree: true, pushkinCard: false, date: getIsoDate(0), startDate: getIsoDate(0), startTime: input.startTime }
 }

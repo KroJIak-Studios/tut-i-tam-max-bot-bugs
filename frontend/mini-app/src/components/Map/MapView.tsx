@@ -221,12 +221,21 @@ export const MapView: React.FC<MapViewProps> = ({
     })
   }, [zones])
 
-  // Update Markers
+  // Update Markers and event areas
   useEffect(() => {
     const markersLayer = markersLayerRef.current
-    if (!markersLayer) return
+    const zonesLayer = zonesLayerRef.current
+    if (!markersLayer || !zonesLayer) return
 
     markersLayer.clearLayers()
+    zonesLayer.eachLayer((layer: L.Layer) => { if (layer instanceof L.Polygon) zonesLayer.removeLayer(layer) })
+    events.forEach((evt) => {
+      if (evt.area?.length) {
+        const polygon = L.polygon(evt.area, { color: '#2563EB', fillColor: '#3B82F6', fillOpacity: 0.12, weight: 1.5 })
+        polygon.on('click', (e: L.LeafletMouseEvent) => { L.DomEvent.stopPropagation(e); onSelectEvent(evt) })
+        polygon.addTo(zonesLayer)
+      }
+    })
 
     events.forEach((evt) => {
       const isSelected = evt.id === selectedEventId
@@ -237,7 +246,7 @@ export const MapView: React.FC<MapViewProps> = ({
         zIndexOffset: isSelected ? 1000 : 100,
       })
 
-      marker.on('click', (e) => {
+      marker.on('click', (e: L.LeafletMouseEvent) => {
         L.DomEvent.stopPropagation(e)
         onSelectEvent(evt)
       })

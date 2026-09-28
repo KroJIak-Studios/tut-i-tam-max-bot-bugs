@@ -1,123 +1,63 @@
 import type { MapEvent, EventCategory, EventReview } from '../types'
-import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
-import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
+import { apiRequest } from './api'
 
-export interface DetailedEvent {
-  id: string
-  title: string
-  description: string
-  latitude: number
-  longitude: number
-  category: EventCategory
-  date: string
-  startDate?: string
-  endDate?: string
-  startTime: string
-  endTime?: string
-  price: number
-  isFree: boolean
-  pushkinCard: boolean
-  attendeesCount: number
-  source: 'external' | 'user'
-  image?: string
+export interface DetailedEvent extends MapEvent {
   images: string[]
-  address: string
   reviews: EventReview[]
   isPast: boolean
   visitedDate?: string
 }
 
-const STORAGE_KEY_USER_EVENTS = 'tut_i_tam_user_events'
+interface ApiEvent {
+  id: string | number
+  title: string
+  description?: string
+  latitude: number
+  longitude: number
+  category?: string
+  address?: string
+  starts_at: string
+  ends_at?: string
+  origin?: 'official' | 'user'
+  price_rub?: number | null
+  pushkin_card?: boolean | null
+  attendees_count?: number
+  images?: string[]
+  reviews?: EventReview[]
+}
 
-function loadUserEvents(): MapEvent[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_USER_EVENTS)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
+function mapDetail(item: ApiEvent): DetailedEvent {
+  const start = new Date(item.starts_at)
+  const end = item.ends_at ? new Date(item.ends_at) : undefined
+  const user = item.origin === 'user'
+  const price = user || item.price_rub == null ? 0 : item.price_rub
+  return {
+    id: String(item.id),
+    title: item.title,
+    description: item.description || '',
+    latitude: item.latitude,
+    longitude: item.longitude,
+    category: (item.category === 'sport' ? 'sports' : item.category || 'events') as EventCategory,
+    date: item.starts_at.slice(0, 10),
+    startDate: item.starts_at.slice(0, 10),
+    endDate: item.ends_at?.slice(0, 10),
+    startTime: start.toTimeString().slice(0, 5),
+    endTime: end?.toTimeString().slice(0, 5),
+    price,
+    isFree: user || price === 0,
+    pushkinCard: user ? false : Boolean(item.pushkin_card),
+    attendeesCount: item.attendees_count ?? 0,
+    source: user ? 'user' : 'external',
+    images: item.images?.length ? item.images : ['/event-embankment.jpg'],
+    address: item.address || '',
+    reviews: item.reviews || [],
+    isPast: new Date(item.starts_at) < new Date(),
   }
 }
 
-// Fallback images if none defined
-const DEFAULT_IMAGE = '/event-embankment.jpg'
-
-export function findEventById(rawId: string): DetailedEvent | null {
-  if (!rawId) return null
-  const target = rawId.toLowerCase().trim()
-
-  // 1. Search in Map events (initial + user created)
-  const userEvents = loadUserEvents()
-  const mapEvents = [...INITIAL_MAP_EVENTS, ...userEvents]
-
-  const foundMap = mapEvents.find((e) => {
-    if (e.id.toLowerCase() === target) return true
-    if (e.aliasIds && e.aliasIds.some((alias) => alias.toLowerCase() === target)) return true
-    return false
-  })
-
-  if (foundMap) {
-    const imgs = (foundMap.images && foundMap.images.length > 0)
-      ? foundMap.images
-      : foundMap.image
-        ? [foundMap.image]
-        : [DEFAULT_IMAGE]
-
-    return {
-      id: foundMap.id,
-      title: foundMap.title,
-      description: foundMap.description || 'Увлекательное событие в Казани.',
-      latitude: foundMap.latitude,
-      longitude: foundMap.longitude,
-      category: foundMap.category,
-      date: foundMap.date,
-      startDate: foundMap.startDate || foundMap.date,
-      endDate: foundMap.endDate || foundMap.startDate || foundMap.date,
-      startTime: foundMap.startTime,
-      endTime: foundMap.endTime,
-      price: foundMap.price ?? 0,
-      isFree: foundMap.isFree ?? (foundMap.price === 0),
-      pushkinCard: !!foundMap.pushkinCard,
-      attendeesCount: foundMap.attendeesCount || 0,
-      source: foundMap.source,
-      image: imgs[0],
-      images: imgs,
-      address: foundMap.address || 'Казань',
-      reviews: foundMap.reviews || [],
-      isPast: false,
-    }
-  }
-
-  // 2. Search in Past events
-  const foundPast = INITIAL_PAST_EVENTS.find((e) => e.id.toLowerCase() === target)
-  if (foundPast) {
-    const imgs = (foundPast.images && foundPast.images.length > 0)
-      ? foundPast.images
-      : foundPast.imageUrl
-        ? [foundPast.imageUrl]
-        : [DEFAULT_IMAGE]
-
-    return {
-      id: foundPast.id,
-      title: foundPast.title,
-      description: foundPast.description || 'Прошедшее городское мероприятие в Казани.',
-      latitude: foundPast.latitude || 55.7985,
-      longitude: foundPast.longitude || 49.1055,
-      category: foundPast.category,
-      date: foundPast.date,
-      startTime: '19:00',
-      price: 0,
-      isFree: true,
-      pushkinCard: false,
-      attendeesCount: 15,
-      source: 'external',
-      image: imgs[0],
-      images: imgs,
-      address: foundPast.address || 'Казань',
-      reviews: [],
-      isPast: true,
-      visitedDate: foundPast.visitedDate,
-    }
-  }
-
-  return null
+export async function getEventById(id: string): Promise<DetailedEvent> { return mapDetail(await apiRequest<ApiEvent>(`/events/${id}`)) }
+export async function submitEventReview(id: string, rating: number, text: string): Promise<void> {
+  await apiRequest(`/events/${id}/reviews`, { method: 'POST', body: JSON.stringify({ rating, text, anonymous: false }) })
 }
+export function findEventById(_rawId: string): DetailedEvent | null { return null }
+export type { MapEvent }
