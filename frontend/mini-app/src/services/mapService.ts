@@ -16,7 +16,7 @@ interface ApiMapEvent {
   description?: string
   latitude: number
   longitude: number
-  category?: EventCategory
+  category?: 'event' | 'place' | 'volunteer' | 'sport' | 'park'
   date?: string
   starts_at: string
   ends_at?: string
@@ -38,7 +38,7 @@ function mapEvent(item: ApiMapEvent): MapEvent {
   return {
     id: String(item.id), title: item.title, description: item.description || '',
     latitude: item.latitude, longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category || 'events') as EventCategory,
+    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category || 'events') as EventCategory,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
