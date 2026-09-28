@@ -10,6 +10,7 @@ import { ProfileInterests } from './ProfileInterests'
 import { InterestsModal } from './InterestsModal'
 import { ProfileSettings } from './ProfileSettings'
 import { DefaultMapModal } from './DefaultMapModal'
+import { AppMapModal } from './AppMapModal'
 import { NotificationsModal } from './NotificationsModal'
 import { LanguageModal } from './LanguageModal'
 import { BottomNavigation } from '../BottomNavigation'
@@ -23,12 +24,14 @@ export const ProfilePage: React.FC = () => {
     updateProfile,
     updateInterests,
     setDefaultMapProvider,
+    setAppMapProvider,
     updateNotifications,
     setLocale,
   } = useUserPreferences()
 
   const [isInterestsOpen, setIsInterestsOpen] = useState(false)
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
+  const [isAppMapModalOpen, setIsAppMapModalOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false)
 
@@ -76,11 +79,13 @@ export const ProfilePage: React.FC = () => {
         {/* Settings Card: Language, Default maps, Notifications */}
         <ProfileSettings
           defaultMapProvider={preferences.defaultMapProvider}
+          appMapProvider={preferences.appMapProvider}
           currentLocale={preferences.locale}
           requestsCount={pendingCount}
           onOpenRequests={() => navigate('/profile/requests')}
           onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
           onOpenMapModal={() => setIsMapModalOpen(true)}
+          onOpenAppMapModal={() => setIsAppMapModalOpen(true)}
           onOpenNotificationsModal={() => setIsNotificationsOpen(true)}
         />
       </main>
@@ -105,6 +110,14 @@ export const ProfilePage: React.FC = () => {
           currentInterests={preferences.interests}
           onClose={() => setIsInterestsOpen(false)}
           onSave={updateInterests}
+        />
+      )}
+
+      {isAppMapModalOpen && (
+        <AppMapModal
+          currentProvider={preferences.appMapProvider}
+          onClose={() => setIsAppMapModalOpen(false)}
+          onSelect={setAppMapProvider}
         />
       )}
 

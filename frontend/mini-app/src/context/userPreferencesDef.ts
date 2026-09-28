@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { UserPreferences, MapProvider, NotificationSettings, SupportedLocaleCode } from '../types'
+import type { UserPreferences, MapProvider, AppMapProviderId, NotificationSettings, SupportedLocaleCode } from '../types'
 
 export interface UserPreferencesContextValue {
   preferences: UserPreferences
@@ -8,6 +8,7 @@ export interface UserPreferencesContextValue {
   togglePushkinCard: () => void
   setPushkinCard: (enabled: boolean) => void
   setDefaultMapProvider: (provider: MapProvider) => void
+  setAppMapProvider: (provider: AppMapProviderId) => void
   updateNotifications: (settings: Partial<NotificationSettings>) => void
   setLocale: (locale: SupportedLocaleCode) => void
   resetPreferences: () => void
@@ -35,6 +36,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   interests: ['walks', 'museums', 'sport', 'volunteering'],
   pushkinCard: true,
   defaultMapProvider: 'yandex',
+  appMapProvider: 'osm',
   notifications: {
     interestEvents: true,
     eventReminders: true,

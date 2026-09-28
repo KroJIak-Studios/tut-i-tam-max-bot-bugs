@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { EventLocationMode, EventGeoPoint, EventGeoArea } from './types'
+import { useUserPreferences } from '../../context/useUserPreferences'
+import { createMapTileLayer } from '../../services/mapProviders'
 import { IconLocationPin, IconPolygon, IconUndo } from '../Icons'
 import styles from './CreateEventLocationMap.module.css'
 
@@ -28,10 +30,17 @@ export const CreateEventLocationMap: React.FC<CreateEventLocationMapProps> = ({
   error,
 }) => {
   const { t } = useTranslation()
+  const { preferences } = useUserPreferences()
+  const appMapProviderRef = useRef(preferences.appMapProvider)
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const pointLayerRef = useRef<L.LayerGroup | null>(null)
   const areaLayerRef = useRef<L.LayerGroup | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
+
+  useEffect(() => {
+    appMapProviderRef.current = preferences.appMapProvider
+  }, [preferences.appMapProvider])
 
   // Keep latest props in refs for map event listeners to avoid stale closures
   const modeRef = useRef(mode)
@@ -69,9 +78,15 @@ export const CreateEventLocationMap: React.FC<CreateEventLocationMapProps> = ({
       doubleClickZoom: true,
     })
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map)
+    const attributionControl = L.control.attribution({
+      position: 'bottomright',
+      prefix: false,
+    })
+    attributionControl.addTo(map)
+
+    const initialTile = createMapTileLayer(appMapProviderRef.current)
+    initialTile.addTo(map)
+    tileLayerRef.current = initialTile
 
     const pointLayer = L.layerGroup().addTo(map)
     const areaLayer = L.layerGroup().addTo(map)
@@ -107,8 +122,23 @@ export const CreateEventLocationMap: React.FC<CreateEventLocationMapProps> = ({
       mapRef.current = null
       pointLayerRef.current = null
       areaLayerRef.current = null
+      tileLayerRef.current = null
     }
   }, []) // Mount once
+
+  // Dynamic Basemap switching without disturbing points or polygons
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current)
+    }
+
+    const nextLayer = createMapTileLayer(preferences.appMapProvider)
+    nextLayer.addTo(map)
+    tileLayerRef.current = nextLayer
+  }, [preferences.appMapProvider])
 
   // Invalidate map size when mode changes
   useEffect(() => {

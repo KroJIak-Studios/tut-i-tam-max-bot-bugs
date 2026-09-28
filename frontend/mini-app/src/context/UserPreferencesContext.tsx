@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import type { UserPreferences, MapProvider, NotificationSettings, SupportedLocaleCode } from '../types'
+import type { UserPreferences, MapProvider, AppMapProviderId, NotificationSettings, SupportedLocaleCode } from '../types'
 import { UserPreferencesContext, DEFAULT_PREFERENCES } from './userPreferencesDef'
 import { resolveInitialLocale, normalizeLocale, i18n } from '../i18n'
 
 const STORAGE_KEY_PREFERENCES = 'tut_i_tam_user_preferences'
+
+const VALID_APP_MAP_PROVIDERS = new Set<string>(['osm', 'osm_hot', 'carto_voyager', 'yandex', 'google'])
+
+function normalizeAppMapProvider(provider: unknown): AppMapProviderId {
+  if (typeof provider === 'string' && VALID_APP_MAP_PROVIDERS.has(provider)) {
+    return provider as AppMapProviderId
+  }
+  return DEFAULT_PREFERENCES.appMapProvider
+}
 
 const LEGACY_INTEREST_TO_ID: Record<string, string> = {
   'прогулки': 'walks',
@@ -65,6 +74,7 @@ function loadPreferences(): UserPreferences {
       city: normalizeCity(parsed.city),
       interests: normalizeInterests(parsed.interests),
       locale: resolvedLocale,
+      appMapProvider: normalizeAppMapProvider(parsed.appMapProvider),
       notifications: {
         ...DEFAULT_PREFERENCES.notifications,
         ...(parsed.notifications || {}),
@@ -89,6 +99,16 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   useEffect(() => {
     savePreferences(preferences)
   }, [preferences])
+
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY_PREFERENCES) {
+        setPreferences(loadPreferences())
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   useEffect(() => {
     if (i18n.language !== preferences.locale) {
@@ -149,6 +169,13 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
     }))
   }, [])
 
+  const setAppMapProvider = useCallback((provider: AppMapProviderId) => {
+    setPreferences((prev) => ({
+      ...prev,
+      appMapProvider: provider,
+    }))
+  }, [])
+
   const updateNotifications = useCallback((settings: Partial<NotificationSettings>) => {
     setPreferences((prev) => ({
       ...prev,
@@ -172,6 +199,7 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
         togglePushkinCard,
         setPushkinCard,
         setDefaultMapProvider,
+        setAppMapProvider,
         updateNotifications,
         setLocale,
         resetPreferences,

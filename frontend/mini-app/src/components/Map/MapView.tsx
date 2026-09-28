@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { MapEvent, MapZone } from '../../types'
+import { useUserPreferences } from '../../context/useUserPreferences'
+import { createMapTileLayer } from '../../services/mapProviders'
 import { KAZAN_MAP_CENTER, USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
@@ -71,14 +73,21 @@ export const MapView: React.FC<MapViewProps> = ({
   onToggleGoing,
   onMoreDetails,
 }) => {
+  const { preferences } = useUserPreferences()
+  const appMapProviderRef = useRef(preferences.appMapProvider)
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
   const markersLayerRef = useRef<L.LayerGroup | null>(null)
   const zonesLayerRef = useRef<L.LayerGroup | null>(null)
   const userMarkerRef = useRef<L.Marker | null>(null)
 
   const [popupContainer] = useState<HTMLDivElement>(() => document.createElement('div'))
   const popupInstanceRef = useRef<L.Popup | null>(null)
+
+  useEffect(() => {
+    appMapProviderRef.current = preferences.appMapProvider
+  }, [preferences.appMapProvider])
 
   // Prevent map clicks / scrolls when interacting inside the popup card
   useEffect(() => {
@@ -97,10 +106,17 @@ export const MapView: React.FC<MapViewProps> = ({
       attributionControl: false,
     })
 
-    // Clean, free OpenStreetMap tiles with no API key required and no watermarks
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map)
+    // Dedicated attribution control with compact, legally compliant attribution
+    const attributionControl = L.control.attribution({
+      position: 'bottomright',
+      prefix: false,
+    })
+    attributionControl.addTo(map)
+
+    // Initial tile layer from preferences
+    const initialTile = createMapTileLayer(appMapProviderRef.current)
+    initialTile.addTo(map)
+    tileLayerRef.current = initialTile
 
     const zonesLayer = L.layerGroup().addTo(map)
     const markersLayer = L.layerGroup().addTo(map)
@@ -123,8 +139,23 @@ export const MapView: React.FC<MapViewProps> = ({
       }
       map.remove()
       mapInstanceRef.current = null
+      tileLayerRef.current = null
     }
   }, [])
+
+  // Dynamic Basemap switching without disturbing markers or zones
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current)
+    }
+
+    const nextLayer = createMapTileLayer(preferences.appMapProvider)
+    nextLayer.addTo(map)
+    tileLayerRef.current = nextLayer
+  }, [preferences.appMapProvider])
 
   // Synchronize Popup with selectedEvent
   useEffect(() => {

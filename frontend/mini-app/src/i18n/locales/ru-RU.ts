@@ -179,6 +179,10 @@ export interface TranslationSchema {
     language: string
     appLanguage: string
     languageModalSubtitle: string
+    appMap: string
+    appMapSubtitle: string
+    appMapModalTitle: string
+    appMapModalSubtitle: string
     defaultMaps: string
     defaultMapsSubtitle: string
     notifications: string
@@ -435,6 +439,33 @@ export interface TranslationSchema {
     chatText: string
     chatComingSoon: string
   }
+  mapProviders: {
+    osm: {
+      name: string
+      description: string
+      attribution: string
+    }
+    osm_hot: {
+      name: string
+      description: string
+      attribution: string
+    }
+    carto_voyager: {
+      name: string
+      description: string
+      attribution: string
+    }
+    yandex: {
+      name: string
+      description: string
+      attribution: string
+    }
+    google: {
+      name: string
+      description: string
+      attribution: string
+    }
+  }
 }
 
 export const ruRU: TranslationSchema = {
@@ -618,8 +649,12 @@ export const ruRU: TranslationSchema = {
     language: 'Язык',
     appLanguage: 'Язык приложения',
     languageModalSubtitle: 'Выберите язык интерфейса приложения:',
-    defaultMaps: 'Карты по умолчанию',
-    defaultMapsSubtitle: 'Выберите приложение для построения маршрутов и навигации:',
+    appMap: 'Карта в приложении',
+    appMapSubtitle: 'Оформление карты',
+    appMapModalTitle: 'Карта в приложении',
+    appMapModalSubtitle: 'Выберите оформление карты внутри приложения:',
+    defaultMaps: 'Карты для маршрутов',
+    defaultMapsSubtitle: 'Выберите приложение для навигации и маршрутов:',
     notifications: 'Уведомления',
     notificationsSubtitle: 'События и рекомендации',
     notificationsModalSubtitle: 'Настройте важные для вас оповещения и напоминания:',
@@ -873,5 +908,32 @@ export const ruRU: TranslationSchema = {
     chatTitle: 'Чат по заявке',
     chatText: 'Если у модератора появятся вопросы, переписка будет здесь.',
     chatComingSoon: 'Скоро',
+  },
+  mapProviders: {
+    osm: {
+      name: 'OpenStreetMap',
+      description: 'Стандартная свободная карта',
+      attribution: 'OpenStreetMap contributors',
+    },
+    osm_hot: {
+      name: 'OSM Humanitarian (HOT)',
+      description: 'Теплый контрастный стиль',
+      attribution: 'OpenStreetMap contributors, HOT, OSM France',
+    },
+    carto_voyager: {
+      name: 'CARTO Voyager',
+      description: 'Цветная детальная карта',
+      attribution: 'OpenStreetMap & CARTO',
+    },
+    yandex: {
+      name: 'Яндекс Карты',
+      description: 'Официальный провайдер (требуется API-ключ)',
+      attribution: 'Яндекс',
+    },
+    google: {
+      name: 'Google Maps',
+      description: 'Официальный провайдер (требуется API-ключ)',
+      attribution: 'Google',
+    },
   },
 }

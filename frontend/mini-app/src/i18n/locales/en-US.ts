@@ -181,7 +181,11 @@ export const enUS: TranslationSchema = {
     language: 'Language',
     appLanguage: 'App language',
     languageModalSubtitle: 'Choose application interface language:',
-    defaultMaps: 'Default maps',
+    appMap: 'App map',
+    appMapSubtitle: 'Map appearance',
+    appMapModalTitle: 'App map',
+    appMapModalSubtitle: 'Choose map appearance inside the app:',
+    defaultMaps: 'Navigation maps',
     defaultMapsSubtitle: 'Choose an app for navigation and routes:',
     notifications: 'Notifications',
     notificationsSubtitle: 'Events and recommendations',
@@ -436,5 +440,32 @@ export const enUS: TranslationSchema = {
     chatTitle: 'Request chat',
     chatText: 'If a moderator has questions, the conversation will appear here.',
     chatComingSoon: 'Coming soon',
+  },
+  mapProviders: {
+    osm: {
+      name: 'OpenStreetMap',
+      description: 'Standard open map',
+      attribution: 'OpenStreetMap contributors',
+    },
+    osm_hot: {
+      name: 'OSM Humanitarian (HOT)',
+      description: 'Warm high-contrast style',
+      attribution: 'OpenStreetMap contributors, HOT, OSM France',
+    },
+    carto_voyager: {
+      name: 'CARTO Voyager',
+      description: 'Detailed color map',
+      attribution: 'OpenStreetMap & CARTO',
+    },
+    yandex: {
+      name: 'Yandex Maps',
+      description: 'Official provider (API key required)',
+      attribution: 'Yandex',
+    },
+    google: {
+      name: 'Google Maps',
+      description: 'Official provider (API key required)',
+      attribution: 'Google',
+    },
   },
 }

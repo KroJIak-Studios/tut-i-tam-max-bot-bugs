@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { EventLocationMode, EventGeoPoint, EventGeoArea } from './types'
+import { useUserPreferences } from '../../context/useUserPreferences'
+import { createMapTileLayer } from '../../services/mapProviders'
 import styles from './CreateEventLocationPreview.module.css'
 
 const DEFAULT_CENTER: [number, number] = [55.7960, 49.1140]
@@ -21,6 +23,7 @@ export const CreateEventLocationPreview: React.FC<CreateEventLocationPreviewProp
   height,
   className,
 }) => {
+  const { preferences } = useUserPreferences()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
 
@@ -44,9 +47,7 @@ export const CreateEventLocationPreview: React.FC<CreateEventLocationPreviewProp
       keyboard: false,
     })
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map)
+    createMapTileLayer(preferences.appMapProvider).addTo(map)
 
     if (mode === 'point') {
       const activePoint = point || { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1] }
@@ -124,7 +125,7 @@ export const CreateEventLocationPreview: React.FC<CreateEventLocationPreviewProp
       map.remove()
       mapRef.current = null
     }
-  }, [mode, point, area])
+  }, [mode, point, area, preferences.appMapProvider])
 
   return (
     <div

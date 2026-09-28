@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { useUserPreferences } from '../../context/useUserPreferences'
+import { createMapTileLayer } from '../../services/mapProviders'
 import styles from './ChatMiniMap.module.css'
 
 interface ChatMiniMapProps {
@@ -18,6 +20,7 @@ export const ChatMiniMap: React.FC<ChatMiniMapProps> = ({
   onClick,
 }) => {
   const { t } = useTranslation()
+  const { preferences } = useUserPreferences()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
 
@@ -37,9 +40,7 @@ export const ChatMiniMap: React.FC<ChatMiniMapProps> = ({
       keyboard: false,
     })
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map)
+    createMapTileLayer(preferences.appMapProvider).addTo(map)
 
     const pinIcon = L.divIcon({
       className: 'tut-mini-pin-wrapper',
@@ -70,7 +71,7 @@ export const ChatMiniMap: React.FC<ChatMiniMapProps> = ({
       map.remove()
       mapRef.current = null
     }
-  }, [latitude, longitude])
+  }, [latitude, longitude, preferences.appMapProvider])
 
   return (
     <div
