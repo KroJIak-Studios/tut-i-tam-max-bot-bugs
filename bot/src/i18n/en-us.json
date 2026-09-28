@@ -5,11 +5,9 @@
     "en-us": "English"
   },
   "start": {
-    "title": "🧭 Tut & Tam",
+    "title": "<b>🧭 Tut & Tam 🧭</b>",
     "greeting": "Hello, {name}!",
-    "description": "I will help you find events, places, and leisure opportunities in Kazan.",
-    "quote": "Choose where you would like to start.",
-    "open_mini_app": "Open Mini App",
+    "quote": "I help you find events, places, and leisure opportunities, suggest where to go nearby, and save your plans. Open the mini app for more details and convenience.",
     "nearby_events": "Nearby events",
     "my_meetings": "My meetings",
     "ai_assistant": "AI assistant chat",
@@ -19,7 +17,27 @@
     "request_code": "🔐 Enter the access code to continue.",
     "invalid_code": "The access code is incorrect. Please try again."
   },
+  "settings": {
+    "title": "⚙️ <b>Settings</b> ⚙️",
+    "notifications_title": "🔔 <b>Notifications</b> 🔔",
+    "language_title": "🌐 <b>Choose a language</b> 🌐",
+    "delete_title": "🗑️ <b>Delete data</b> 🗑️",
+    "current_language": "Your current language: {language}",
+    "notifications": "Notifications",
+    "language": "Change language",
+    "delete_data": "Delete data",
+    "notification_enabled": "Enable notifications",
+    "notification_silent": "Silent notifications",
+    "notification_disabled": "Disable notifications",
+    "choose_language": "Choose a language",
+    "delete_confirmation": "<blockquote>⚠️ All your data in this service will be permanently deleted.</blockquote>\n\nAre you sure?",
+    "delete_yes": "Yes, delete",
+    "delete_no": "No, go back",
+    "notification_changed": "Notification setting changed to: {name}.",
+    "data_deleted": "Your data has been deleted. Send /start to begin again."
+  },
   "common": {
-    "not_ready": "This section will be available later."
+    "not_ready": "This section will be available later.",
+    "back": "Back"
   }
 }

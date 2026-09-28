@@ -1,0 +1,15 @@
+export enum SettingsAction {
+  Open = 'settings:open',
+  Notifications = 'settings:notifications',
+  Language = 'settings:language',
+  DeleteData = 'settings:delete-data',
+  Back = 'settings:back',
+  BackToMenu = 'settings:back-to-menu',
+  BackToRoot = 'settings:back-to-root',
+  NotificationsEnabled = 'settings:notifications:enabled',
+  NotificationsSilent = 'settings:notifications:silent',
+  NotificationsDisabled = 'settings:notifications:disabled',
+  LanguagePrefix = 'settings:language:',
+  DeleteConfirm = 'settings:delete:confirm',
+  DeleteCancel = 'settings:delete:cancel',
+}

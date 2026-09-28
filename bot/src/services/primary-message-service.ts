@@ -5,39 +5,39 @@ import { BackendClient, type UserProfileInput } from './backend-client.js'
 export class PrimaryMessageService {
   constructor(private readonly backend: BackendClient) {}
 
-  async sendOrReplace(ctx: Context, message: PrimaryMessage, reset = false): Promise<void> {
+  async sendOrReplace(
+    ctx: Context,
+    message: PrimaryMessage,
+    alwaysCreateNew = false,
+  ): Promise<void> {
     const profile = await this.loadProfile(ctx)
-    const previousMessageId = reset
-      ? await this.backend.getPrimaryMessageId(profile)
-      : undefined
+    const existingMessageId = await this.backend.getPrimaryMessageId(profile)
 
-    if (previousMessageId) {
-      await this.deleteMessage(ctx, previousMessageId)
-      await this.backend.savePrimaryMessage(profile, null)
+    if (alwaysCreateNew && existingMessageId) {
+      await this.sendReplacement(ctx, profile, existingMessageId, message)
+      return
+    }
+
+    if (existingMessageId) {
+      let result
+      try {
+        result = await ctx.api.editMessage(existingMessageId, message.editOptions())
+      } catch (error) {
+        if (!this.isMissingMessageError(error)) throw error
+        await this.sendReplacement(ctx, profile, existingMessageId, message)
+        return
+      }
+
+      if (result.success || this.isUnchangedMessageError(result.message)) return
+      if (this.isMissingMessageError(new Error(result.message))) {
+        await this.sendReplacement(ctx, profile, existingMessageId, message)
+        return
+      }
+      throw new Error(`Could not edit Primary message: ${result.message}`)
     }
 
     const sent = await ctx.reply(message.text, message.extra)
     await this.backend.savePrimaryMessage(profile, sent.body.mid)
-  }
-
-  async editOrReplace(ctx: Context, message: PrimaryMessage): Promise<void> {
-    const profile = await this.loadProfile(ctx)
-    const currentMessageId = await this.backend.getPrimaryMessageId(profile)
-
-    if (!currentMessageId) {
-      await this.sendOrReplace(ctx, message)
-      return
-    }
-
-    const result = await ctx.api.editMessage(currentMessageId, message.editOptions())
-
-    if (result.success) {
-      return
-    }
-
-    const replacement = await ctx.reply(message.text, message.extra)
-    await ctx.api.deleteMessage(currentMessageId)
-    await this.backend.savePrimaryMessage(profile, replacement.body.mid)
   }
 
   private async loadProfile(ctx: Context): Promise<UserProfileInput> {
@@ -54,7 +54,26 @@ export class PrimaryMessageService {
     }
   }
 
-  private async deleteMessage(ctx: Context, messageId: string): Promise<void> {
-    await ctx.api.deleteMessage(messageId)
+  private async sendReplacement(
+    ctx: Context,
+    profile: UserProfileInput,
+    previousMessageId: string,
+    message: PrimaryMessage,
+  ): Promise<void> {
+    const replacement = await ctx.reply(message.text, message.extra)
+    const deletion = await ctx.api.deleteMessage(previousMessageId)
+    if (!deletion.success && !this.isMissingMessageError(new Error(deletion.message))) {
+      throw new Error(`Could not remove previous Primary message: ${deletion.message}`)
+    }
+    await this.backend.savePrimaryMessage(profile, replacement.body.mid)
+  }
+
+  private isUnchangedMessageError(message?: string): boolean {
+    return message?.toLowerCase().includes('not modified') ?? false
+  }
+
+  private isMissingMessageError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+    return message.includes('not found') || message.includes('message not exist') || message.includes('message_id_invalid')
   }
 }

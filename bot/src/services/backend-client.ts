@@ -7,8 +7,27 @@ export interface AccessStatusResponse {
   locale: string
 }
 
+export type NotificationPreference = 'enabled' | 'silent' | 'disabled'
+
+interface NotificationPreferenceResponse {
+  preference: NotificationPreference
+}
+
 interface PrimaryMessageResponse {
   primary_message_id: string | null
+}
+
+interface PendingMessagesResponse {
+  message_ids: string[]
+}
+
+export interface PendingRecoveryChat {
+  max_chat_id: number
+  message_ids: string[]
+}
+
+interface PendingRecoveryResponse {
+  chats: PendingRecoveryChat[]
 }
 
 interface UserAccessResponse extends AccessStatusResponse {
@@ -29,15 +48,85 @@ export class BackendClient {
     private readonly baseUrl: string,
     private readonly fallbackLocale: string,
   ) {}
+
   async getAccessStatus(input: UserProfileInput): Promise<AccessStatusResponse> {
-    return this.request<AccessStatusResponse>('/api/bot/access/status', this.identity(input))
+    return this.request('/api/bot/access/status', this.identity(input))
   }
 
   async verifyAccessCode(input: UserProfileInput, code: string): Promise<UserAccessResponse> {
-    return this.request<UserAccessResponse>('/api/bot/access/verify', {
-      ...this.identity(input),
-      code,
-    })
+    return this.request('/api/bot/access/verify', { ...this.identity(input), code })
+  }
+
+  async getNotificationPreference(input: UserProfileInput): Promise<NotificationPreference> {
+    const response = await this.request<NotificationPreferenceResponse>(
+      '/api/bot/settings/notifications',
+      this.identity(input),
+    )
+    return response.preference
+  }
+
+  async setNotificationPreference(
+    input: UserProfileInput,
+    preference: NotificationPreference,
+  ): Promise<NotificationPreference> {
+    const response = await this.request<NotificationPreferenceResponse>(
+      '/api/bot/settings/notifications',
+      { ...this.identity(input), preference },
+      'PUT',
+    )
+    return response.preference
+  }
+
+  async setLocale(input: UserProfileInput, locale: string): Promise<string> {
+    const response = await this.request<{ locale: string }>(
+      '/api/bot/settings/locale',
+      { ...this.identity(input), locale },
+      'PUT',
+    )
+    return response.locale
+  }
+
+  async deleteUserData(input: UserProfileInput): Promise<void> {
+    await this.request<void>('/api/bot/settings/me', this.identity(input), 'DELETE')
+  }
+
+  async trackPendingMessage(chatId: number, messageId: string): Promise<void> {
+    await this.request<void>('/api/bot/pending-messages', {
+      max_chat_id: chatId,
+      message_id: messageId,
+    }, 'PUT')
+  }
+
+  async removePendingMessage(chatId: number, messageId: string): Promise<void> {
+    await this.request<void>('/api/bot/pending-messages', {
+      max_chat_id: chatId,
+      message_id: messageId,
+    }, 'DELETE')
+  }
+
+  async removePendingMessages(chatId: number, messageIds: string[]): Promise<void> {
+    if (messageIds.length === 0) return
+    await this.request<void>('/api/bot/pending-messages/batch', {
+      max_chat_id: chatId,
+      message_ids: messageIds,
+    }, 'DELETE')
+  }
+
+  async getPendingSnapshot(chatId: number, excludeMessageId?: string): Promise<string[]> {
+    const response = await this.request<PendingMessagesResponse>(
+      '/api/bot/pending-messages/snapshot',
+      { max_chat_id: chatId, exclude_message_id: excludeMessageId ?? null },
+    )
+    return response.message_ids
+  }
+
+  async getPendingRecoverySnapshot(): Promise<PendingRecoveryChat[]> {
+    const response = await this.request<PendingRecoveryResponse>(
+      '/api/bot/pending-messages/recovery-snapshot',
+      undefined,
+      'GET',
+    )
+    return response.chats
   }
 
   async getPrimaryMessageId(input: UserProfileInput): Promise<string | null> {
@@ -49,10 +138,10 @@ export class BackendClient {
   }
 
   async savePrimaryMessage(input: UserProfileInput, primaryMessageId: string | null): Promise<void> {
-    await this.request<void>('/api/bot/access/primary-message', {
-      ...this.identity(input),
-      primary_message_id: primaryMessageId,
-    })
+    await this.request<void>(
+      '/api/bot/access/primary-message',
+      { ...this.identity(input), primary_message_id: primaryMessageId },
+    )
   }
 
   private identity(input: UserProfileInput): object {
@@ -68,11 +157,11 @@ export class BackendClient {
     }
   }
 
-  private async request<T>(path: string, body: object): Promise<T> {
+  private async request<T>(path: string, body?: object, method = 'POST'): Promise<T> {
     const response = await fetch(new URL(path, this.baseUrl), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
+      method,
+      headers: body ? { 'content-type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     })
 
     if (!response.ok) {

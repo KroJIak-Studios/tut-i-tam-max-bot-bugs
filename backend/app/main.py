@@ -1,6 +1,8 @@
 from fastapi import APIRouter, FastAPI
 
 from app.api.bot_access import router as bot_access_router
+from app.api.bot_settings import router as bot_settings_router
+from app.api.bot_pending import router as bot_pending_router
 
 app = FastAPI(
     title="tut-i-tam-max-bot",
@@ -12,6 +14,8 @@ app = FastAPI(
 
 api_router = APIRouter()
 api_router.include_router(bot_access_router)
+api_router.include_router(bot_settings_router)
+api_router.include_router(bot_pending_router)
 
 
 @app.get("/health", include_in_schema=False)

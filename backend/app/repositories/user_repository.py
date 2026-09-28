@@ -1,6 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.chat import BotChat
 from app.models.user import MaxUser
 
 
@@ -15,3 +16,8 @@ class UserRepository:
         self._session.add(user)
         await self._session.flush()
         return user
+
+    async def delete_user_data(self, user: MaxUser) -> None:
+        await self._session.execute(delete(BotChat).where(BotChat.user_id == user.id))
+        await self._session.delete(user)
+        await self._session.flush()

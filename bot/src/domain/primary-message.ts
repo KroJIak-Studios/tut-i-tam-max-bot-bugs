@@ -10,6 +10,7 @@ export class PrimaryMessage {
   constructor(
     readonly text: string,
     readonly extra: MessageOptions,
+    readonly fallbackExtra?: MessageOptions,
   ) {}
 
   editOptions(): EditOptions {

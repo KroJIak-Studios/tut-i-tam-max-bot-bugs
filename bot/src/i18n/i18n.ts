@@ -59,6 +59,26 @@ export class I18n {
     this.dictionary = dictionary
   }
 
+  languageNames(): Record<string, string> {
+    const names: Record<string, string> = {}
+    for (const [locale, dictionary] of dictionaries) {
+      const nativeName = dictionary.locale_name
+      if (typeof nativeName === 'string') names[locale] = nativeName
+    }
+    return names
+  }
+
+  languageDisplayName(locale: string): string {
+    const dictionary = dictionaries.get(normalizeLocale(locale, locale))
+    const nativeName = typeof dictionary?.locale_name === 'string' ? dictionary.locale_name : locale
+    const translatedNames = this.dictionary.language_names
+    const translatedName = typeof translatedNames === 'object' && translatedNames !== null
+      ? (translatedNames as Record<string, unknown>)[locale]
+      : undefined
+    const localName = typeof translatedName === 'string' ? translatedName : nativeName
+    return `${localName} (${nativeName})`
+  }
+
   translate(key: TranslationKey, variables: Record<string, string> = {}): string {
     const value = key.split('.').reduce<unknown>((current, segment) => {
       if (typeof current !== 'object' || current === null) return undefined
