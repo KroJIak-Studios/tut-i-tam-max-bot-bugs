@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconSend } from '../Icons'
 import styles from './ChatComposer.module.css'
 
@@ -11,6 +12,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
   onSendMessage,
   disabled = false,
 }) => {
+  const { t } = useTranslation()
   const [text, setText] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,7 +38,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
         <input
           type="text"
           className={styles.inputField}
-          placeholder="Спросить..."
+          placeholder={t('chat.placeholder')}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -47,7 +49,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
           type="submit"
           className={`${styles.sendBtn} ${isSendActive ? styles.sendBtnActive : ''}`}
           disabled={!isSendActive}
-          aria-label="Отправить сообщение"
+          aria-label={t('chat.sendAriaLabel')}
         >
           <IconSend size={18} color={isSendActive ? '#FFFFFF' : '#9CA3AF'} />
         </button>

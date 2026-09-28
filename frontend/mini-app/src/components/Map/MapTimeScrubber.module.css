@@ -1,0 +1,227 @@
+.scrubberCard {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 72px);
+  z-index: 850;
+  max-width: 440px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  padding: 8px 14px 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Header row inside card */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-main, #374151);
+}
+
+.clockIcon {
+  display: inline-flex;
+  color: #2563EB;
+}
+
+.selectedTimeText {
+  font-weight: 700;
+  color: #111827;
+}
+
+.nowBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563EB;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.actionsArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionBtn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563EB;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.actionBtn:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.actionBtn:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 1px;
+}
+
+/* Track & slider wrapper */
+.trackContainer {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-top: 14px;
+}
+
+/* Floating bubble attached above thumb */
+.floatingBubble {
+  position: absolute;
+  top: -8px;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: left 0.05s ease-out;
+  z-index: 2;
+}
+
+.floatingBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0;
+  border-style: solid;
+  border-color: #1F2937 transparent transparent;
+}
+
+/* Native input styled as track */
+.rangeInput {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #E5E7EB;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.rangeInput:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 4px;
+}
+
+.rangeInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2.5px solid #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  cursor: grab;
+  transition: transform 0.12s ease;
+}
+
+.rangeInput::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+  cursor: grabbing;
+}
+
+.rangeInput::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2.5px solid #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  cursor: grab;
+}
+
+/* Tick marks underneath */
+.ticksRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 2px;
+  margin-top: -2px;
+}
+
+.tickBtn {
+  background: none;
+  border: none;
+  padding: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: color 0.12s ease;
+  line-height: 1;
+}
+
+.tickBtn:hover {
+  color: #2563EB;
+}
+
+.tickBtnActive {
+  color: #2563EB;
+  font-weight: 700;
+}
+
+/* 320px responsive adjustments */
+@media (max-width: 360px) {
+  .scrubberCard {
+    left: 8px;
+    right: 8px;
+    padding: 7px 10px 8px;
+    gap: 6px;
+    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 68px);
+  }
+
+  .titleArea {
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .tickBtn {
+    font-size: 10px;
+    padding: 1px;
+  }
+
+  .rangeInput::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { ChatMessage, NavTabId } from '../../types'
 import { sendChatMessage } from '../../services/chatService'
 import { ChatTopBar } from './ChatTopBar'
@@ -13,23 +14,37 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-welcome',
     sender: 'ai',
-    text: 'Привет! Помогу найти, куда сходить в Казани. Спроси меня о местах, событиях или активностях рядом.',
+    text: '',
     timestamp: Date.now(),
     suggestions: [
-      'Куда пойти вечером?',
-      'Что есть бесплатного рядом?',
-      'Куда сходить с детьми?',
-      'Есть волонтёрство?',
+      'evening',
+      'free',
+      'kids',
+      'volunteer',
     ],
   },
 ]
 
 export const ChatPage: React.FC = () => {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const stored = sessionStorage.getItem('tut_i_tam_chat_history')
-      return stored ? JSON.parse(stored) : INITIAL_MESSAGES
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        // Ensure welcome message uses stable suggestions
+        return parsed.map((m: ChatMessage) => {
+          if (m.id === 'msg-welcome') {
+            return {
+              ...m,
+              suggestions: ['evening', 'free', 'kids', 'volunteer'],
+            }
+          }
+          return m
+        })
+      }
+      return INITIAL_MESSAGES
     } catch {
       return INITIAL_MESSAGES
     }
@@ -90,11 +105,15 @@ export const ChatPage: React.FC = () => {
     }, 2400)
   }
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (textOrId: string) => {
+    const displayText = textOrId.startsWith('chat.suggestions.')
+      ? t(textOrId)
+      : t(`chat.suggestions.${textOrId}`, { defaultValue: textOrId })
+
     const userMsg: ChatMessage = {
       id: `msg-user-${Date.now()}`,
       sender: 'user',
-      text,
+      text: displayText,
       timestamp: Date.now(),
     }
 
@@ -102,7 +121,7 @@ export const ChatPage: React.FC = () => {
     setIsTyping(true)
 
     try {
-      const response = await sendChatMessage(text)
+      const response = await sendChatMessage(textOrId, i18n.language)
       const aiMsg: ChatMessage = {
         id: `msg-ai-${Date.now()}`,
         sender: 'ai',
@@ -117,9 +136,9 @@ export const ChatPage: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: `msg-err-${Date.now()}`,
         sender: 'ai',
-        text: 'Не получилось подобрать варианты. Попробуйте задать вопрос иначе или повторить чуть позже.',
+        text: t('chat.errorText'),
         timestamp: Date.now(),
-        suggestions: ['Куда пойти вечером?', 'Что есть бесплатного?'],
+        suggestions: ['evening', 'free'],
       }
       setMessages((prev) => [...prev, errorMsg])
     } finally {
@@ -180,7 +199,7 @@ export const ChatPage: React.FC = () => {
             <div className={styles.typingRow}>
               <div className={styles.aiBadge}>
                 <IconSparkles size={13} color="#2563EB" />
-                <span>Ассистент</span>
+                <span>{t('chat.assistant')}</span>
               </div>
               <div className={styles.typingBubble}>
                 <span className={styles.dot} />

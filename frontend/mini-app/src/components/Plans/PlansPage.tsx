@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent, NavTabId } from '../../types'
 import { useAttendance } from '../../context/useAttendance'
 import { useReviews } from '../../context/useReviews'
@@ -16,6 +17,7 @@ import { BottomNavigation } from '../BottomNavigation'
 import styles from './PlansPage.module.css'
 
 export const PlansPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { goingEvents, loading, removeAttendance } = useAttendance()
   const { pastEvents, submitReview } = useReviews()
@@ -57,17 +59,17 @@ export const PlansPage: React.FC = () => {
   const handleConfirmRemove = async (event: MapEvent) => {
     try {
       await removeAttendance(event.id)
-      showToast('Удалено из ваших планов')
+      showToast(t('plans.removedToast'))
     } catch (err) {
       console.error('Failed to remove event from plans:', err)
-      showToast('Не удалось обновить планы')
+      showToast(t('plans.updateErrorToast'))
     }
   }
 
   // Review submission
   const handleReviewSubmit = (eventId: string, rating: number, comment: string) => {
     submitReview(eventId, rating, comment)
-    showToast('Спасибо за ваш отзыв!')
+    showToast(t('plans.reviewThanksToast'))
   }
 
   return (

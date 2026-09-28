@@ -1,5 +1,7 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PastEvent } from '../../mocks/plansData'
+import { formatEventDateTime } from '../../utils/formatters'
 import { IconCalendar, IconStar, IconLocationPin, IconCheck } from '../Icons'
 import styles from './PastEventCard.module.css'
 
@@ -14,7 +16,9 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
   onOpenReview,
   onClick,
 }) => {
-  const displayDate = event.date || event.visitedDate.replace(/^Были\s+/i, '')
+  const { t, i18n } = useTranslation()
+  const rawDate = event.date || event.visitedDate.replace(/^Были\s+/i, '')
+  const displayDate = formatEventDateTime(rawDate, undefined, i18n.language)
 
   return (
     <article
@@ -28,7 +32,7 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
           onClick?.(event.id)
         }
       }}
-      aria-label={`${event.title}, посещено ${displayDate}`}
+      aria-label={t('plans.pastCardAriaLabel', { title: event.title, date: displayDate })}
     >
       {/* 1. Top main row: Image + Info */}
       <div className={styles.mainRow}>
@@ -52,7 +56,7 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
 
           <div className={styles.dateRow}>
             <IconCheck size={13} color="#10B981" />
-            <span>Посещено {displayDate}</span>
+            <span>{t('plans.visitedOn', { date: displayDate })}</span>
           </div>
 
           <div className={styles.addressRow}>
@@ -70,7 +74,7 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
               <IconStar size={12} color="#F59E0B" filled />
               <span>{event.rating || 5}</span>
             </div>
-            <span className={styles.reviewedLabel}>Отзыв оставлен</span>
+            <span className={styles.reviewedLabel}>{t('plans.reviewSubmitted')}</span>
           </div>
         ) : (
           <button
@@ -82,7 +86,7 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
             }}
           >
             <IconStar size={14} color="#2563EB" filled={false} />
-            <span>Оставить отзыв</span>
+            <span>{t('plans.leaveReview')}</span>
           </button>
         )}
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NavTabId } from '../types'
+import { useUserPreferences } from '../context/useUserPreferences'
 import { Header } from './Header'
 import { HomeHero } from './HomeHero'
 import { QuickActionCard } from './QuickActionCard'
@@ -15,6 +16,7 @@ import styles from './HomePage.module.css'
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate()
+  const { preferences } = useUserPreferences()
   const [activeTab, setActiveTab] = useState<NavTabId>('home')
 
   const handleHeroClick = () => {
@@ -54,14 +56,12 @@ export const HomePage: React.FC = () => {
     <div className={styles.pageContainer}>
       <main className={styles.scrollArea}>
         {/* Header и блок приветствия */}
-        <Header city="Казань" />
+        <Header city={preferences.city} />
 
         <div className={styles.contentBlock}>
           {/* Основная Hero-card */}
           <HomeHero
-            title={HERO_DATA.title}
             imageUrl={HERO_DATA.imageUrl}
-            alt={HERO_DATA.alt}
             onClick={handleHeroClick}
           />
 

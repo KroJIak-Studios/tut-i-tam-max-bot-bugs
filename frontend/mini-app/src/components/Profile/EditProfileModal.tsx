@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconClose } from '../Icons'
 import styles from './EditProfileModal.module.css'
 
@@ -15,6 +16,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const { t } = useTranslation()
   const [name, setName] = useState(currentName)
   const [city, setCity] = useState(currentCity)
 
@@ -42,16 +44,16 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Изменить профиль"
+      aria-label={t('profile.editProfile')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>Изменить профиль</h3>
+          <h3 className={styles.title}>{t('profile.editProfile')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
@@ -61,7 +63,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           <div className={styles.formContent}>
             <div className={styles.fieldGroup}>
               <label htmlFor="profile-name-input" className={styles.fieldLabel}>
-                Имя
+                {t('profile.name')}
               </label>
               <input
                 id="profile-name-input"
@@ -69,7 +71,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 className={styles.input}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ваше имя"
+                placeholder={t('profile.name')}
                 required
                 maxLength={40}
               />
@@ -77,7 +79,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
             <div className={styles.fieldGroup}>
               <label htmlFor="profile-city-input" className={styles.fieldLabel}>
-                Город
+                {t('profile.city')}
               </label>
               <input
                 id="profile-city-input"
@@ -85,7 +87,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 className={styles.input}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Ваш город"
+                placeholder={t('profile.city')}
                 required
                 maxLength={40}
               />
@@ -98,13 +100,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className={styles.cancelBtn}
               onClick={onClose}
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className={styles.saveBtn}
             >
-              Сохранить
+              {t('common.save')}
             </button>
           </div>
         </form>

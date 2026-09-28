@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NavTabId } from '../../types'
 import { useUserPreferences } from '../../context/useUserPreferences'
+import { useCreateEventRequests } from '../../services/useCreateEventRequests'
 import { ProfileTopBar } from './ProfileTopBar'
 import { ProfileHero } from './ProfileHero'
 import { ProfileCitySelect } from './ProfileCitySelect'
@@ -9,23 +10,30 @@ import { ProfileInterests } from './ProfileInterests'
 import { InterestsModal } from './InterestsModal'
 import { ProfileSettings } from './ProfileSettings'
 import { DefaultMapModal } from './DefaultMapModal'
+import { AppMapModal } from './AppMapModal'
 import { NotificationsModal } from './NotificationsModal'
+import { LanguageModal } from './LanguageModal'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './ProfilePage.module.css'
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
+  const { pendingCount } = useCreateEventRequests()
   const {
     preferences,
     updateProfile,
     updateInterests,
     setDefaultMapProvider,
+    setAppMapProvider,
     updateNotifications,
+    setLocale,
   } = useUserPreferences()
 
   const [isInterestsOpen, setIsInterestsOpen] = useState(false)
   const [isMapModalOpen, setIsMapModalOpen] = useState(false)
+  const [isAppMapModalOpen, setIsAppMapModalOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false)
 
   const handleTabChange = (tab: NavTabId) => {
     if (tab === 'home') {
@@ -68,10 +76,16 @@ export const ProfilePage: React.FC = () => {
           onEditInterests={() => setIsInterestsOpen(true)}
         />
 
-        {/* Settings Card: Default maps, Notifications */}
+        {/* Settings Card: Language, Default maps, Notifications */}
         <ProfileSettings
           defaultMapProvider={preferences.defaultMapProvider}
+          appMapProvider={preferences.appMapProvider}
+          currentLocale={preferences.locale}
+          requestsCount={pendingCount}
+          onOpenRequests={() => navigate('/profile/requests')}
+          onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
           onOpenMapModal={() => setIsMapModalOpen(true)}
+          onOpenAppMapModal={() => setIsAppMapModalOpen(true)}
           onOpenNotificationsModal={() => setIsNotificationsOpen(true)}
         />
       </main>
@@ -83,11 +97,27 @@ export const ProfilePage: React.FC = () => {
       />
 
       {/* Modals */}
+      {isLanguageModalOpen && (
+        <LanguageModal
+          currentLocale={preferences.locale}
+          onClose={() => setIsLanguageModalOpen(false)}
+          onSelect={setLocale}
+        />
+      )}
+
       {isInterestsOpen && (
         <InterestsModal
           currentInterests={preferences.interests}
           onClose={() => setIsInterestsOpen(false)}
           onSave={updateInterests}
+        />
+      )}
+
+      {isAppMapModalOpen && (
+        <AppMapModal
+          currentProvider={preferences.appMapProvider}
+          onClose={() => setIsAppMapModalOpen(false)}
+          onSelect={setAppMapProvider}
         />
       )}
 

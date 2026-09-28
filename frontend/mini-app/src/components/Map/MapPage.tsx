@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapZone, MapFilterState, NavTabId, EventCategory } from '../../types'
 import { getMapEvents, getMapZones } from '../../services/mapService'
 import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
-import { getIsoDate, formatChipDate } from '../../utils/dateUtils'
+import { getIsoDate, formatChipDate, getWeekendIsoDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
-import { MapDatePickerSheet } from './MapDatePickerSheet'
+import { MapDatePickerSheet, type DatePreset } from './MapDatePickerSheet'
 import { MapView } from './MapView'
 import { MapFilterSheet } from './MapFilterSheet'
+import { MapTimeScrubber } from './MapTimeScrubber'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './MapPage.module.css'
 
@@ -24,10 +26,11 @@ const DEFAULT_FILTERS: MapFilterState = {
   volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
-  timeSlotMinutes: null,
+  timeSlotMinutes: 19 * 60, // Default 19:00 for Kazan prime time
 }
 
 export const MapPage: React.FC = () => {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -38,13 +41,14 @@ export const MapPage: React.FC = () => {
   const [userSelectedId, setUserSelectedId] = useState<string | null | undefined>(undefined)
   const selectedEventId = userSelectedId !== undefined ? userSelectedId : eventParam
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [hasError, setHasError] = useState<boolean>(false)
 
   // Filters state initialized from query params
   const [filters, setFilters] = useState<MapFilterState>(() => {
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category')
     const eventIdParam = searchParams.get('event')
+    const dateParam = searchParams.get('date')
 
     const initial = { ...DEFAULT_FILTERS }
     if (pushkin) {
@@ -66,6 +70,16 @@ export const MapPage: React.FC = () => {
         initial.selectedDate = found.date
       }
     }
+    if (dateParam === 'weekend') {
+      initial.dateFilter = 'weekend'
+      initial.selectedDate = getWeekendIsoDate()
+    } else if (dateParam === 'tomorrow') {
+      initial.dateFilter = 'tomorrow'
+      initial.selectedDate = getIsoDate(1)
+    } else if (dateParam === 'today') {
+      initial.dateFilter = 'today'
+      initial.selectedDate = getIsoDate(0)
+    }
     return initial
   })
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
@@ -80,8 +94,9 @@ export const MapPage: React.FC = () => {
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category')
     const eventIdParam = searchParams.get('event')
+    const dateParam = searchParams.get('date')
 
-    if (pushkin || categoryParam || eventIdParam) {
+    if (pushkin || categoryParam || eventIdParam || dateParam) {
       const updated = { ...filters }
       if (pushkin) {
         updated.pushkinCardOnly = true
@@ -101,6 +116,16 @@ export const MapPage: React.FC = () => {
         if (found && found.date) {
           updated.selectedDate = found.date
         }
+      }
+      if (dateParam === 'weekend') {
+        updated.dateFilter = 'weekend'
+        updated.selectedDate = getWeekendIsoDate()
+      } else if (dateParam === 'tomorrow') {
+        updated.dateFilter = 'tomorrow'
+        updated.selectedDate = getIsoDate(1)
+      } else if (dateParam === 'today') {
+        updated.dateFilter = 'today'
+        updated.selectedDate = getIsoDate(0)
       }
       setFilters(updated)
     }
@@ -124,12 +149,12 @@ export const MapPage: React.FC = () => {
         if (!active) return
         setEvents(data)
         setLoading(false)
-        setError(null)
+        setHasError(false)
       })
       .catch((err) => {
         if (!active) return
         console.error(err)
-        setError('Не удалось загрузить данные карты')
+        setHasError(true)
         setLoading(false)
       })
 
@@ -188,12 +213,42 @@ export const MapPage: React.FC = () => {
     return displayedEvents.find((e) => e.id === selectedEventId) || null
   }, [displayedEvents, selectedEventId])
 
-  // Date selection change
-  const handleDateChange = (newIsoDate: string) => {
+  // Time scrubber handlers
+  const handleTimeChange = useCallback((minutes: number) => {
     setUserSelectedId(null)
     setFilters((prev) => ({
       ...prev,
+      timeSlotMinutes: minutes,
+    }))
+  }, [])
+
+  const handleResetTime = useCallback(() => {
+    setUserSelectedId(null)
+    setFilters((prev) => ({
+      ...prev,
+      timeSlotMinutes: null,
+    }))
+  }, [])
+
+  // Date selection change
+  const handleDateChange = (
+    newIsoDate: string,
+    preset?: DatePreset
+  ) => {
+    setUserSelectedId(null)
+    const isNewToday = newIsoDate === getIsoDate(0)
+    setFilters((prev) => ({
+      ...prev,
       selectedDate: newIsoDate,
+      timeSlotMinutes: isNewToday ? 19 * 60 : 9 * 60,
+      dateFilter:
+        preset === 'weekend'
+          ? 'weekend'
+          : preset === 'tomorrow'
+          ? 'tomorrow'
+          : preset === 'today'
+          ? 'today'
+          : 'all',
     }))
   }
 
@@ -234,14 +289,14 @@ export const MapPage: React.FC = () => {
       {loading && (
         <div className={styles.loadingPill}>
           <div className={styles.spinner} />
-          <span>Обновление карты...</span>
+          <span>{t('map.updating')}</span>
         </div>
       )}
 
       {/* Баннер ошибки */}
-      {error && (
+      {hasError && (
         <div className={styles.emptyBanner}>
-          <span>{error}</span>
+          <span>{t('map.loadError')}</span>
           <button
             type="button"
             className={styles.emptyResetBtn}
@@ -250,28 +305,38 @@ export const MapPage: React.FC = () => {
               setFilters({ ...filters })
             }}
           >
-            Повторить
+            {t('common.retry')}
           </button>
         </div>
       )}
 
       {/* Баннер пустого результата при фильтрах */}
-      {!loading && !error && events.length === 0 && (
+      {!loading && !hasError && events.length === 0 && (
         <div className={styles.emptyBanner}>
           <span>
-            {!isToday
-              ? `На ${formatChipDate(filters.selectedDate)} событий не найдено`
-              : 'Нет событий по выбранным фильтрам'}
+            {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
+              ? t('map.noEventsAtTime', 'В это время событий не найдено')
+              : !isToday
+              ? t('map.noEventsOnDate', { date: formatChipDate(filters.selectedDate, i18n.language) })
+              : t('map.noEventsForFilters')}
           </span>
           <button
             type="button"
             className={styles.emptyResetBtn}
             onClick={() => {
-              setLoading(true)
-              setFilters(DEFAULT_FILTERS)
+              if (filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined) {
+                handleResetTime()
+              } else {
+                setLoading(true)
+                setFilters(DEFAULT_FILTERS)
+              }
             }}
           >
-            {!isToday ? 'Показать сегодня' : 'Сбросить'}
+            {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
+              ? t('map.resetTime', 'Сбросить время')
+              : !isToday
+              ? t('map.showToday')
+              : t('common.reset')}
           </button>
         </div>
       )}
@@ -292,6 +357,14 @@ export const MapPage: React.FC = () => {
         />
       </div>
 
+      {/* 4. Временная шкала событий */}
+      <MapTimeScrubber
+        selectedMinutes={filters.timeSlotMinutes ?? null}
+        onChangeMinutes={handleTimeChange}
+        onResetTime={handleResetTime}
+        isToday={isToday}
+      />
+
       {/* Нижняя навигация */}
       <BottomNavigation
         activeTab="map"
@@ -302,6 +375,7 @@ export const MapPage: React.FC = () => {
       {isDatePickerOpen && (
         <MapDatePickerSheet
           selectedDate={filters.selectedDate}
+          activePreset={filters.dateFilter}
           onClose={() => setIsDatePickerOpen(false)}
           onSelectDate={handleDateChange}
         />

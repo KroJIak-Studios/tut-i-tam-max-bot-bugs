@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapProvider } from '../../types'
 import { IconClose } from '../Icons'
 import styles from './DefaultMapModal.module.css'
@@ -9,17 +10,19 @@ interface DefaultMapModalProps {
   onSelect: (provider: MapProvider) => void
 }
 
-const MAP_OPTIONS: Array<{ id: MapProvider; label: string }> = [
-  { id: 'yandex', label: 'Яндекс Карты' },
-  { id: '2gis', label: '2ГИС' },
-  { id: 'system', label: 'Системные карты' },
-]
-
 export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
   currentProvider,
   onClose,
   onSelect,
 }) => {
+  const { t } = useTranslation()
+
+  const mapOptions: Array<{ id: MapProvider; label: string }> = [
+    { id: 'yandex', label: t('profile.yandexMaps') },
+    { id: '2gis', label: t('profile.gisMaps') },
+    { id: 'system', label: t('profile.systemMaps') },
+  ]
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -43,27 +46,27 @@ export const DefaultMapModal: React.FC<DefaultMapModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Карты по умолчанию"
+      aria-label={t('profile.defaultMaps')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>Карты по умолчанию</h3>
+          <h3 className={styles.title}>{t('profile.defaultMaps')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         <div className={styles.subtitle}>
-          Выберите приложение для построения маршрутов и навигации:
+          {t('profile.defaultMapsSubtitle')}
         </div>
 
-        <div className={styles.optionsList} role="radiogroup" aria-label="Картографические сервисы">
-          {MAP_OPTIONS.map((opt) => {
+        <div className={styles.optionsList} role="radiogroup" aria-label={t('profile.defaultMaps')}>
+          {mapOptions.map((opt) => {
             const isSelected = opt.id === currentProvider
             return (
               <div

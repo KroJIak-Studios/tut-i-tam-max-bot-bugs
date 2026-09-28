@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import styles from './ConfirmRemoveModal.module.css'
 
@@ -15,6 +16,8 @@ export const ConfirmRemoveModal: React.FC<ConfirmRemoveModalProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const { t } = useTranslation()
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -28,15 +31,21 @@ export const ConfirmRemoveModal: React.FC<ConfirmRemoveModalProps> = ({
   if (!isOpen || !event) return null
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('plans.removeModal.title')}
+    >
       <div
         className={styles.modalSheet}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.dragPill} />
-        <h3 className={styles.title}>Убрать из планов?</h3>
+        <h3 className={styles.title}>{t('plans.removeModal.title')}</h3>
         <p className={styles.description}>
-          Мероприятие «<strong>{event.title}</strong>» будет удалено из ваших запланированных событий.
+          {t('plans.removeModal.description', { title: event.title })}
         </p>
 
         <div className={styles.buttonsRow}>
@@ -45,7 +54,7 @@ export const ConfirmRemoveModal: React.FC<ConfirmRemoveModalProps> = ({
             className={styles.cancelBtn}
             onClick={onClose}
           >
-            Отмена
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -55,7 +64,7 @@ export const ConfirmRemoveModal: React.FC<ConfirmRemoveModalProps> = ({
               onClose()
             }}
           >
-            Убрать
+            {t('plans.removeModal.confirm')}
           </button>
         </div>
       </div>

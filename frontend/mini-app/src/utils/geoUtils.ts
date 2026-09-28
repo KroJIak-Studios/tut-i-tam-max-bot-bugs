@@ -30,15 +30,25 @@ export function calculateDistanceMeters(
 }
 
 /**
- * Formats distance in Russian locale format:
- * - < 1000m: "420 м", "850 м" (rounded to nearest 10m)
- * - >= 1000m: "1,2 км", "2,7 км" (1 decimal place with comma)
+ * Formats distance with locale-native number formatting:
+ * RU: "390 м", "1,4 км"
+ * EN: "390 m", "1.4 km"
  */
-export function formatDistance(meters: number): string {
+export function formatDistance(meters: number, locale: string = 'ru-RU'): string {
+  const normLocale = locale.startsWith('en') ? 'en-US' : 'ru-RU'
+  const isEn = normLocale === 'en-US'
+
   if (meters < 1000) {
-    const rounded = Math.round(meters / 10) * 10
-    return `${rounded || 50} м`
+    const rounded = Math.round(meters / 10) * 10 || 50
+    const formattedNum = new Intl.NumberFormat(normLocale).format(rounded)
+    return `${formattedNum} ${isEn ? 'm' : 'м'}`
   }
-  const km = (meters / 1000).toFixed(1).replace('.', ',')
-  return `${km} км`
+
+  const km = meters / 1000
+  const formattedKm = new Intl.NumberFormat(normLocale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(km)
+
+  return `${formattedKm} ${isEn ? 'km' : 'км'}`
 }

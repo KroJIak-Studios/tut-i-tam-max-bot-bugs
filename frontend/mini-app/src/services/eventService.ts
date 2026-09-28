@@ -10,6 +10,8 @@ export interface DetailedEvent {
   longitude: number
   category: EventCategory
   date: string
+  startDate?: string
+  endDate?: string
   startTime: string
   endTime?: string
   price: number
@@ -68,6 +70,8 @@ export function findEventById(rawId: string): DetailedEvent | null {
       longitude: foundMap.longitude,
       category: foundMap.category,
       date: foundMap.date,
+      startDate: foundMap.startDate || foundMap.date,
+      endDate: foundMap.endDate || foundMap.startDate || foundMap.date,
       startTime: foundMap.startTime,
       endTime: foundMap.endTime,
       price: foundMap.price ?? 0,

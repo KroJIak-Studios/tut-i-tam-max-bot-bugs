@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconFilter } from '../Icons'
 import styles from './CatalogEmptyState.module.css'
 
@@ -13,15 +14,17 @@ export const CatalogEmptyState: React.FC<CatalogEmptyStateProps> = ({
   onShowToday,
   hasActiveFilters,
 }) => {
+  const { t } = useTranslation()
+
   return (
     <div className={styles.emptyContainer} role="status">
       <div className={styles.iconCircle} aria-hidden="true">
         <IconFilter size={24} color="#6B7280" />
       </div>
 
-      <h3 className={styles.title}>Ничего не найдено</h3>
+      <h3 className={styles.title}>{t('catalog.emptyTitle')}</h3>
       <p className={styles.description}>
-        Попробуйте изменить дату или сбросить активные фильтры
+        {t('catalog.emptyDescription')}
       </p>
 
       <div className={styles.actions}>
@@ -31,7 +34,7 @@ export const CatalogEmptyState: React.FC<CatalogEmptyStateProps> = ({
             className={styles.resetBtn}
             onClick={onResetFilters}
           >
-            Сбросить фильтры
+            {t('catalog.resetFilters')}
           </button>
         )}
         <button
@@ -39,9 +42,10 @@ export const CatalogEmptyState: React.FC<CatalogEmptyStateProps> = ({
           className={styles.todayBtn}
           onClick={onShowToday}
         >
-          Показать сегодня
+          {t('catalog.showToday')}
         </button>
       </div>
     </div>
   )
 }
+

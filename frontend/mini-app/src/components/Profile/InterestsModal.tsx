@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconClose, IconCheck } from '../Icons'
 import { AVAILABLE_INTERESTS } from '../../context/userPreferencesDef'
 import styles from './InterestsModal.module.css'
@@ -9,12 +10,36 @@ interface InterestsModalProps {
   onSave: (interests: string[]) => void
 }
 
+const LEGACY_INTEREST_TO_ID: Record<string, string> = {
+  'прогулки': 'walks',
+  'музеи': 'museums',
+  'спорт': 'sport',
+  'волонтёрство': 'volunteering',
+  'волонтерство': 'volunteering',
+  'концерты': 'concerts',
+  'театры': 'theatres',
+  'парки': 'parks',
+  'лекции': 'lectures',
+  'кино': 'cinema',
+  'гастрономия': 'food',
+  'фестивали': 'festivals',
+  'настолки': 'boardgames',
+}
+
+const normalizeInterestList = (list: string[]): string[] => {
+  return list.map((item) => {
+    const lower = item.toLowerCase().trim()
+    return LEGACY_INTEREST_TO_ID[lower] || lower
+  })
+}
+
 export const InterestsModal: React.FC<InterestsModalProps> = ({
   currentInterests,
   onClose,
   onSave,
 }) => {
-  const [selected, setSelected] = useState<string[]>(currentInterests)
+  const { t } = useTranslation()
+  const [selected, setSelected] = useState<string[]>(() => normalizeInterestList(currentInterests))
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,28 +70,29 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Выбор интересов"
+      aria-label={t('profile.interests')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>Интересы</h3>
+          <h3 className={styles.title}>{t('profile.interests')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         <div className={styles.subtitle}>
-          Выберите темы для персональных рекомендаций:
+          {t('profile.chooseInterestsSubtitle')}
         </div>
 
-        <div className={styles.interestsGrid} role="group" aria-label="Список интересов">
+        <div className={styles.interestsGrid} role="group" aria-label={t('profile.interests')}>
           {AVAILABLE_INTERESTS.map((interest) => {
             const isSelected = selected.includes(interest)
+            const label = t(`interests.${interest}`, { defaultValue: interest })
             return (
               <button
                 key={interest}
@@ -80,7 +106,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
                     <IconCheck size={14} color="#FFFFFF" />
                   </span>
                 )}
-                <span>{interest}</span>
+                <span>{label}</span>
               </button>
             )
           })}
@@ -92,7 +118,7 @@ export const InterestsModal: React.FC<InterestsModalProps> = ({
             className={styles.saveBtn}
             onClick={handleSave}
           >
-            Сохранить ({selected.length})
+            {t('common.save')} ({selected.length})
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconFilter, IconCalendar, IconChevronDown } from '../Icons'
 import { formatChipDate, getIsoDate } from '../../utils/dateUtils'
 import styles from './MapFilterChips.module.css'
@@ -20,11 +21,12 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
   onToggleFree,
   onOpenFilterSheet,
 }) => {
+  const { t, i18n } = useTranslation()
   const isToday = selectedDate === getIsoDate(0)
-  const dateLabel = formatChipDate(selectedDate)
+  const dateLabel = formatChipDate(selectedDate, i18n.language)
 
   return (
-    <div className={styles.barContainer} role="toolbar" aria-label="Фильтры карты">
+    <div className={styles.barContainer} role="toolbar" aria-label={t('map.filtersToolbar')}>
       {/* 1. Кнопка «Фильтры» с бейджем активных дополнительных фильтров */}
       <button
         type="button"
@@ -32,14 +34,14 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
         onClick={onOpenFilterSheet}
         aria-label={
           extraFilterCount > 0
-            ? `Открыть фильтры (дополнительно: ${extraFilterCount})`
-            : 'Открыть фильтры'
+            ? `${t('map.filters')} (${extraFilterCount})`
+            : t('map.filters')
         }
       >
         <span className={styles.filterBtnIcon}>
           <IconFilter size={15} color="currentColor" />
         </span>
-        <span className={styles.filterBtnText}>Фильтры</span>
+        <span className={styles.filterBtnText}>{t('map.filters')}</span>
         {extraFilterCount > 0 && (
           <span className={styles.filterBadge}>{extraFilterCount}</span>
         )}
@@ -50,7 +52,7 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
         type="button"
         className={`${styles.dateChip} ${!isToday ? styles.dateChipCustom : ''}`}
         onClick={onOpenDatePicker}
-        aria-label={`Выбрать дату (сейчас: ${dateLabel})`}
+        aria-label={`${t('dates.selectDate')} (${dateLabel})`}
         aria-haspopup="dialog"
       >
         <span className={styles.dateChipIcon}>
@@ -69,9 +71,10 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
         onClick={onToggleFree}
         aria-pressed={isFreeOnly}
       >
-        <span>Бесплатно</span>
+        <span>{t('map.free')}</span>
       </button>
     </div>
   )
 }
+
 

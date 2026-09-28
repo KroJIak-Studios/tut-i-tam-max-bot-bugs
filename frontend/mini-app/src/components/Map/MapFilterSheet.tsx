@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { MapFilterState } from '../../types'
 import { IconClose } from '../Icons'
 import styles from './MapFilterSheet.module.css'
@@ -10,12 +11,29 @@ interface MapFilterSheetProps {
   onReset: () => void
 }
 
+const CATEGORY_KEYS = [
+  { id: 'all', key: 'all' },
+  { id: 'events', key: 'events' },
+  { id: 'places', key: 'places' },
+  { id: 'parks', key: 'parks' },
+  { id: 'sports', key: 'sports' },
+  { id: 'volunteer', key: 'volunteer' },
+  { id: 'user', key: 'user' },
+] as const
+
+const SOURCE_KEYS = [
+  { id: 'all', key: 'all' },
+  { id: 'external', key: 'external' },
+  { id: 'user', key: 'user' },
+] as const
+
 export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
   filters,
   onClose,
   onApply,
   onReset,
 }) => {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState<MapFilterState>(filters)
 
   // Закрытие по нажатию клавиши Escape
@@ -41,12 +59,24 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
     onClose()
   }
 
+  const priceLabel =
+    draft.maxPrice !== null && draft.maxPrice !== undefined
+      ? `${draft.maxPrice} ₽`
+      : t('filters.prices.any')
+
+  const priceOptions = [
+    { val: null, label: t('filters.prices.any') },
+    { val: 0, label: '0 ₽' },
+    { val: 500, label: t('filters.prices.upTo', { price: '500 ₽' }) },
+    { val: 1000, label: t('filters.prices.upTo', { price: '1000 ₽' }) },
+  ]
+
   return (
     <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h2 className={styles.title}>Фильтры</h2>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">
+          <h2 className={styles.title}>{t('filters.title')}</h2>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={t('common.close')}>
             <IconClose size={20} color="currentColor" />
           </button>
         </div>
@@ -54,24 +84,16 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
         <div className={styles.contentScroll}>
           {/* Категория */}
           <div className={styles.section}>
-            <div className={styles.sectionTitle}>Категория</div>
+            <div className={styles.sectionTitle}>{t('filters.categoriesTitle')}</div>
             <div className={styles.chipGroup}>
-              {[
-                { id: 'all', label: 'Все' },
-                { id: 'events', label: 'Мероприятия' },
-                { id: 'places', label: 'Места' },
-                { id: 'parks', label: 'Парки' },
-                { id: 'sports', label: 'Спорт' },
-                { id: 'volunteer', label: 'Волонтёрство' },
-                { id: 'user', label: 'Пользовательские' },
-              ].map((c) => (
+              {CATEGORY_KEYS.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   className={`${styles.filterOptionChip} ${draft.category === c.id ? styles.filterOptionChipSelected : ''}`}
                   onClick={() => setDraft({ ...draft, category: c.id })}
                 >
-                  {c.label}
+                  {t(`filters.categories.${c.key}`)}
                 </button>
               ))}
             </div>
@@ -79,20 +101,16 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
 
           {/* Источник */}
           <div className={styles.section}>
-            <div className={styles.sectionTitle}>Источник</div>
+            <div className={styles.sectionTitle}>{t('filters.sourceTitle')}</div>
             <div className={styles.chipGroup}>
-              {[
-                { id: 'all', label: 'Все метки' },
-                { id: 'external', label: 'Городские события' },
-                { id: 'user', label: 'От жителей' },
-              ].map((s) => (
+              {SOURCE_KEYS.map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   className={`${styles.filterOptionChip} ${draft.source === s.id ? styles.filterOptionChipSelected : ''}`}
                   onClick={() => setDraft({ ...draft, source: s.id as MapFilterState['source'] })}
                 >
-                  {s.label}
+                  {t(`filters.sources.${s.key}`)}
                 </button>
               ))}
             </div>
@@ -100,10 +118,10 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
 
           {/* Дополнительные параметры */}
           <div className={styles.section}>
-            <div className={styles.sectionTitle}>Особенности</div>
+            <div className={styles.sectionTitle}>{t('filters.featuresTitle')}</div>
             
             <label className={styles.toggleRow}>
-              <span>Только бесплатные</span>
+              <span>{t('filters.freeOnly')}</span>
               <input
                 type="checkbox"
                 checked={draft.isFreeOnly}
@@ -113,7 +131,7 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
             </label>
 
             <label className={styles.toggleRow}>
-              <span>Пушкинская карта</span>
+              <span>{t('filters.pushkinCardOnly')}</span>
               <input
                 type="checkbox"
                 checked={draft.pushkinCardOnly}
@@ -123,7 +141,7 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
             </label>
 
             <label className={styles.toggleRow}>
-              <span>Только волонтёрские</span>
+              <span>{t('filters.volunteerOnly')}</span>
               <input
                 type="checkbox"
                 checked={draft.volunteerOnly}
@@ -136,15 +154,10 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
           {/* Максимальная цена */}
           <div className={styles.section}>
             <div className={styles.sectionTitle}>
-              Максимальная цена: {draft.maxPrice ? `${draft.maxPrice} ₽` : 'Любая'}
+              {t('filters.maxPriceTitle', { price: priceLabel })}
             </div>
             <div className={styles.chipGroup}>
-              {[
-                { val: null, label: 'Любая' },
-                { val: 0, label: '0 ₽' },
-                { val: 500, label: 'до 500 ₽' },
-                { val: 1000, label: 'до 1000 ₽' },
-              ].map((p, idx) => (
+              {priceOptions.map((p, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -160,13 +173,14 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
 
         <div className={styles.actionsRow}>
           <button type="button" className={styles.resetBtn} onClick={handleReset}>
-            Сбросить
+            {t('common.reset')}
           </button>
           <button type="button" className={styles.applyBtn} onClick={handleApply}>
-            Показать
+            {t('filters.apply')}
           </button>
         </div>
       </div>
     </div>
   )
 }
+

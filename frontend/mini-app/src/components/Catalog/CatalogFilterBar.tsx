@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconFilter, IconCalendar, IconChevronDown } from '../Icons'
 import { formatChipDate, getIsoDate } from '../../utils/dateUtils'
 import styles from './CatalogFilterBar.module.css'
@@ -20,11 +21,12 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
   onToggleFree,
   onOpenFilterSheet,
 }) => {
+  const { t, i18n } = useTranslation()
   const isToday = selectedDate === getIsoDate(0)
-  const dateLabel = formatChipDate(selectedDate)
+  const dateLabel = formatChipDate(selectedDate, i18n.language)
 
   return (
-    <div className={styles.barContainer} role="toolbar" aria-label="Фильтры каталога">
+    <div className={styles.barContainer} role="toolbar" aria-label={t('catalog.filterToolbar')}>
       {/* 1. Кнопка «Фильтры» с бейджем активных дополнительных фильтров */}
       <button
         type="button"
@@ -32,14 +34,14 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         onClick={onOpenFilterSheet}
         aria-label={
           extraFilterCount > 0
-            ? `Открыть фильтры (дополнительно: ${extraFilterCount})`
-            : 'Открыть фильтры'
+            ? `${t('catalog.filters')} (${extraFilterCount})`
+            : t('catalog.filters')
         }
       >
         <span className={styles.filterBtnIcon}>
           <IconFilter size={14} color="currentColor" />
         </span>
-        <span className={styles.filterBtnText}>Фильтры</span>
+        <span className={styles.filterBtnText}>{t('catalog.filters')}</span>
         {extraFilterCount > 0 && (
           <span className={styles.filterBadge}>{extraFilterCount}</span>
         )}
@@ -50,7 +52,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         type="button"
         className={`${styles.dateChip} ${!isToday ? styles.dateChipCustom : ''}`}
         onClick={onOpenDatePicker}
-        aria-label={`Выбрать дату (сейчас: ${dateLabel})`}
+        aria-label={`${t('dates.selectDate')} (${dateLabel})`}
         aria-haspopup="dialog"
       >
         <span className={styles.dateChipIcon}>
@@ -69,7 +71,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         onClick={onToggleFree}
         aria-pressed={isFreeOnly}
       >
-        <span>Бесплатно</span>
+        <span>{t('catalog.free')}</span>
       </button>
     </div>
   )

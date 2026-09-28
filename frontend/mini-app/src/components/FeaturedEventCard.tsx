@@ -1,6 +1,8 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { EventItem } from '../types'
 import { IconChevronRight, IconCalendar, IconSparkles } from './Icons'
+import { formatEventDateTime } from '../utils/formatters'
 import styles from './FeaturedEventCard.module.css'
 
 interface FeaturedEventCardProps {
@@ -9,12 +11,29 @@ interface FeaturedEventCardProps {
 }
 
 export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick }) => {
+  const { t, i18n } = useTranslation()
+  const tagText = t('home.recommendedToday')
+
+  // Parse date and time if "сегодня · 19:00"
+  let displayDate = event.date
+  if (event.date.includes('·')) {
+    const [dPart, tPart] = event.date.split('·').map((s) => s.trim())
+    displayDate = formatEventDateTime(dPart, tPart, i18n.language)
+  }
+
+  // Display price
+  const isFree =
+    event.price.toLowerCase().includes('бесплатно') ||
+    event.price.toLowerCase().includes('free') ||
+    event.price === '0'
+  const displayPrice = isFree ? t('common.free') : event.price
+
   return (
     <button
       type="button"
       className={styles.eventCard}
       onClick={() => onClick?.(event.id)}
-      aria-label={`${event.tag || 'Рекомендуем'}, ${event.title}, ${event.date}, ${event.price}`}
+      aria-label={`${tagText}, ${event.title}, ${displayDate}, ${displayPrice}`}
     >
       <div className={styles.imageWrapper}>
         <img
@@ -29,7 +48,7 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
         <div className={styles.badgeRow}>
           <span className={styles.recommendBadge}>
             <IconSparkles size={11} color="#2563EB" />
-            <span>{event.tag || 'Рекомендуем сегодня'}</span>
+            <span>{tagText}</span>
           </span>
         </div>
 
@@ -38,9 +57,9 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
         <div className={styles.metaRow}>
           <div className={styles.dateInfo}>
             <IconCalendar size={13} className={styles.calendarIcon} />
-            <span>{event.date}</span>
+            <span>{displayDate}</span>
           </div>
-          <span className={styles.pricePill}>{event.price}</span>
+          <span className={styles.pricePill}>{displayPrice}</span>
         </div>
       </div>
 

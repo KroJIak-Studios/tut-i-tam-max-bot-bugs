@@ -26,30 +26,42 @@ export function parseIsoDate(iso: string): Date {
   return new Date(y, m - 1, d)
 }
 
-export function formatChipDate(isoDate: string): string {
+export function formatChipDate(isoDate: string, locale: string = 'ru-RU'): string {
+  const isEn = locale.startsWith('en')
   const today = getIsoDate(0)
   const tomorrow = getIsoDate(1)
 
-  if (isoDate === today) return 'Сегодня'
-  if (isoDate === tomorrow) return 'Завтра'
+  if (isoDate === today) return isEn ? 'Today' : 'Сегодня'
+  if (isoDate === tomorrow) return isEn ? 'Tomorrow' : 'Завтра'
 
   const dateObj = parseIsoDate(isoDate)
+  if (isEn) {
+    return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' }).format(dateObj)
+  }
   const dayNum = dateObj.getDate()
   const monthStr = MONTH_NAMES_SHORT[dateObj.getMonth()] || ''
   return `${dayNum} ${monthStr}`
 }
 
-export function formatMonthYear(date: Date): string {
+export function formatMonthYear(date: Date, locale: string = 'ru-RU'): string {
+  const isEn = locale.startsWith('en')
+  if (isEn) {
+    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date)
+  }
   const monthName = MONTH_NAMES_FULL[date.getMonth()]
   return `${monthName} ${date.getFullYear()}`
 }
 
-export function getNextDays(count: number = 7): Array<{
+export function getNextDays(
+  count: number = 7,
+  locale: string = 'ru-RU'
+): Array<{
   iso: string
   dayOfWeek: string
   dayNum: number
   isToday: boolean
 }> {
+  const isEn = locale.startsWith('en')
   const result = []
   const todayIso = getIsoDate(0)
 
@@ -57,7 +69,11 @@ export function getNextDays(count: number = 7): Array<{
     const d = new Date()
     d.setDate(d.getDate() + i)
     const iso = getIsoDate(i)
-    const dayOfWeek = DAY_OF_WEEK_SHORT[d.getDay()]
+    let dayOfWeek = DAY_OF_WEEK_SHORT[d.getDay()]
+    if (isEn) {
+      const rawWk = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(d)
+      dayOfWeek = rawWk.charAt(0).toUpperCase() + rawWk.slice(1)
+    }
     const dayNum = d.getDate()
     result.push({
       iso,
@@ -163,45 +179,82 @@ export function generateMonthCalendar(
   return days
 }
 
-export function formatEventDateTime(dateStr: string, startTime?: string): string {
+export function formatTime(timeStr?: string, locale: string = 'ru-RU'): string {
+  if (!timeStr) return ''
+  const parts = timeStr.trim().split(':')
+  if (parts.length < 2) return timeStr
+  const h = Number(parts[0])
+  const m = Number(parts[1])
+  if (isNaN(h) || isNaN(m)) return timeStr
+
+  const isEn = locale.startsWith('en')
+  const d = new Date(2026, 0, 1, h, m)
+  return new Intl.DateTimeFormat(isEn ? 'en-US' : 'ru-RU', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(d)
+}
+
+export function formatEventDateTime(
+  dateStr: string,
+  startTime?: string,
+  locale: string = 'ru-RU'
+): string {
+  const isEn = locale.startsWith('en')
   const today = getIsoDate(0)
   const tomorrow = getIsoDate(1)
-  const time = startTime ? ` · ${startTime}` : ''
+  const formattedTime = startTime ? formatTime(startTime, locale) : ''
+  const time = formattedTime ? ` · ${formattedTime}` : ''
 
-  if (dateStr === 'сегодня' || dateStr === today) {
-    return `Сегодня${time}`
+  const lower = dateStr.trim().toLowerCase()
+  if (lower === 'сегодня' || lower === 'today' || dateStr === today) {
+    return `${isEn ? 'Today' : 'Сегодня'}${time}`
   }
-  if (dateStr === 'завтра' || dateStr === tomorrow) {
-    return `Завтра${time}`
+  if (lower === 'завтра' || lower === 'tomorrow' || dateStr === tomorrow) {
+    return `${isEn ? 'Tomorrow' : 'Завтра'}${time}`
   }
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const d = parseIsoDate(dateStr)
-    const day = d.getDate()
-    const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
-    ]
-    return `${day} ${months[d.getMonth()]}${time}`
+    const formattedDate = new Intl.DateTimeFormat(isEn ? 'en-US' : 'ru-RU', {
+      day: 'numeric',
+      month: 'long',
+    }).format(d)
+    return `${formattedDate}${time}`
   }
 
   return `${dateStr}${time}`
 }
 
+export type GreetingKey = 'morning' | 'afternoon' | 'evening'
+
 /**
- * Returns time-based greeting for client local time:
+ * Returns greeting key based on client local time:
+ * 05:00–11:59 => morning
+ * 12:00–17:59 => afternoon
+ * 18:00–04:59 => evening
+ */
+export function getGreetingKey(date: Date = new Date()): GreetingKey {
+  const hours = date.getHours()
+  if (hours >= 5 && hours < 12) {
+    return 'morning'
+  }
+  if (hours >= 12 && hours < 18) {
+    return 'afternoon'
+  }
+  return 'evening'
+}
+
+/**
+ * Returns time-based greeting for client local time (backward compatible):
  * 05:00–11:59 => Доброе утро
  * 12:00–17:59 => Добрый день
  * 18:00–04:59 => Добрый вечер
  */
 export function getGreeting(date: Date = new Date()): string {
-  const hours = date.getHours()
-  if (hours >= 5 && hours < 12) {
-    return 'Доброе утро'
-  }
-  if (hours >= 12 && hours < 18) {
-    return 'Добрый день'
-  }
+  const key = getGreetingKey(date)
+  if (key === 'morning') return 'Доброе утро'
+  if (key === 'afternoon') return 'Добрый день'
   return 'Добрый вечер'
 }
 

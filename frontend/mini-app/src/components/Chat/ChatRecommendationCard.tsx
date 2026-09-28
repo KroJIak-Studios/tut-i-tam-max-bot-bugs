@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { useAttendance } from '../../context/useAttendance'
+import { formatEventDateTime, formatPrice } from '../../utils/formatters'
 import { IconClock, IconTag, IconUsers, IconCheck, IconChat, IconLocationPin } from '../Icons'
 import { ChatMiniMap } from './ChatMiniMap'
 import styles from './ChatRecommendationCard.module.css'
@@ -17,6 +19,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
   onOpenOnMap,
   onToast,
 }) => {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { isGoing, toggleAttendance } = useAttendance()
   const going = isGoing(event.id)
@@ -37,7 +40,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
 
   const handleOpenEventChat = (e: React.MouseEvent) => {
     e.stopPropagation()
-    onToast('Чат мероприятия появится в следующем обновлении')
+    onToast(t('chat.eventChatToast'))
   }
 
   const handleOpenDetails = () => {
@@ -58,7 +61,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
             handleOpenDetails()
           }
         }}
-        aria-label={`Подробнее о событии: ${event.title}`}
+        aria-label={t('chat.detailsAriaLabel', { title: event.title })}
       >
         <div className={styles.header}>
           <h4 className={styles.title}>{event.title}</h4>
@@ -73,15 +76,15 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
         <div className={styles.metaRow}>
           <div className={styles.metaItem}>
             <IconClock size={14} color="#6B7280" />
-            <span>{event.date} {event.startTime}</span>
+            <span>{formatEventDateTime(event.date, event.startTime, i18n.language)}</span>
           </div>
           <div className={styles.metaItem}>
             <IconTag size={14} color="#6B7280" />
-            <span>{event.isFree || event.price === 0 ? 'Бесплатно' : `${event.price} ₽`}</span>
+            <span>{event.isFree || event.price === 0 ? t('events.free') : formatPrice(event.price, i18n.language)}</span>
           </div>
           <div className={styles.metaItem}>
             <IconUsers size={14} color="#6B7280" />
-            <span>{event.attendeesCount} идут</span>
+            <span>{t('events.attendeesCount', { count: event.attendeesCount })}</span>
           </div>
         </div>
       </div>
@@ -105,10 +108,10 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
           {going ? (
             <>
               <IconCheck size={16} color="#FFFFFF" />
-              <span>Вы идёте</span>
+              <span>{t('events.youreGoing')}</span>
             </>
           ) : (
-            <span>Я приду</span>
+            <span>{t('events.imGoing')}</span>
           )}
         </button>
 
@@ -117,7 +120,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
           className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
           onClick={() => onOpenOnMap(event.id)}
         >
-          <span>На карте</span>
+          <span>{t('chat.onMap')}</span>
         </button>
       </div>
 
@@ -128,7 +131,7 @@ export const ChatRecommendationCard: React.FC<ChatRecommendationCardProps> = ({
         onClick={handleOpenEventChat}
       >
         <IconChat size={15} color="#2563EB" />
-        <span>Чат события</span>
+        <span>{t('chat.eventChat')}</span>
       </button>
     </div>
   )

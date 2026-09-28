@@ -1,0 +1,78 @@
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepBadge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary, #2563EB);
+  background-color: rgba(37, 99, 235, 0.08);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  letter-spacing: -0.1px;
+}
+
+.segmentedBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.segment {
+  height: 4px;
+  background-color: #E2E8F0;
+  border-radius: 9999px;
+  transition: background-color 0.25s ease;
+}
+
+.segmentActive {
+  background-color: var(--color-primary, #2563EB);
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.stepTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-main, #111827);
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.stepHelper {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted, #636366);
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (max-width: 340px) {
+  .progressContainer {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stepTitle {
+    font-size: 19px;
+  }
+  .stepHelper {
+    font-size: 13px;
+  }
+}

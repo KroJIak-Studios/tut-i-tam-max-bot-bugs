@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { NotificationSettings } from '../../types'
 import { IconClose } from '../Icons'
 import styles from './NotificationsModal.module.css'
@@ -14,18 +15,20 @@ interface NotificationItem {
   label: string
 }
 
-const NOTIFICATION_ITEMS: NotificationItem[] = [
-  { id: 'interestEvents', label: 'Новые события по интересам' },
-  { id: 'eventReminders', label: 'Напоминания о запланированном' },
-  { id: 'aiRecommendations', label: 'Персональные рекомендации AI' },
-  { id: 'scheduleChanges', label: 'Изменения в расписании' },
-]
-
 export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   settings,
   onClose,
   onChange,
 }) => {
+  const { t } = useTranslation()
+
+  const notificationItems: NotificationItem[] = [
+    { id: 'interestEvents', label: t('profile.notificationInterestEvents') },
+    { id: 'eventReminders', label: t('profile.notificationReminders') },
+    { id: 'aiRecommendations', label: t('profile.notificationAiRecommendations') },
+    { id: 'scheduleChanges', label: t('profile.notificationScheduleChanges') },
+  ]
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -48,27 +51,27 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Настройки уведомлений"
+      aria-label={t('profile.notifications')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>Уведомления</h3>
+          <h3 className={styles.title}>{t('profile.notifications')}</h3>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         <div className={styles.subtitle}>
-          Настройте важные для вас оповещения и напоминания:
+          {t('profile.notificationsModalSubtitle')}
         </div>
 
-        <div className={styles.switchesList} role="group" aria-label="Параметры уведомлений">
-          {NOTIFICATION_ITEMS.map((item) => (
+        <div className={styles.switchesList} role="group" aria-label={t('profile.notifications')}>
+          {notificationItems.map((item) => (
             <label key={item.id} className={styles.switchRow}>
               <span className={styles.switchLabel}>{item.label}</span>
               <div className={styles.switchControl}>
@@ -91,7 +94,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             className={styles.doneBtn}
             onClick={onClose}
           >
-            Готово
+            {t('common.done')}
           </button>
         </div>
       </div>

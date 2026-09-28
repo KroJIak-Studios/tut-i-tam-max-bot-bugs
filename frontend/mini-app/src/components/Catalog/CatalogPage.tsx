@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapFilterState, NavTabId, EventCategory, CatalogSort } from '../../types'
 import { getMapEvents } from '../../services/mapService'
 import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
 import { USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
-import { getIsoDate, formatFoundEventsCount } from '../../utils/dateUtils'
+import { getIsoDate } from '../../utils/dateUtils'
+import { getEventStart, isEventFinishedAt } from '../../utils/eventTime'
 import { CatalogTopBar } from './CatalogTopBar'
 import { CatalogFilterBar } from './CatalogFilterBar'
 import { CatalogEventCard } from './CatalogEventCard'
 import { CatalogSortDropdown } from './CatalogSortDropdown'
 import { CatalogEmptyState } from './CatalogEmptyState'
-import { MapDatePickerSheet } from '../Map/MapDatePickerSheet'
+import { MapDatePickerSheet, type DatePreset } from '../Map/MapDatePickerSheet'
 import { MapFilterSheet } from '../Map/MapFilterSheet'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './CatalogPage.module.css'
@@ -22,6 +24,7 @@ interface EventWithDistance {
 }
 
 export const CatalogPage: React.FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -47,7 +50,7 @@ export const CatalogPage: React.FC = () => {
 
   const [rawEvents, setRawEvents] = useState<MapEvent[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [hasError, setHasError] = useState<boolean>(false)
   const [sortOrder, setSortOrder] = useState<CatalogSort>('distance')
 
   // Sheets state
@@ -63,12 +66,12 @@ export const CatalogPage: React.FC = () => {
         if (!active) return
         setRawEvents(data)
         setLoading(false)
-        setError(null)
+        setHasError(false)
       })
       .catch((err) => {
         if (!active) return
         console.error('Failed to load catalog events:', err)
-        setError('Не удалось загрузить события каталога')
+        setHasError(true)
         setLoading(false)
       })
 
@@ -77,13 +80,14 @@ export const CatalogPage: React.FC = () => {
     }
   }, [filters])
 
-  // Process events: calculate distance, filter out past events, sort according to sortOrder
+  // Process events: calculate distance, filter out past/finished events, sort according to sortOrder
   const sortedEvents: EventWithDistance[] = useMemo(() => {
     const userLat = USER_CURRENT_LOCATION[0]
     const userLon = USER_CURRENT_LOCATION[1]
+    const now = new Date()
 
     const list = rawEvents
-      .filter((e) => !e.isPast)
+      .filter((e) => !e.isPast && !isEventFinishedAt(e, now))
       .map((event) => {
         const distanceMeters = calculateDistanceMeters(
           userLat,
@@ -98,12 +102,7 @@ export const CatalogPage: React.FC = () => {
       case 'distance':
         return list.sort((a, b) => a.distanceMeters - b.distanceMeters)
       case 'date':
-        return list.sort((a, b) => {
-          if (a.event.date !== b.event.date) {
-            return a.event.date.localeCompare(b.event.date)
-          }
-          return a.event.startTime.localeCompare(b.event.startTime)
-        })
+        return list.sort((a, b) => getEventStart(a.event).getTime() - getEventStart(b.event).getTime())
       case 'popular':
         return list.sort((a, b) => b.event.attendeesCount - a.event.attendeesCount)
       case 'price':
@@ -125,12 +124,23 @@ export const CatalogPage: React.FC = () => {
     }))
   }, [])
 
-  const handleSelectDate = useCallback((isoDate: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      selectedDate: isoDate,
-    }))
-  }, [])
+  const handleSelectDate = useCallback(
+    (isoDate: string, preset?: DatePreset) => {
+      setFilters((prev) => ({
+        ...prev,
+        selectedDate: isoDate,
+        dateFilter:
+          preset === 'weekend'
+            ? 'weekend'
+            : preset === 'tomorrow'
+            ? 'tomorrow'
+            : preset === 'today'
+            ? 'today'
+            : 'all',
+      }))
+    },
+    []
+  )
 
   const handleApplyFilters = useCallback((newFilters: MapFilterState) => {
     setFilters(newFilters)
@@ -144,6 +154,7 @@ export const CatalogPage: React.FC = () => {
     setFilters((prev) => ({
       ...prev,
       selectedDate: getIsoDate(0),
+      dateFilter: 'today',
     }))
   }, [])
 
@@ -193,10 +204,10 @@ export const CatalogPage: React.FC = () => {
           </div>
 
           {/* List Meta Row (Result count & sorting indication) */}
-          {!loading && !error && sortedEvents.length > 0 && (
+          {!loading && !hasError && sortedEvents.length > 0 && (
             <div className={styles.listMetaRow}>
               <span className={styles.countText}>
-                {formatFoundEventsCount(sortedEvents.length)}
+                {t('catalog.foundEvents', { count: sortedEvents.length })}
               </span>
               <CatalogSortDropdown value={sortOrder} onChange={setSortOrder} />
             </div>
@@ -219,21 +230,21 @@ export const CatalogPage: React.FC = () => {
           )}
 
           {/* Error State */}
-          {!loading && error && (
+          {!loading && hasError && (
             <div className={styles.errorContainer} role="alert">
-              <p className={styles.errorText}>{error}</p>
+              <p className={styles.errorText}>{t('catalog.loadError')}</p>
               <button
                 type="button"
                 className={styles.retryBtn}
                 onClick={() => setFilters({ ...filters })}
               >
-                Повторить
+                {t('common.retry')}
               </button>
             </div>
           )}
 
           {/* Empty State */}
-          {!loading && !error && sortedEvents.length === 0 && (
+          {!loading && !hasError && sortedEvents.length === 0 && (
             <CatalogEmptyState
               onResetFilters={handleResetFilters}
               onShowToday={handleShowToday}
@@ -242,7 +253,7 @@ export const CatalogPage: React.FC = () => {
           )}
 
           {/* Events List */}
-          {!loading && !error && sortedEvents.length > 0 && (
+          {!loading && !hasError && sortedEvents.length > 0 && (
             <div className={styles.cardsList}>
               {sortedEvents.map(({ event, distanceMeters }) => (
                 <CatalogEventCard
@@ -262,9 +273,10 @@ export const CatalogPage: React.FC = () => {
       {isDatePickerOpen && (
         <MapDatePickerSheet
           selectedDate={filters.selectedDate}
+          activePreset={filters.dateFilter}
           onClose={() => setIsDatePickerOpen(false)}
-          onSelectDate={(iso) => {
-            handleSelectDate(iso)
+          onSelectDate={(iso, preset) => {
+            handleSelectDate(iso, preset)
             setIsDatePickerOpen(false)
           }}
         />

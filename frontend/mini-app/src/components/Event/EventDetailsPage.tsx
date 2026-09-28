@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { findEventById } from '../../services/eventService'
 import { useAttendance } from '../../context/useAttendance'
 import { useReviews } from '../../context/useReviews'
 import { useUserPreferences } from '../../context/useUserPreferences'
-import { formatEventDateTime } from '../../utils/dateUtils'
+import { formatEventDateTime, formatEventDateTimeRange, formatPrice } from '../../utils/formatters'
+import { isEventActiveAt } from '../../utils/eventTime'
 import {
   IconChevronLeft,
   IconCalendar,
@@ -23,6 +25,7 @@ import type { PastEvent } from '../../mocks/plansData'
 import styles from './EventDetailsPage.module.css'
 
 export const EventDetailsPage: React.FC = () => {
+  const { t, i18n } = useTranslation()
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
 
@@ -76,12 +79,12 @@ export const EventDetailsPage: React.FC = () => {
               type="button"
               className={styles.backBtn}
               onClick={() => navigate('/map')}
-              aria-label="Назад к карте"
+              aria-label={t('common.back')}
             >
               <IconChevronLeft size={20} color="currentColor" />
-              <span>Назад</span>
+              <span>{t('common.back')}</span>
             </button>
-            <h1 className={styles.pageTitle}>Событие</h1>
+            <h1 className={styles.pageTitle}>{t('eventDetails.title')}</h1>
             <div className={styles.topBarSpacer} />
           </div>
         </header>
@@ -89,16 +92,16 @@ export const EventDetailsPage: React.FC = () => {
         <main className={styles.scrollArea}>
           <div className={styles.notFoundContainer}>
             <IconCalendar size={48} color="#94A3B8" />
-            <h2 className={styles.notFoundTitle}>Событие не найдено</h2>
+            <h2 className={styles.notFoundTitle}>{t('eventDetails.notFoundTitle')}</h2>
             <p className={styles.notFoundText}>
-              Возможно, мероприятие было перенесено, удалено или ссылка содержит опечатку.
+              {t('eventDetails.notFoundDescription')}
             </p>
             <button
               type="button"
               className={styles.notFoundBtn}
               onClick={() => navigate('/map')}
             >
-              На карту
+              {t('eventDetails.backToMap')}
             </button>
           </div>
         </main>
@@ -139,10 +142,10 @@ export const EventDetailsPage: React.FC = () => {
     } else {
       try {
         await toggleAttendance(event.id)
-        showToast('Добавлено в ваши планы!')
+        showToast(t('eventDetails.addedToPlansToast'))
       } catch (err) {
         console.error('Failed to attend:', err)
-        showToast('Не удалось обновить планы')
+        showToast(t('plans.updateErrorToast'))
       }
     }
   }
@@ -151,21 +154,21 @@ export const EventDetailsPage: React.FC = () => {
     try {
       await removeAttendance(event.id)
       setIsRemoveModalOpen(false)
-      showToast('Удалено из ваших планов')
+      showToast(t('plans.removedToast'))
     } catch (err) {
       console.error('Failed to remove attendance:', err)
-      showToast('Не удалось обновить планы')
+      showToast(t('plans.updateErrorToast'))
     }
   }
 
   const handleReviewSubmit = (id: string, rating: number, comment: string) => {
     submitReview(id, rating, comment)
     setIsReviewModalOpen(false)
-    showToast('Спасибо за ваш отзыв!')
+    showToast(t('plans.reviewThanksToast'))
   }
 
   const handleOpenEventChat = () => {
-    showToast('Чат события появится позже')
+    showToast(t('chat.eventChatToast'))
   }
 
   // External Maps URLs
@@ -181,12 +184,18 @@ export const EventDetailsPage: React.FC = () => {
     }
   }
 
+  const rawPastDate = event.visitedDate
+    ? event.visitedDate.replace(/^Были\s+/i, '')
+    : event.date
+  const formattedPastDate = formatEventDateTime(rawPastDate, undefined, i18n.language)
+
   const displayDateText = event.isPast
-    ? event.visitedDate || `Было ${event.date}`
-    : formatEventDateTime(event.date, event.startTime)
+    ? t('plans.visitedOn', { date: formattedPastDate })
+    : formatEventDateTimeRange(event, i18n.language)
 
   // Combine user review + initial reviews for display
   const allReviews = [...event.reviews]
+  const totalReviewsCount = allReviews.length + (userReview ? 1 : 0)
 
   return (
     <div className={styles.pageContainer}>
@@ -197,12 +206,12 @@ export const EventDetailsPage: React.FC = () => {
             type="button"
             className={styles.backBtn}
             onClick={handleBack}
-            aria-label="Назад"
+            aria-label={t('common.back')}
           >
             <IconChevronLeft size={20} color="currentColor" />
-            <span>Назад</span>
+            <span>{t('common.back')}</span>
           </button>
-          <h1 className={styles.pageTitle}>Событие</h1>
+          <h1 className={styles.pageTitle}>{t('eventDetails.title')}</h1>
           <div className={styles.topBarSpacer} />
         </div>
       </header>
@@ -246,6 +255,13 @@ export const EventDetailsPage: React.FC = () => {
             <h1 className={styles.eventTitle}>{event.title}</h1>
 
             <div className={styles.metaRow}>
+              {/* Happening now badge */}
+              {!event.isPast && isEventActiveAt(event, new Date()) && (
+                <div className={`${styles.metaPill} ${styles.metaPillFree}`}>
+                  <span>{t('events.happeningNow', 'Идёт сейчас')}</span>
+                </div>
+              )}
+
               {/* Date */}
               <div className={styles.metaPill}>
                 <IconClock size={13} color="currentColor" />
@@ -258,27 +274,27 @@ export const EventDetailsPage: React.FC = () => {
                   event.isFree || event.price === 0 ? styles.metaPillFree : styles.metaPillPrimary
                 }`}
               >
-                <span>{event.isFree || event.price === 0 ? 'Бесплатно' : `${event.price} ₽`}</span>
+                <span>{event.isFree || event.price === 0 ? t('events.free') : formatPrice(event.price, i18n.language)}</span>
               </div>
 
               {/* Pushkin Card */}
               {event.pushkinCard && (
                 <div className={`${styles.metaPill} ${styles.metaPillPushkin}`}>
-                  <span>Пушкинская карта</span>
+                  <span>{t('events.pushkinCard')}</span>
                 </div>
               )}
 
               {/* Attendees */}
               <div className={styles.metaPill}>
                 <IconUsers size={13} color="currentColor" />
-                <span>{event.attendeesCount} идут</span>
+                <span>{t('events.attendeesCount', { count: event.attendeesCount })}</span>
               </div>
             </div>
           </div>
 
           {/* Description Card */}
           <div className={styles.card}>
-            <h2 className={styles.cardSectionTitle}>Описание</h2>
+            <h2 className={styles.cardSectionTitle}>{t('eventDetails.description')}</h2>
             <p className={styles.descriptionText}>{event.description}</p>
           </div>
 
@@ -288,13 +304,13 @@ export const EventDetailsPage: React.FC = () => {
               <div className={styles.pastStatusBox}>
                 <div className={styles.pastVisitedBanner}>
                   <IconCheck size={16} color="#166534" />
-                  <span>Посещено {event.visitedDate ? event.visitedDate.replace(/^Были\s+/i, '') : event.date}</span>
+                  <span>{t('plans.visitedOn', { date: formattedPastDate })}</span>
                 </div>
 
                 {userReview ? (
                   <div className={styles.userReviewBadge}>
                     <div className={styles.userReviewTop}>
-                      <span className={styles.userReviewTitle}>Ваш отзыв</span>
+                      <span className={styles.userReviewTitle}>{t('reviews.yourReview')}</span>
                       <div className={styles.starsRow}>
                         {[1, 2, 3, 4, 5].map((star) => (
                           <IconStar
@@ -317,7 +333,7 @@ export const EventDetailsPage: React.FC = () => {
                     onClick={() => setIsReviewModalOpen(true)}
                   >
                     <IconStar size={16} color="#2563EB" filled={false} />
-                    <span>Оставить отзыв</span>
+                    <span>{t('plans.leaveReview')}</span>
                   </button>
                 )}
               </div>
@@ -332,10 +348,10 @@ export const EventDetailsPage: React.FC = () => {
                 {going ? (
                   <>
                     <IconCheck size={18} color="#FFFFFF" />
-                    <span>Вы идёте</span>
+                    <span>{t('events.youreGoing')}</span>
                   </>
                 ) : (
-                  <span>Я приду</span>
+                  <span>{t('events.imGoing')}</span>
                 )}
               </button>
             )}
@@ -343,7 +359,7 @@ export const EventDetailsPage: React.FC = () => {
 
           {/* Location & External Maps */}
           <div className={styles.card}>
-            <h2 className={styles.cardSectionTitle}>Место</h2>
+            <h2 className={styles.cardSectionTitle}>{t('eventDetails.location')}</h2>
             <div className={styles.locationBox}>
               <div className={styles.locationAddressRow}>
                 <IconLocationPin size={18} className={styles.locationPin} />
@@ -358,7 +374,7 @@ export const EventDetailsPage: React.FC = () => {
                   onClick={() => navigate(`/map?event=${event.id}`)}
                 >
                   <IconLocationPin size={15} color="currentColor" />
-                  <span>Показать на карте приложения</span>
+                  <span>{t('eventDetails.showOnMap')}</span>
                 </button>
               )}
 
@@ -368,7 +384,7 @@ export const EventDetailsPage: React.FC = () => {
                 className={styles.openPreferredMapBtn}
                 onClick={handleOpenPreferredMap}
               >
-                <span>Открыть в {preferences.defaultMapProvider === '2gis' ? '2ГИС' : 'Яндекс Картах'} ↗</span>
+                <span>{t('eventDetails.openInPreferredMap', { provider: preferences.defaultMapProvider === '2gis' ? (i18n.language.startsWith('en') ? '2GIS' : '2ГИС') : (i18n.language.startsWith('en') ? 'Yandex Maps' : 'Яндекс Картах') })}</span>
               </button>
 
               {/* External Maps Links */}
@@ -379,7 +395,7 @@ export const EventDetailsPage: React.FC = () => {
                   rel="noopener noreferrer"
                   className={styles.mapActionBtn}
                 >
-                  <span>Яндекс Карты ↗</span>
+                  <span>{i18n.language.startsWith('en') ? 'Yandex Maps ↗' : 'Яндекс Карты ↗'}</span>
                 </a>
                 <a
                   href={dgisUrl}
@@ -387,7 +403,7 @@ export const EventDetailsPage: React.FC = () => {
                   rel="noopener noreferrer"
                   className={styles.mapActionBtn}
                 >
-                  <span>2ГИС ↗</span>
+                  <span>{i18n.language.startsWith('en') ? '2GIS ↗' : '2ГИС ↗'}</span>
                 </a>
               </div>
             </div>
@@ -401,14 +417,16 @@ export const EventDetailsPage: React.FC = () => {
               onClick={handleOpenEventChat}
             >
               <IconChat size={18} color="currentColor" />
-              <span>Чат события</span>
+              <span>{t('chat.eventChat')}</span>
             </button>
           </div>
 
           {/* Reviews List */}
           <div className={styles.card}>
             <h2 className={styles.cardSectionTitle}>
-              Отзывы {allReviews.length > 0 ? `(${allReviews.length + (userReview ? 1 : 0)})` : ''}
+              {totalReviewsCount > 0
+                ? `${t('reviews.title')} (${t('reviews.count', { count: totalReviewsCount })})`
+                : t('reviews.title')}
             </h2>
 
             <div className={styles.reviewsList}>
@@ -417,10 +435,12 @@ export const EventDetailsPage: React.FC = () => {
                 <div className={styles.reviewItem}>
                   <div className={styles.reviewHeader}>
                     <div className={styles.reviewUserRow}>
-                      <div className={styles.reviewAvatar}>Вы</div>
+                      <div className={styles.reviewAvatar}>{t('reviews.you')}</div>
                       <div className={styles.reviewMeta}>
-                        <span className={styles.reviewUserName}>Ваш отзыв</span>
-                        <span className={styles.reviewDate}>{userReview.dateText || 'сегодня'}</span>
+                        <span className={styles.reviewUserName}>{t('reviews.yourReview')}</span>
+                        <span className={styles.reviewDate}>
+                          {userReview.dateText === 'сегодня' ? t('dates.today') : (userReview.dateText || t('dates.today'))}
+                        </span>
                       </div>
                     </div>
                     <div className={styles.starsRow}>
@@ -470,7 +490,7 @@ export const EventDetailsPage: React.FC = () => {
 
               {!userReview && allReviews.length === 0 && (
                 <div className={styles.emptyReviews}>
-                  Пока нет отзывов. Станьте первым!
+                  {t('reviews.noReviewsYet')}
                 </div>
               )}
             </div>

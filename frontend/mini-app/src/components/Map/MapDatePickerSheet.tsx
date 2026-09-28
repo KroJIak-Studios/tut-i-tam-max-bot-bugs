@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconClose, IconChevronLeft, IconChevronRight } from '../Icons'
 import {
   getIsoDate,
@@ -10,19 +11,26 @@ import {
 } from '../../utils/dateUtils'
 import styles from './MapDatePickerSheet.module.css'
 
+export type DatePreset = 'today' | 'tomorrow' | 'weekend' | 'custom'
+
 interface MapDatePickerSheetProps {
   selectedDate: string
+  activePreset?: 'today' | 'tomorrow' | 'weekend' | 'custom' | 'all'
   onClose: () => void
-  onSelectDate: (isoDate: string) => void
+  onSelectDate: (isoDate: string, preset?: DatePreset) => void
 }
 
-const WEEKDAY_NAMES = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAY_NAMES_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const WEEKDAY_NAMES_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   selectedDate,
+  activePreset,
   onClose,
   onSelectDate,
 }) => {
+  const { t, i18n } = useTranslation()
+
   // Calendar month navigation state
   const initialMonth = useMemo(() => {
     try {
@@ -50,7 +58,34 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   const todayIso = useMemo(() => getIsoDate(0), [])
   const tomorrowIso = useMemo(() => getIsoDate(1), [])
   const weekendIso = useMemo(() => getWeekendIsoDate(), [])
-  const next7Days = useMemo(() => getNextDays(7), [])
+  const next7Days = useMemo(() => getNextDays(7, i18n.language), [i18n.language])
+  const weekdayNames = i18n.language.startsWith('en') ? WEEKDAY_NAMES_EN : WEEKDAY_NAMES_RU
+
+  // Mutually exclusive active preset determination
+  const resolvedActivePreset = useMemo<DatePreset | null>(() => {
+    // 1. Explicit activePreset prop passed
+    if (activePreset === 'weekend') {
+      return selectedDate === weekendIso ? 'weekend' : null
+    }
+    if (activePreset === 'tomorrow') {
+      return selectedDate === tomorrowIso ? 'tomorrow' : null
+    }
+    if (activePreset === 'today') {
+      return selectedDate === todayIso ? 'today' : null
+    }
+    if (activePreset === 'custom' || activePreset === 'all') {
+      return null
+    }
+
+    // 2. Fallback inference when no activePreset is specified
+    if (selectedDate === todayIso) {
+      return 'today'
+    }
+    if (selectedDate === tomorrowIso) {
+      return 'tomorrow'
+    }
+    return null
+  }, [activePreset, selectedDate, todayIso, tomorrowIso, weekendIso])
 
   // Can user navigate to previous month?
   const canGoPrev = useMemo(() => {
@@ -75,8 +110,8 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
     return generateMonthCalendar(viewMonthDate, selectedDate)
   }, [viewMonthDate, selectedDate])
 
-  const handlePickDate = (iso: string) => {
-    onSelectDate(iso)
+  const handlePickDate = (iso: string, preset: DatePreset = 'custom') => {
+    onSelectDate(iso, preset)
     onClose()
   }
 
@@ -86,47 +121,47 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Выбор даты"
+      aria-label={t('dates.selectDate')}
     >
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         {/* Шапка: Заголовок и кнопка закрытия */}
         <div className={styles.headerRow}>
-          <h2 className={styles.title}>Выбор даты</h2>
+          <h2 className={styles.title}>{t('dates.selectDate')}</h2>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t('common.close')}
           >
             <IconClose size={18} color="currentColor" />
           </button>
         </div>
 
         {/* Быстрые кнопки: Сегодня, Завтра, Выходные */}
-        <div className={styles.quickRow} role="group" aria-label="Быстрый выбор даты">
+        <div className={styles.quickRow} role="group" aria-label={t('dates.quickSelectAriaLabel')}>
           <button
             type="button"
-            className={`${styles.quickBtn} ${selectedDate === todayIso ? styles.quickBtnActive : ''}`}
-            onClick={() => handlePickDate(todayIso)}
-            aria-pressed={selectedDate === todayIso}
+            className={`${styles.quickBtn} ${resolvedActivePreset === 'today' ? styles.quickBtnActive : ''}`}
+            onClick={() => handlePickDate(todayIso, 'today')}
+            aria-pressed={resolvedActivePreset === 'today'}
           >
-            Сегодня
+            {t('dates.today')}
           </button>
           <button
             type="button"
-            className={`${styles.quickBtn} ${selectedDate === tomorrowIso ? styles.quickBtnActive : ''}`}
-            onClick={() => handlePickDate(tomorrowIso)}
-            aria-pressed={selectedDate === tomorrowIso}
+            className={`${styles.quickBtn} ${resolvedActivePreset === 'tomorrow' ? styles.quickBtnActive : ''}`}
+            onClick={() => handlePickDate(tomorrowIso, 'tomorrow')}
+            aria-pressed={resolvedActivePreset === 'tomorrow'}
           >
-            Завтра
+            {t('dates.tomorrow')}
           </button>
           <button
             type="button"
-            className={`${styles.quickBtn} ${selectedDate === weekendIso ? styles.quickBtnActive : ''}`}
-            onClick={() => handlePickDate(weekendIso)}
-            aria-pressed={selectedDate === weekendIso}
+            className={`${styles.quickBtn} ${resolvedActivePreset === 'weekend' ? styles.quickBtnActive : ''}`}
+            onClick={() => handlePickDate(weekendIso, 'weekend')}
+            aria-pressed={resolvedActivePreset === 'weekend'}
           >
-            Выходные
+            {t('dates.weekend')}
           </button>
         </div>
 
@@ -134,7 +169,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
         <div
           className={styles.daysStrip}
           role="listbox"
-          aria-label="Ближайшие дни"
+          aria-label={t('dates.upcomingDaysAriaLabel')}
           tabIndex={0}
         >
           {next7Days.map((day) => {
@@ -146,7 +181,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
                 role="option"
                 aria-selected={isSelected}
                 className={`${styles.stripItem} ${isSelected ? styles.stripItemActive : ''}`}
-                onClick={() => handlePickDate(day.iso)}
+                onClick={() => handlePickDate(day.iso, 'custom')}
               >
                 <span className={styles.stripWeekday}>{day.dayOfWeek}</span>
                 <span className={styles.stripDayNum}>{day.dayNum}</span>
@@ -163,28 +198,28 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
               className={styles.navArrowBtn}
               onClick={handlePrevMonth}
               disabled={!canGoPrev}
-              aria-label="Предыдущий месяц"
+              aria-label={t('dates.prevMonth')}
             >
               <IconChevronLeft size={16} color="currentColor" />
             </button>
-            <span className={styles.monthTitle}>{formatMonthYear(viewMonthDate)}</span>
+            <span className={styles.monthTitle}>{formatMonthYear(viewMonthDate, i18n.language)}</span>
             <button
               type="button"
               className={styles.navArrowBtn}
               onClick={handleNextMonth}
-              aria-label="Следующий месяц"
+              aria-label={t('dates.nextMonth')}
             >
               <IconChevronRight size={16} color="currentColor" />
             </button>
           </div>
 
           <div className={styles.weekdayHeader} aria-hidden="true">
-            {WEEKDAY_NAMES.map((w) => (
+            {weekdayNames.map((w) => (
               <span key={w}>{w}</span>
             ))}
           </div>
 
-          <div className={styles.calendarGrid} role="grid" aria-label="Календарь дней месяца">
+          <div className={styles.calendarGrid} role="grid" aria-label={t('dates.calendarAriaLabel')}>
             {calendarDays.map((day, idx) => {
               const classNames = [
                 styles.dayCell,
@@ -201,7 +236,7 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
                   type="button"
                   disabled={day.isDisabled}
                   className={classNames}
-                  onClick={() => !day.isDisabled && handlePickDate(day.iso)}
+                  onClick={() => !day.isDisabled && handlePickDate(day.iso, 'custom')}
                   aria-label={`${day.dayNum}, ${day.iso}`}
                   aria-selected={day.isSelected}
                 >
