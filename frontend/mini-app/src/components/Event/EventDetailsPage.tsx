@@ -5,7 +5,8 @@ import { findEventById } from '../../services/eventService'
 import { useAttendance } from '../../context/useAttendance'
 import { useReviews } from '../../context/useReviews'
 import { useUserPreferences } from '../../context/useUserPreferences'
-import { formatEventDateTime, formatPrice } from '../../utils/formatters'
+import { formatEventDateTime, formatEventDateTimeRange, formatPrice } from '../../utils/formatters'
+import { isEventActiveAt } from '../../utils/eventTime'
 import {
   IconChevronLeft,
   IconCalendar,
@@ -190,7 +191,7 @@ export const EventDetailsPage: React.FC = () => {
 
   const displayDateText = event.isPast
     ? t('plans.visitedOn', { date: formattedPastDate })
-    : formatEventDateTime(event.date, event.startTime, i18n.language)
+    : formatEventDateTimeRange(event, i18n.language)
 
   // Combine user review + initial reviews for display
   const allReviews = [...event.reviews]
@@ -254,6 +255,13 @@ export const EventDetailsPage: React.FC = () => {
             <h1 className={styles.eventTitle}>{event.title}</h1>
 
             <div className={styles.metaRow}>
+              {/* Happening now badge */}
+              {!event.isPast && isEventActiveAt(event, new Date()) && (
+                <div className={`${styles.metaPill} ${styles.metaPillFree}`}>
+                  <span>{t('events.happeningNow', 'Идёт сейчас')}</span>
+                </div>
+              )}
+
               {/* Date */}
               <div className={styles.metaPill}>
                 <IconClock size={13} color="currentColor" />

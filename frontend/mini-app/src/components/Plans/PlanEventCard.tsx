@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
-import { formatEventDateTime } from '../../utils/formatters'
+import { formatEventDateTimeRange } from '../../utils/formatters'
 import { IconCheck, IconUsers, IconCalendar } from '../Icons'
 import styles from './PlanEventCard.module.css'
 
@@ -23,8 +23,8 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
     onRequestRemove(event)
   }
 
-  // Format date display: locale-aware, e.g. "Сегодня · 19:00" or "Today · 7:00 PM"
-  const timeDisplay = formatEventDateTime(event.date, event.startTime, i18n.language)
+  // Format date display: locale-aware time range
+  const timeDisplay = formatEventDateTimeRange(event, i18n.language)
 
   return (
     <article

@@ -223,53 +223,96 @@ export function formatEventDateTime(
  *   EN: "October 5, 11:00 PM — October 6, 1:00 AM"
  */
 export function formatEventDateTimeRange(
-  startDate: string,
-  startTime?: string,
+  eventOrStartDate:
+    | {
+        startDate?: string
+        date?: string
+        startTime?: string
+        endDate?: string
+        endTime?: string
+      }
+    | string,
+  startTimeOrLocale?: string,
   endDateOrEndTime?: string,
   endTimeOrLocale?: string,
   possibleLocale?: string
 ): string {
+  if (!eventOrStartDate) return '—'
+
+  let startDate = ''
+  let startTime: string | undefined = undefined
+  let endDate = ''
+  let endTime: string | undefined = undefined
+  let locale: string | undefined = undefined
+
+  if (typeof eventOrStartDate === 'object') {
+    startDate = eventOrStartDate.startDate || eventOrStartDate.date || ''
+    startTime = eventOrStartDate.startTime
+    endDate = eventOrStartDate.endDate || startDate
+    endTime = eventOrStartDate.endTime
+    locale = startTimeOrLocale
+  } else {
+    startDate = eventOrStartDate
+    startTime = startTimeOrLocale
+
+    // Backward compatibility check for 4-argument call (startDate, startTime, endTime, locale)
+    if (
+      endDateOrEndTime &&
+      /^\d{1,2}:\d{2}$/.test(endDateOrEndTime) &&
+      (!possibleLocale || possibleLocale === undefined)
+    ) {
+      endDate = startDate
+      endTime = endDateOrEndTime
+      locale = endTimeOrLocale
+    } else {
+      endDate = endDateOrEndTime || startDate
+      endTime = endTimeOrLocale
+      locale = possibleLocale
+    }
+  }
+
   if (!startDate) return '—'
-
-  // Backward compatibility check for 4-argument call (startDate, startTime, endTime, locale)
-  let endDate = endDateOrEndTime
-  let endTime = endTimeOrLocale
-  let locale = possibleLocale
-
-  if (
-    endDateOrEndTime &&
-    /^\d{1,2}:\d{2}$/.test(endDateOrEndTime) &&
-    (!possibleLocale || possibleLocale === undefined)
-  ) {
-    endDate = startDate
-    endTime = endDateOrEndTime
-    locale = endTimeOrLocale
-  }
-
-  if (!endDate) {
-    endDate = startDate
-  }
+  if (!endDate) endDate = startDate
 
   const norm = normalizeLocale(locale)
   const isEn = norm === 'en-US'
-
   const isSameDay = startDate === endDate
 
   if (isSameDay) {
     if (!startTime) {
       return formatEventDateTime(startDate, undefined, norm)
     }
+    const formattedStart = formatTime(startTime, norm)
     if (!endTime) {
       return formatEventDateTime(startDate, startTime, norm)
     }
-    const formattedStart = formatTime(startTime, norm)
     const formattedEnd = formatTime(endTime, norm)
     const timeRange = `${formattedStart}–${formattedEnd}`
     const datePrefix = formatEventDateTime(startDate, undefined, norm)
     return `${datePrefix} · ${timeRange}`
   }
 
-  // Multi-day
+  // Multi-day without specific times: e.g. "10–12 октября" or "Oct 10–12"
+  if (!startTime && !endTime) {
+    const sParts = startDate.split('-').map(Number)
+    const eParts = endDate.split('-').map(Number)
+    if (sParts.length === 3 && eParts.length === 3) {
+      const [sY, sM, sD] = sParts
+      const [eY, eM, eD] = eParts
+      if (sY === eY && sM === eM) {
+        // Same month
+        const dObj = new Date(sY, sM - 1, sD)
+        const monthShort = new Intl.DateTimeFormat(norm, { month: 'short' }).format(dObj)
+        const monthLong = new Intl.DateTimeFormat(norm, { month: 'long' }).format(dObj)
+        if (isEn) {
+          return `${monthShort} ${sD}–${eD}`
+        }
+        return `${sD}–${eD} ${monthLong}`
+      }
+    }
+  }
+
+  // Multi-day with times
   const startDatePart = formatEventDateTime(startDate, undefined, norm)
   const endDatePart = formatEventDateTime(endDate, undefined, norm)
   const formattedStart = startTime ? formatTime(startTime, norm) : ''

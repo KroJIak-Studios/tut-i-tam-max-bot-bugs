@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { IconClock, IconTag, IconUsers, IconCheck } from '../Icons'
-import { formatEventDateTime } from '../../utils/dateUtils'
+import { formatEventDateTimeRange, isEventActiveAt } from '../../utils/eventTime'
 import styles from './MapEventCard.module.css'
 
 interface MapEventCardProps {
@@ -17,7 +17,8 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
   onMoreDetails,
 }) => {
   const { t, i18n } = useTranslation()
-  const dateTimeText = formatEventDateTime(event.date, event.startTime, i18n.language)
+  const dateTimeText = formatEventDateTimeRange(event, i18n.language)
+  const isActiveNow = isEventActiveAt(event, new Date())
 
   const priceDisplay =
     event.isFree || event.price === 0
@@ -45,6 +46,9 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
       >
         <div className={styles.headerRow}>
           <div className={styles.titleArea}>
+            {isActiveNow && (
+              <span className={styles.activeNowBadge}>{t('events.happeningNow', 'Идёт сейчас')}</span>
+            )}
             {event.source === 'user' && (
               <span className={styles.userBadge}>{t('events.userAdded')}</span>
             )}

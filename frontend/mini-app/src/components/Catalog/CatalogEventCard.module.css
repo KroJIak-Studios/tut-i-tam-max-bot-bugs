@@ -139,6 +139,17 @@
   border-radius: 5px;
 }
 
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  background-color: #ECFDF5;
+  color: #059669;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
 .volunteerBadge {
   display: inline-flex;
   align-items: center;

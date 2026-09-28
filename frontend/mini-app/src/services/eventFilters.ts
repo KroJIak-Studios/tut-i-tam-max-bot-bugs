@@ -1,5 +1,12 @@
 import type { MapEvent, MapFilterState } from '../types'
 import { getIsoDate } from '../utils/dateUtils'
+import {
+  isEventVisibleForDay,
+  isEventVisibleForRange,
+  isEventActiveAt,
+  isEventFinishedAt,
+} from '../utils/eventTime'
+import { buildLocalDateTime } from '../utils/formatters'
 
 export const DEFAULT_FILTERS: MapFilterState = {
   quickChip: 'all',
@@ -36,18 +43,37 @@ export function filterEvents(
   if (!filters) return events
 
   let filtered = [...events]
+  const todayIso = getIsoDate(0)
 
-  // 1. Date filter: if selectedDate is not 'all', filter by date
-  if (filters.selectedDate && filters.selectedDate !== 'all') {
-    const targetDate = filters.selectedDate
-    const todayIso = getIsoDate(0)
+  // 1. Date filter: intersection with day or weekend range
+  if (filters.dateFilter === 'weekend') {
+    const d = new Date()
+    const dayOfWeek = d.getDay()
+    const daysToSat = (6 - dayOfWeek + 7) % 7
+    const satIso = getIsoDate(daysToSat)
+    const sunIso = getIsoDate(daysToSat + 1)
+    filtered = filtered.filter((e) => isEventVisibleForRange(e, satIso, sunIso))
+  } else if (filters.selectedDate && filters.selectedDate !== 'all') {
+    filtered = filtered.filter((e) => isEventVisibleForDay(e, filters.selectedDate!))
+  }
 
-    filtered = filtered.filter((e) => {
-      if (targetDate === todayIso) {
-        return e.date === 'сегодня' || e.date === todayIso
-      }
-      return e.date === targetDate
-    })
+  // 2. Time slot filter (when explicitly supplied) or default today filter
+  if (filters.timeSlotMinutes !== undefined && filters.timeSlotMinutes !== null) {
+    const targetDate =
+      filters.selectedDate && filters.selectedDate !== 'all'
+        ? filters.selectedDate
+        : todayIso
+    const h = Math.floor(filters.timeSlotMinutes / 60)
+    const m = filters.timeSlotMinutes % 60
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+    const targetDateTime = buildLocalDateTime(targetDate, timeStr)
+    if (targetDateTime) {
+      filtered = filtered.filter((e) => isEventActiveAt(e, targetDateTime))
+    }
+  } else if (filters.selectedDate === todayIso) {
+    // In default "today" mode without explicit scrubber time: hide already finished events
+    const now = new Date()
+    filtered = filtered.filter((e) => !isEventFinishedAt(e, now))
   }
 
   // 2. Quick chips
@@ -103,15 +129,6 @@ export function filterEvents(
   // 9. Min attendees
   if (filters.minAttendees && filters.minAttendees > 0) {
     filtered = filtered.filter((e) => e.attendeesCount >= (filters.minAttendees || 0))
-  }
-
-  // 10. Time slot filter (when explicitly supplied)
-  if (filters.timeSlotMinutes !== undefined && filters.timeSlotMinutes !== null) {
-    filtered = filtered.filter((e) => {
-      const eventStartMinutes = parseTimeToMinutes(e.startTime)
-      const eventEndMinutes = e.endTime ? parseTimeToMinutes(e.endTime) : eventStartMinutes + 120
-      return eventEndMinutes >= (filters.timeSlotMinutes ?? 0)
-    })
   }
 
   return filtered

@@ -99,6 +99,13 @@ export interface TranslationSchema {
     loadError: string
     noEventsOnDate: string
     noEventsForFilters: string
+    noEventsAtTime: string
+    resetTime: string
+    timeScrubber: string
+    now: string
+    selectedTime: string
+    allDay: string
+    scrubberAriaLabel: string
     showToday: string
     details: string
     eventAriaLabel: string
@@ -152,6 +159,8 @@ export interface TranslationSchema {
     userAdded: string
     youreGoing: string
     imGoing: string
+    happeningNow: string
+    startingSoon: string
     attendeesCount_one: string
     attendeesCount_few: string
     attendeesCount_many: string
@@ -529,6 +538,13 @@ export const ruRU: TranslationSchema = {
     loadError: 'Не удалось загрузить данные карты',
     noEventsOnDate: 'На {{date}} событий не найдено',
     noEventsForFilters: 'Нет событий по выбранным фильтрам',
+    noEventsAtTime: 'В это время событий не найдено',
+    resetTime: 'Сбросить время',
+    timeScrubber: 'Шкала времени',
+    now: 'Сейчас',
+    selectedTime: 'Выбранное время',
+    allDay: 'Весь день',
+    scrubberAriaLabel: 'Выбор времени на карте',
     showToday: 'Показать сегодня',
     details: 'Подробнее',
     eventAriaLabel: 'Событие: {{title}}',
@@ -582,6 +598,8 @@ export const ruRU: TranslationSchema = {
     userAdded: 'Добавлено пользователем',
     youreGoing: 'Вы идёте',
     imGoing: 'Я приду',
+    happeningNow: 'Идёт сейчас',
+    startingSoon: 'Скоро начнётся',
     attendeesCount_one: '{{count}} идёт',
     attendeesCount_few: '{{count}} идут',
     attendeesCount_many: '{{count}} идут',

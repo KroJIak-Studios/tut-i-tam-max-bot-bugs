@@ -50,9 +50,11 @@ export interface MapEvent {
   latitude: number
   longitude: number
   category: EventCategory
-  date: string
+  date: string // "YYYY-MM-DD" (primary or fallback start date)
+  startDate?: string // "YYYY-MM-DD"
+  endDate?: string // "YYYY-MM-DD"
   startTime: string // "HH:MM"
-  endTime?: string
+  endTime?: string // "HH:MM"
   price: number // 0 if free
   isFree: boolean
   pushkinCard: boolean

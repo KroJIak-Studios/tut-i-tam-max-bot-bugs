@@ -7,6 +7,7 @@ import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
 import { USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
 import { getIsoDate } from '../../utils/dateUtils'
+import { getEventStart, isEventFinishedAt } from '../../utils/eventTime'
 import { CatalogTopBar } from './CatalogTopBar'
 import { CatalogFilterBar } from './CatalogFilterBar'
 import { CatalogEventCard } from './CatalogEventCard'
@@ -79,13 +80,14 @@ export const CatalogPage: React.FC = () => {
     }
   }, [filters])
 
-  // Process events: calculate distance, filter out past events, sort according to sortOrder
+  // Process events: calculate distance, filter out past/finished events, sort according to sortOrder
   const sortedEvents: EventWithDistance[] = useMemo(() => {
     const userLat = USER_CURRENT_LOCATION[0]
     const userLon = USER_CURRENT_LOCATION[1]
+    const now = new Date()
 
     const list = rawEvents
-      .filter((e) => !e.isPast)
+      .filter((e) => !e.isPast && !isEventFinishedAt(e, now))
       .map((event) => {
         const distanceMeters = calculateDistanceMeters(
           userLat,
@@ -100,12 +102,7 @@ export const CatalogPage: React.FC = () => {
       case 'distance':
         return list.sort((a, b) => a.distanceMeters - b.distanceMeters)
       case 'date':
-        return list.sort((a, b) => {
-          if (a.event.date !== b.event.date) {
-            return a.event.date.localeCompare(b.event.date)
-          }
-          return a.event.startTime.localeCompare(b.event.startTime)
-        })
+        return list.sort((a, b) => getEventStart(a.event).getTime() - getEventStart(b.event).getTime())
       case 'popular':
         return list.sort((a, b) => b.event.attendeesCount - a.event.attendeesCount)
       case 'price':

@@ -1,6 +1,7 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 import { getIsoDate } from '../utils/dateUtils'
+import { calculateDefaultEndDateTime } from '../utils/formatters'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
 
 export { parseTimeToMinutes }
@@ -137,6 +138,10 @@ export interface NewUserMarkerInput {
 export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent> {
   await new Promise((resolve) => setTimeout(resolve, 100))
 
+  const today = getIsoDate(0)
+  const startTime = input.startTime || '19:00'
+  const defEnd = calculateDefaultEndDateTime(today, startTime)
+
   const newEvent: MapEvent = {
     id: `user-event-${Date.now()}`,
     title: input.title.trim(),
@@ -144,8 +149,11 @@ export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent
     latitude: input.latitude,
     longitude: input.longitude,
     category: input.category,
-    date: getIsoDate(0),
-    startTime: input.startTime || '19:00',
+    date: today,
+    startDate: today,
+    endDate: defEnd.endDate,
+    startTime: startTime,
+    endTime: defEnd.endTime,
     price: 0,
     isFree: true,
     pushkinCard: false,

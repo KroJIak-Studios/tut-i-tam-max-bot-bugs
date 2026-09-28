@@ -2,7 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { IconClock, IconLocationPin, IconUsers } from '../Icons'
-import { formatEventDateTime } from '../../utils/dateUtils'
+import { formatEventDateTimeRange, isEventActiveAt } from '../../utils/eventTime'
 import { formatDistance } from '../../utils/geoUtils'
 import styles from './CatalogEventCard.module.css'
 
@@ -21,7 +21,8 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
 }) => {
   const { t, i18n } = useTranslation()
   const imgSrc = event.image || event.images?.[0] || '/event-embankment.jpg'
-  const dateTimeText = formatEventDateTime(event.date, event.startTime, i18n.language)
+  const dateTimeText = formatEventDateTimeRange(event, i18n.language)
+  const isActiveNow = isEventActiveAt(event, new Date())
   const distanceText = formatDistance(distanceMeters, i18n.language)
   const locationText = event.address ? `${distanceText} · ${event.address}` : distanceText
 
@@ -79,6 +80,10 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
           <h3 className={styles.title}>{event.title}</h3>
 
           <div className={styles.chipsRow}>
+            {isActiveNow && (
+              <span className={styles.activeBadge}>{t('events.happeningNow', 'Идёт сейчас')}</span>
+            )}
+
             {event.attendeesCount > 0 && (
               <span className={styles.attendees}>
                 <IconUsers size={12} color="currentColor" />

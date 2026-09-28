@@ -11,6 +11,7 @@ import { MapFilterChips } from './MapFilterChips'
 import { MapDatePickerSheet, type DatePreset } from './MapDatePickerSheet'
 import { MapView } from './MapView'
 import { MapFilterSheet } from './MapFilterSheet'
+import { MapTimeScrubber } from './MapTimeScrubber'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './MapPage.module.css'
 
@@ -25,7 +26,7 @@ const DEFAULT_FILTERS: MapFilterState = {
   volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
-  timeSlotMinutes: null,
+  timeSlotMinutes: 19 * 60, // Default 19:00 for Kazan prime time
 }
 
 export const MapPage: React.FC = () => {
@@ -212,15 +213,34 @@ export const MapPage: React.FC = () => {
     return displayedEvents.find((e) => e.id === selectedEventId) || null
   }, [displayedEvents, selectedEventId])
 
+  // Time scrubber handlers
+  const handleTimeChange = useCallback((minutes: number) => {
+    setUserSelectedId(null)
+    setFilters((prev) => ({
+      ...prev,
+      timeSlotMinutes: minutes,
+    }))
+  }, [])
+
+  const handleResetTime = useCallback(() => {
+    setUserSelectedId(null)
+    setFilters((prev) => ({
+      ...prev,
+      timeSlotMinutes: null,
+    }))
+  }, [])
+
   // Date selection change
   const handleDateChange = (
     newIsoDate: string,
     preset?: DatePreset
   ) => {
     setUserSelectedId(null)
+    const isNewToday = newIsoDate === getIsoDate(0)
     setFilters((prev) => ({
       ...prev,
       selectedDate: newIsoDate,
+      timeSlotMinutes: isNewToday ? 19 * 60 : 9 * 60,
       dateFilter:
         preset === 'weekend'
           ? 'weekend'
@@ -294,7 +314,9 @@ export const MapPage: React.FC = () => {
       {!loading && !hasError && events.length === 0 && (
         <div className={styles.emptyBanner}>
           <span>
-            {!isToday
+            {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
+              ? t('map.noEventsAtTime', 'В это время событий не найдено')
+              : !isToday
               ? t('map.noEventsOnDate', { date: formatChipDate(filters.selectedDate, i18n.language) })
               : t('map.noEventsForFilters')}
           </span>
@@ -302,11 +324,19 @@ export const MapPage: React.FC = () => {
             type="button"
             className={styles.emptyResetBtn}
             onClick={() => {
-              setLoading(true)
-              setFilters(DEFAULT_FILTERS)
+              if (filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined) {
+                handleResetTime()
+              } else {
+                setLoading(true)
+                setFilters(DEFAULT_FILTERS)
+              }
             }}
           >
-            {!isToday ? t('map.showToday') : t('common.reset')}
+            {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
+              ? t('map.resetTime', 'Сбросить время')
+              : !isToday
+              ? t('map.showToday')
+              : t('common.reset')}
           </button>
         </div>
       )}
@@ -326,6 +356,14 @@ export const MapPage: React.FC = () => {
           }}
         />
       </div>
+
+      {/* 4. Временная шкала событий */}
+      <MapTimeScrubber
+        selectedMinutes={filters.timeSlotMinutes ?? null}
+        onChangeMinutes={handleTimeChange}
+        onResetTime={handleResetTime}
+        isToday={isToday}
+      />
 
       {/* Нижняя навигация */}
       <BottomNavigation
