@@ -13,4 +13,6 @@ FROM nginx:1.27-alpine
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
+RUN chmod -R a+rX /usr/share/nginx/html
+
 EXPOSE 80
