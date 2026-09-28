@@ -6,3 +6,11 @@ services:
   mini-app:
     ports:
       - "${EXTERNAL_MINI_APP_PORT:-8081}:80"
+
+  adminer:
+    image: adminer:5
+    ports:
+      - "${EXTERNAL_ADMINER_PORT:-8082}:8080"
+    depends_on:
+      db:
+        condition: service_healthy

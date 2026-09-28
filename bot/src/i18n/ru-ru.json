@@ -1,0 +1,43 @@
+{
+  "locale_name": "Русский",
+  "language_names": {
+    "ru-ru": "Русский",
+    "en-us": "Английский"
+  },
+  "start": {
+    "title": "<b>🧭 Тут И Там 🧭</b>",
+    "greeting": "Привет, {name}!",
+    "quote": "Я помогу находить события, места и возможности для досуга, подскажу, куда пойти рядом и помогу сохранить планы. Для удобства и подробностей переходи в мини-приложение.",
+    "nearby_events": "События рядом",
+    "my_meetings": "Мои встречи",
+    "ai_assistant": "Чат с ИИ-помощником",
+    "settings": "Настройки"
+  },
+  "access": {
+    "request_code": "🔐 Введите контрольное слово, чтобы продолжить.",
+    "invalid_code": "Контрольное слово не подошло. Попробуйте ещё раз."
+  },
+  "settings": {
+    "title": "⚙️ <b>Настройки</b> ⚙️",
+    "notifications_title": "🔔 <b>Уведомления</b> 🔔",
+    "language_title": "🌐 <b>Выберите язык</b> 🌐",
+    "delete_title": "🗑️ <b>Удаление данных</b> 🗑️",
+    "current_language": "Ваш текущий язык: {language}",
+    "notifications": "Уведомления",
+    "language": "Сменить язык",
+    "delete_data": "Удалить данные",
+    "notification_enabled": "Включить уведомления",
+    "notification_silent": "Бесшумные уведомления",
+    "notification_disabled": "Выключить уведомления",
+    "choose_language": "Выберите язык",
+    "delete_confirmation": "<blockquote>⚠️ Все ваши данные в этом сервисе будут удалены безвозвратно.</blockquote>\n\nВы уверены?",
+    "delete_yes": "Да, удалить",
+    "delete_no": "Нет, назад",
+    "notification_changed": "Уведомления изменены: {name}.",
+    "data_deleted": "Ваши данные удалены. Чтобы начать заново, нажмите /start."
+  },
+  "common": {
+    "not_ready": "Этот раздел появится позже.",
+    "back": "Назад"
+  }
+}
