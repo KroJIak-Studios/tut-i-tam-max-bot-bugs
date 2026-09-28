@@ -59,9 +59,16 @@ export const UserRequestCard: React.FC<UserRequestCardProps> = ({ request, onCli
           <span>{statusLabel}</span>
         </span>
 
-        {categoryLabel && (
-          <span className={styles.categoryBadge}>{categoryLabel}</span>
-        )}
+        <div className={styles.rightBadges}>
+          <span className={styles.locationBadge}>
+            {request.locationMode === 'area'
+              ? `⬡ ${t('userRequests.locationModeArea')}`
+              : `📍 ${t('userRequests.locationModePoint')}`}
+          </span>
+          {categoryLabel && (
+            <span className={styles.categoryBadge}>{categoryLabel}</span>
+          )}
+        </div>
       </div>
 
       {/* 2. Main Title */}

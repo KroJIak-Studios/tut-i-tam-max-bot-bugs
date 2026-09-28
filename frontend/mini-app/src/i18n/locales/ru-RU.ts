@@ -317,6 +317,15 @@ export interface TranslationSchema {
       endTimePlaceholder: string
       addressLabel: string
       addressPlaceholder: string
+      locationModeLabel: string
+      pointMode: string
+      areaMode: string
+      pointHelper: string
+      areaHelper: string
+      pointsCount: string
+      minPointsBadge: string
+      undoPoint: string
+      clearPoints: string
     }
     categories: {
       events: string
@@ -338,6 +347,7 @@ export interface TranslationSchema {
       endDateTimeAfterStart: string
       datePast: string
       addressRequired: string
+      areaMinPoints: string
       submitFailed: string
     }
     review: {
@@ -346,6 +356,9 @@ export interface TranslationSchema {
       categoryLabel: string
       datetimeLabel: string
       locationLabel: string
+      locationModeLabel: string
+      locationModePoint: string
+      locationModeArea: string
       editLabel: string
       freeNotice: string
       moderationNotice: string
@@ -376,6 +389,8 @@ export interface TranslationSchema {
     emptyTitle: string
     emptyDescription: string
     submittedAt: string
+    locationModePoint: string
+    locationModeArea: string
     status: {
       pending: string
       approved: string
@@ -397,6 +412,11 @@ export interface TranslationSchema {
     categoryLabel: string
     datetimeLabel: string
     locationLabel: string
+    locationModeLabel: string
+    locationModePoint: string
+    locationModeArea: string
+    coordinatesLabel: string
+    pointsLabel: string
     descriptionLabel: string
     submittedLabel: string
     freeNotice: string
@@ -727,6 +747,15 @@ export const ruRU: TranslationSchema = {
       endTimePlaceholder: '16:00',
       addressLabel: 'Адрес или место',
       addressPlaceholder: 'Например: Кремлёвская набережная',
+      locationModeLabel: 'Формат места',
+      pointMode: 'Точка на карте',
+      areaMode: 'Зона проведения',
+      pointHelper: 'Нажмите на карту, чтобы переместить или поставить точку',
+      areaHelper: 'Нажимайте на карту, чтобы добавить точки границы зоны',
+      pointsCount: 'Точек: {{count}}',
+      minPointsBadge: 'мин. 3',
+      undoPoint: 'Отменить точку',
+      clearPoints: 'Очистить',
     },
     categories: {
       events: 'Мероприятия',
@@ -748,6 +777,7 @@ export const ruRU: TranslationSchema = {
       endDateTimeAfterStart: 'Окончание должно быть позже начала',
       datePast: 'Дата не может быть в прошлом',
       addressRequired: 'Укажите место',
+      areaMinPoints: 'Укажите минимум 3 точки для зоны',
       submitFailed: 'Не удалось отправить заявку. Попробуйте ещё раз.',
     },
     review: {
@@ -756,6 +786,9 @@ export const ruRU: TranslationSchema = {
       categoryLabel: 'Категория',
       datetimeLabel: 'Дата и время',
       locationLabel: 'Место',
+      locationModeLabel: 'Формат расположения',
+      locationModePoint: 'Точка на карте',
+      locationModeArea: 'Зона проведения (точек: {{count}})',
       editLabel: 'Изменить',
       freeNotice: 'Пользовательские мероприятия всегда бесплатные',
       moderationNotice: 'После отправки заявка попадёт на проверку',
@@ -786,6 +819,8 @@ export const ruRU: TranslationSchema = {
     emptyTitle: 'Заявок пока нет',
     emptyDescription: 'Здесь появятся мероприятия, которые вы отправите на проверку.',
     submittedAt: 'Отправлена {{date}}',
+    locationModePoint: 'Точка',
+    locationModeArea: 'Зона',
     status: {
       pending: 'На проверке',
       approved: 'Одобрено',
@@ -807,6 +842,11 @@ export const ruRU: TranslationSchema = {
     categoryLabel: 'Категория',
     datetimeLabel: 'Дата и время',
     locationLabel: 'Место',
+    locationModeLabel: 'Формат расположения',
+    locationModePoint: 'Точка на карте',
+    locationModeArea: 'Зона проведения',
+    coordinatesLabel: 'Координаты',
+    pointsLabel: 'Точек границы',
     descriptionLabel: 'Описание',
     submittedLabel: 'Дата отправки',
     freeNotice: 'Пользовательские мероприятия всегда бесплатные',

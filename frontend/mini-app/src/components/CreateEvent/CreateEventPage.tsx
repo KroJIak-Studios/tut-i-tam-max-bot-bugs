@@ -60,6 +60,12 @@ function validateStep(
     if (!draft.address.trim()) {
       errors.address = 'createEvent.errors.addressRequired'
     }
+    if (draft.locationMode === 'area') {
+      const pointsCount = draft.locationArea?.points?.length || 0
+      if (pointsCount < 3) {
+        errors.locationArea = 'createEvent.errors.areaMinPoints'
+      }
+    }
   }
 
   return errors

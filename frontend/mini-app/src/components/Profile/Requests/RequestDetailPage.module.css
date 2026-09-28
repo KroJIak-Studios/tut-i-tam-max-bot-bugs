@@ -288,3 +288,29 @@
   line-height: 1.4;
   margin: 0;
 }
+
+.locationBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  margin-top: 4px;
+}
+
+.locationSubText {
+  font-size: 12px;
+  color: #64748B;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  margin-top: 2px;
+}
+
+.mapPreviewWrapper {
+  margin-top: 8px;
+  width: 100%;
+}

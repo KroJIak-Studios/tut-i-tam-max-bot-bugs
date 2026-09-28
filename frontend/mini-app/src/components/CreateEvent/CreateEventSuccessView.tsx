@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { CreateEventRequest } from './types'
 import { IconCheck } from '../Icons'
 import { formatEventDateTimeRange } from '../../utils/formatters'
+import { CreateEventLocationPreview } from './CreateEventLocationPreview'
 import styles from './CreateEventSuccessView.module.css'
 
 interface CreateEventSuccessViewProps {
@@ -87,7 +88,22 @@ export const CreateEventSuccessView: React.FC<CreateEventSuccessViewProps> = ({
 
         <div className={styles.detailRow}>
           <span className={styles.detailLabel}>{t('createEvent.review.locationLabel')}</span>
-          <span className={styles.detailValue}>{request.address}</span>
+          <span className={styles.detailValue}>
+            {request.address}
+            <span className={styles.locationBadge}>
+              {request.locationMode === 'area'
+                ? `⬡ ${t('createEvent.review.locationModeArea', { count: request.locationArea?.points?.length || 0 })}`
+                : `📍 ${t('createEvent.review.locationModePoint')}`}
+            </span>
+          </span>
+          <div className={styles.mapPreviewWrapper}>
+            <CreateEventLocationPreview
+              mode={request.locationMode || 'point'}
+              point={request.locationPoint}
+              area={request.locationArea}
+              height={110}
+            />
+          </div>
         </div>
       </div>
 

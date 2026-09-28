@@ -8,6 +8,7 @@ import { RequestsTopBar } from './RequestsTopBar'
 import { BottomNavigation } from '../../BottomNavigation'
 import { IconChat, IconTicket } from '../../Icons'
 import { formatEventDateTimeRange, formatSubmissionDate } from '../../../utils/formatters'
+import { CreateEventLocationPreview } from '../../CreateEvent/CreateEventLocationPreview'
 import styles from './RequestDetailPage.module.css'
 
 export const RequestDetailPage: React.FC = () => {
@@ -161,6 +162,26 @@ export const RequestDetailPage: React.FC = () => {
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>{t('requestDetail.locationLabel')}</span>
             <span className={styles.detailValue}>{request.address}</span>
+            <div>
+              <span className={styles.locationBadge}>
+                {request.locationMode === 'area'
+                  ? `⬡ ${t('requestDetail.locationModeArea')}`
+                  : `📍 ${t('requestDetail.locationModePoint')}`}
+              </span>
+            </div>
+            <div className={styles.locationSubText}>
+              {request.locationMode === 'area'
+                ? `${t('requestDetail.pointsLabel')}: ${request.locationArea?.points?.length || 0}`
+                : `${t('requestDetail.coordinatesLabel')}: ${request.locationPoint?.lat.toFixed(4)}, ${request.locationPoint?.lng.toFixed(4)}`}
+            </div>
+            <div className={styles.mapPreviewWrapper}>
+              <CreateEventLocationPreview
+                mode={request.locationMode || 'point'}
+                point={request.locationPoint}
+                area={request.locationArea}
+                height={140}
+              />
+            </div>
           </div>
 
           <div className={styles.detailRow}>

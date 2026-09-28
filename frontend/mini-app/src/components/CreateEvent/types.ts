@@ -10,6 +10,24 @@ export const USER_EVENT_CATEGORIES: Array<EventCategory> = [
   'volunteer',
 ]
 
+export type EventLocationMode = 'point' | 'area'
+
+export interface EventGeoPoint {
+  lat: number
+  lng: number
+}
+
+export interface EventGeoArea {
+  points: EventGeoPoint[]
+}
+
+export interface CreateEventLocation {
+  address: string
+  mode: EventLocationMode
+  point?: EventGeoPoint
+  area?: EventGeoArea
+}
+
 export interface CreateEventDraft {
   title: string
   description: string
@@ -20,6 +38,9 @@ export interface CreateEventDraft {
   endDate: string // YYYY-MM-DD
   endTime: string // HH:MM
   address: string
+  locationMode: EventLocationMode
+  locationPoint?: EventGeoPoint
+  locationArea?: EventGeoArea
   isFree: true
   pushkinCard: false
   source: 'user'
@@ -43,6 +64,7 @@ export interface StepErrors {
   endTime?: string
   range?: string
   address?: string
+  locationArea?: string
 }
 
 export type CreateEventRequestStatus = 'pending' | 'approved' | 'rejected'
@@ -62,6 +84,9 @@ export interface CreateEventRequest {
   endDate: string
   endTime?: string
   address: string
+  locationMode?: EventLocationMode
+  locationPoint?: EventGeoPoint
+  locationArea?: EventGeoArea
   createdAt: string
   locale: 'ru-RU' | 'en-US'
 }

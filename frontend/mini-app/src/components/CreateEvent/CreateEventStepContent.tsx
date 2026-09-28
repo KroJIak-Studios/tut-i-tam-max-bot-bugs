@@ -4,6 +4,8 @@ import type { CreateEventDraft, StepConfig, StepErrors } from './types'
 import { USER_EVENT_CATEGORIES } from './types'
 import type { EventCategory } from '../../types'
 import { formatEventDateTimeRange } from '../../utils/formatters'
+import { CreateEventLocationMap } from './CreateEventLocationMap'
+import { CreateEventLocationPreview } from './CreateEventLocationPreview'
 import styles from './CreateEventStepContent.module.css'
 
 interface CreateEventStepContentProps {
@@ -254,28 +256,50 @@ const StepLocation: React.FC<{
   const { t } = useTranslation()
 
   return (
-    <div className={styles.formGroup}>
-      <label className={styles.label} htmlFor="ce-address">
-        {t('createEvent.fields.addressLabel')}
-      </label>
-      <input
-        id="ce-address"
-        type="text"
-        className={`${styles.input} ${errors.address ? styles.hasError : ''}`}
-        value={draft.address}
-        placeholder={t('createEvent.fields.addressPlaceholder')}
-        onChange={(e) => {
-          onUpdate({ address: e.target.value })
-          if (errors.address) onClearError('address')
+    <>
+      <div className={styles.formGroup}>
+        <label className={styles.label} htmlFor="ce-address">
+          {t('createEvent.fields.addressLabel')}
+        </label>
+        <input
+          id="ce-address"
+          type="text"
+          className={`${styles.input} ${errors.address ? styles.hasError : ''}`}
+          value={draft.address}
+          placeholder={t('createEvent.fields.addressPlaceholder')}
+          onChange={(e) => {
+            onUpdate({ address: e.target.value })
+            if (errors.address) onClearError('address')
+          }}
+          autoComplete="off"
+        />
+        {errors.address && (
+          <span className={styles.errorMsg} role="alert">
+            {t(errors.address)}
+          </span>
+        )}
+      </div>
+
+      <CreateEventLocationMap
+        mode={draft.locationMode || 'point'}
+        point={draft.locationPoint}
+        area={draft.locationArea}
+        onModeChange={(mode) => {
+          onUpdate({ locationMode: mode })
+          if (errors.locationArea) onClearError('locationArea')
         }}
-        autoComplete="off"
+        onPointChange={(point) => {
+          onUpdate({ locationPoint: point })
+        }}
+        onAreaChange={(area) => {
+          onUpdate({ locationArea: area })
+          if (errors.locationArea && (area.points?.length || 0) >= 3) {
+            onClearError('locationArea')
+          }
+        }}
+        error={errors.locationArea}
       />
-      {errors.address && (
-        <span className={styles.errorMsg} role="alert">
-          {t(errors.address)}
-        </span>
-      )}
-    </div>
+    </>
   )
 }
 
@@ -382,6 +406,21 @@ const StepReview: React.FC<{
           <div>
             <div className={styles.reviewRowLabel}>{t('createEvent.review.locationLabel')}</div>
             <div className={styles.reviewRowValue}>{draft.address || '—'}</div>
+            <div className={styles.reviewLocationMeta}>
+              <span className={styles.reviewLocationBadge}>
+                {draft.locationMode === 'area'
+                  ? `⬡ ${t('createEvent.review.locationModeArea', { count: draft.locationArea?.points?.length || 0 })}`
+                  : `📍 ${t('createEvent.review.locationModePoint')}`}
+              </span>
+            </div>
+            <div className={styles.reviewMapContainer}>
+              <CreateEventLocationPreview
+                mode={draft.locationMode || 'point'}
+                point={draft.locationPoint}
+                area={draft.locationArea}
+                height={120}
+              />
+            </div>
           </div>
           <button
             type="button"

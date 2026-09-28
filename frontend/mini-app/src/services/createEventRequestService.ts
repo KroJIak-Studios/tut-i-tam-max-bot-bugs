@@ -28,6 +28,10 @@ export function getStoredRequestsSync(): CreateEventRequest[] {
           }
         }
 
+        const locationMode = (item.locationMode as 'point' | 'area') || 'point'
+        const locationPoint = (item.locationPoint as CreateEventRequest['locationPoint']) || { lat: 55.7960, lng: 49.1140 }
+        const locationArea = item.locationArea as CreateEventRequest['locationArea']
+
         const req: CreateEventRequest = {
           id: (typeof item.id === 'string' ? item.id : '') || `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           status: (item.status as CreateEventRequest['status']) || 'pending',
@@ -43,6 +47,9 @@ export function getStoredRequestsSync(): CreateEventRequest[] {
           endDate,
           endTime,
           address: typeof item.address === 'string' ? item.address : '',
+          locationMode,
+          locationPoint,
+          locationArea,
           createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
           locale: (item.locale as 'ru-RU' | 'en-US') || 'ru-RU',
         }
@@ -128,6 +135,9 @@ export async function submitCreateEventRequest(
       endDate,
       endTime,
       address: draft.address.trim(),
+      locationMode: draft.locationMode || 'point',
+      locationPoint: draft.locationPoint || { lat: 55.7960, lng: 49.1140 },
+      locationArea: draft.locationArea,
       createdAt: new Date().toISOString(),
       locale,
     }

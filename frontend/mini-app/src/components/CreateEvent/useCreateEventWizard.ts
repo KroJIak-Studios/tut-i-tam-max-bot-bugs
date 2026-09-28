@@ -39,6 +39,9 @@ export const INITIAL_DRAFT: CreateEventDraft = {
   endDate: '',
   endTime: '',
   address: '',
+  locationMode: 'point',
+  locationPoint: { lat: 55.7960, lng: 49.1140 },
+  locationArea: undefined,
   isFree: true,
   pushkinCard: false,
   source: 'user',
@@ -124,7 +127,10 @@ export function useCreateEventWizard() {
     draft.startTime ||
     draft.endDate ||
     draft.endTime ||
-    draft.address.trim()
+    draft.address.trim() ||
+    draft.locationMode === 'area' ||
+    (draft.locationPoint && (draft.locationPoint.lat !== 55.7960 || draft.locationPoint.lng !== 49.1140)) ||
+    (draft.locationArea && draft.locationArea.points.length > 0)
   )
 
   return {
