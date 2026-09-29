@@ -13,6 +13,7 @@ class MaxInitUser:
     username: str | None
     language_code: str | None
     photo_url: str | None
+    ip: str | None
 
 
 def validate_init_data(init_data: str, bot_token: str, allow_dev_auth: bool = False) -> MaxInitUser:
@@ -50,4 +51,5 @@ def validate_init_data(init_data: str, bot_token: str, allow_dev_auth: bool = Fa
         username=user.get("username"),
         language_code=user.get("language_code"),
         photo_url=user.get("photo_url"),
+        ip=dict(pairs).get("ip"),
     )

@@ -13,14 +13,38 @@ interface NotificationPreferenceResponse {
   preference: NotificationPreference
 }
 
-interface PrimaryMessageResponse {
-  primary_message_id: string | null
+export interface BotMeeting {
+  id: number
+  title: string
+  description: string
+  address: string
+  starts_at: string
+  ends_at: string | null
+  chat_invite_url: string | null
+}
+
+export interface BotMeetingCard extends BotMeeting {
+  latitude: number
+  longitude: number
+  price_rub: number | null
+  pushkin_card: boolean
+  images: string[]
+  attendees_count: number
+  going: boolean
+}
+
+interface BotMeetingsResponse {
+  total: number
+  meetings: BotMeeting[]
 }
 
 interface PendingMessagesResponse {
   message_ids: string[]
 }
 
+interface PrimaryMessageResponse {
+  primary_message_id: string | null
+}
 export interface PendingRecoveryChat {
   max_chat_id: number
   message_ids: string[]
@@ -129,6 +153,18 @@ export class BackendClient {
     return response.chats
   }
 
+  async listMeetings(input: UserProfileInput): Promise<BotMeetingsResponse> {
+    return this.request<BotMeetingsResponse>('/api/bot/meetings', this.identity(input))
+  }
+
+  async meetingCard(input: UserProfileInput, meetingId: number): Promise<BotMeetingCard | null> {
+    return this.meetingRequest(input, `/api/bot/meetings/${meetingId}`)
+  }
+
+  async setMeetingAttendance(input: UserProfileInput, meetingId: number, going: boolean): Promise<BotMeetingCard | null> {
+    return this.meetingRequest(input, `/api/bot/meetings/${meetingId}/attendance`, { going })
+  }
+
   async getPrimaryMessageId(input: UserProfileInput): Promise<string | null> {
     const response = await this.request<PrimaryMessageResponse>(
       '/api/bot/access/primary-message/current',
@@ -142,6 +178,17 @@ export class BackendClient {
       '/api/bot/access/primary-message',
       { ...this.identity(input), primary_message_id: primaryMessageId },
     )
+  }
+
+  private async meetingRequest(input: UserProfileInput, path: string, extra: object = {}): Promise<BotMeetingCard | null> {
+    const response = await fetch(new URL(path, this.baseUrl), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...this.identity(input), ...extra }),
+    })
+    if (response.status === 404) return null
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`)
+    return (await response.json()) as BotMeetingCard
   }
 
   private identity(input: UserProfileInput): object {

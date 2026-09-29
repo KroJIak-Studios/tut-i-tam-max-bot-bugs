@@ -32,6 +32,26 @@
     "notification_changed": "Notification setting changed to: {name}.",
     "data_deleted": "Your data has been deleted. Send /start to begin again."
   },
+  "meetings": {
+    "title": "🗓️ <b>My meetings</b> 🗓️",
+    "quote": "These are the meetings you plan to attend. Choose one to open it.",
+    "empty": "No meetings yet. Tap “I'm going” on an event in the mini app.",
+    "missing": "This meeting is no longer in your plans.",
+    "address": "Address:",
+    "price": "Price: {amount} {unit}",
+    "ruble": "RUB",
+    "rubles_few": "RUB",
+    "rubles_many": "RUB",
+    "pushkin": "Pushkin Card accepted",
+    "chat": "Event chat: <a href=\"{url}\">link</a>",
+    "attendees": "Participants: {count}",
+    "open_mini_app": "Open in the mini app",
+    "going": "You're going",
+    "join": "I'll go",
+    "yandex": "Yandex Maps",
+    "gis": "2GIS",
+    "back": "Back"
+  },
   "common": {
     "not_ready": "This section will be available later.",
     "back": "Back"

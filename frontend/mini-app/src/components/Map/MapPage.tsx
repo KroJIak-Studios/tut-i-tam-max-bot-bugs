@@ -32,9 +32,14 @@ const DEFAULT_FILTERS: MapFilterState = {
 
 export const MapPage: React.FC = () => {
   const { t, i18n } = useTranslation()
-  const { point: userLocation, request: requestLocation } = useGeolocation()
+  const { point: userLocation, status: locationStatus, request: requestLocation, retry: retryLocation, enterMap, leaveMap } = useGeolocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    enterMap()
+    return leaveMap
+  }, [enterMap, leaveMap])
 
   // Data states
   const [events, setEvents] = useState<MapEvent[]>([])
@@ -119,6 +124,7 @@ export const MapPage: React.FC = () => {
   // Load Events when filters change
   useEffect(() => {
     let active = true
+    setLoading(true)
 
     getMapEvents(filters, currentCity?.id)
       .then((data) => {
@@ -204,6 +210,8 @@ export const MapPage: React.FC = () => {
     }))
   }, [])
 
+  const hasActiveEventFilters = filters.category !== 'all' || filters.isFreeOnly || filters.pushkinCardOnly || filters.source !== 'all' || filters.minAttendees > 0 || filters.timeSlotMinutes !== null || !isToday
+
   // Date selection change
   const handleDateChange = (
     newIsoDate: string,
@@ -284,7 +292,7 @@ export const MapPage: React.FC = () => {
       )}
 
       {/* Баннер пустого результата при фильтрах */}
-      {!loading && !hasError && events.length === 0 && (
+      {!loading && !hasError && events.length === 0 && hasActiveEventFilters && (
         <div className={styles.emptyBanner}>
           <span>
             {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
@@ -319,7 +327,11 @@ export const MapPage: React.FC = () => {
         <MapView
           currentCity={currentCity}
           userLocation={userLocation}
+          locationStatus={locationStatus}
+          locationHintOffset={hasError || (!loading && events.length === 0 && hasActiveEventFilters)}
+          hideLocationHint={loading}
           onRequestLocation={requestLocation}
+          onRetryLocation={retryLocation}
           events={displayedEvents}
           zones={zones}
           selectedEventId={selectedEvent?.id ?? null}

@@ -1,7 +1,9 @@
 import { Bot, Webhook } from '@maxhub/max-bot-api'
 import { PendingMessageRegistry } from './domain/pending-message-registry.js'
 import { MenuAction } from './domain/menu-action.js'
+import { MeetingsAction } from './domain/meetings-action.js'
 import { SettingsAction } from './domain/settings-action.js'
+import { MeetingsService } from './services/meetings-service.js'
 import { SettingsService } from './services/settings-service.js'
 import { config, webhook } from './config.js'
 import { BackendClient } from './services/backend-client.js'
@@ -12,6 +14,7 @@ const backend = new BackendClient(config.backendUrl, config.fallbackLocale)
 const pending = new PendingMessageRegistry(backend)
 const startService = new StartService(backend, config.fallbackLocale, pending)
 const settings = new SettingsService(backend, pending, config.fallbackLocale)
+const meetings = new MeetingsService(backend, pending, config.fallbackLocale)
 
 bot.on('message_callback', async (ctx, next) => {
   console.info('BOT_CALLBACK_RECEIVED', {
@@ -30,7 +33,8 @@ bot.on('message_callback', async (ctx, next) => {
 })
 
 bot.on('bot_started', async (ctx) => {
-  await startService.handleBotStarted(ctx, ctx.update.user_locale as unknown as string | undefined)
+  const locale = ctx.update.user_locale
+  await startService.handleStart(ctx, true, locale ? String(locale) : undefined)
 })
 
 bot.command('start', async (ctx) => {
@@ -43,6 +47,35 @@ bot.on('message_created', async (ctx) => {
     await startService.handleText(ctx, text)
   }
 })
+
+bot.action(MenuAction.MyMeetings, async (ctx) => {
+  await meetings.open(ctx)
+})
+
+bot.action(new RegExp(`^${MeetingsAction.PagePrefix}(\\d+)$`), async (ctx) => {
+  const page = Number(ctx.callback?.payload?.slice(MeetingsAction.PagePrefix.length))
+  if (Number.isInteger(page) && page > 0) await meetings.open(ctx, page)
+})
+
+bot.action(new RegExp(`^${MeetingsAction.OpenPrefix}(\\d+)$`), async (ctx) => {
+  const meetingId = Number(ctx.callback?.payload?.slice(MeetingsAction.OpenPrefix.length))
+  if (Number.isInteger(meetingId)) await meetings.show(ctx, meetingId)
+})
+
+bot.action(new RegExp(`^${MeetingsAction.GoingPrefix}(\\d+)$`), async (ctx) => {
+  const meetingId = Number(ctx.callback?.payload?.slice(MeetingsAction.GoingPrefix.length))
+  if (Number.isInteger(meetingId)) await meetings.toggleAttendance(ctx, meetingId)
+})
+
+bot.action(MeetingsAction.Back, async (ctx) => {
+  await startService.handleStart(ctx)
+})
+
+bot.action(MeetingsAction.BackToList, async (ctx) => {
+  await meetings.open(ctx)
+})
+
+bot.action(MeetingsAction.Stay, async () => undefined)
 
 bot.action(MenuAction.Settings, async (ctx) => {
   await settings.open(ctx)
@@ -103,7 +136,6 @@ bot.action(new RegExp(`^${SettingsAction.LanguagePrefix}`), async (ctx) => {
 
 for (const action of [
   MenuAction.NearbyEvents,
-  MenuAction.MyMeetings,
   MenuAction.AiAssistant,
 ]) {
   bot.action(action, async (ctx) => {
@@ -129,5 +161,8 @@ if (config.updateTransport === 'webhook') {
   })
 } else {
   await Webhook.clearSubscriptions(bot.api)
-  await bot.start({ mode: 'polling' })
+  await bot.start({
+    mode: 'polling',
+    options: { allowedUpdates: ['message_created', 'message_callback', 'bot_started'] },
+  })
 }

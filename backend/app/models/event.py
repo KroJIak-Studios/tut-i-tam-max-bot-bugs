@@ -61,6 +61,13 @@ class MapArea(Base):
     path: Mapped[list[Any]] = mapped_column(JSON)
     visible: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
+class EventPhoto(Base):
+    __tablename__ = "event_photos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str] = mapped_column(String(2048))
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
 class EventArea(Base):
     __tablename__ = "event_areas"
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)

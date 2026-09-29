@@ -1,24 +1,24 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.max_init_data import MaxInitUser
-from app.core.settings import get_settings
 from app.models.event import (
     City,
-    CityName,
     Event,
     EventArea,
     EventAttendance,
+    EventPhoto,
     EventReview,
     OfficialEvent,
     UserEvent,
 )
 from app.models.event_category import EventCategory
 from app.models.user import MaxUser
-from app.schemas.events import EventCreate, ReviewCreate
+from app.schemas.events import EventCreate, EventPhotoUpdate, ReviewCreate
+from app.services.ip_geolocation_service import IpGeolocationService
 
 
 class EventsService:
@@ -27,13 +27,6 @@ class EventsService:
 
     async def identity(self, init_user: MaxInitUser) -> MaxUser:
         user = await self.session.scalar(select(MaxUser).where(MaxUser.max_user_id == init_user.id))
-        now = datetime.now(timezone.utc)
-        settings = get_settings()
-        is_dev_user = settings.allow_dev_auth and init_user.id == 99999999
-        kazan_city_id = await self.session.scalar(
-            select(CityName.city_id).where(CityName.text == "Казань").limit(1)
-        )
-        default_city_id = kazan_city_id or await self.session.scalar(select(City.id).order_by(City.id).limit(1))
         if user is None:
             user = MaxUser(
                 max_user_id=init_user.id,
@@ -43,27 +36,39 @@ class EventsService:
                 avatar_url=init_user.photo_url,
                 full_avatar_url=init_user.photo_url,
                 smart_interest_rotation=True,
-                city_id=default_city_id,
-                access_code_fingerprint=settings.access_code_fingerprint if is_dev_user else None,
-                access_granted_at=now if is_dev_user else None,
             )
             self.session.add(user)
             await self.session.flush()
+            city_id = await self._nearest_city_id(init_user.ip)
+            user.city_id = city_id
         else:
-            if user.city_id is None and default_city_id is not None:
-                user.city_id = default_city_id
+            if user.city_id is None:
+                user.city_id = await self._nearest_city_id(init_user.ip)
             user.first_name = init_user.first_name
             user.last_name = init_user.last_name
             user.username = init_user.username
             if init_user.photo_url is not None:
                 user.avatar_url = init_user.photo_url
                 user.full_avatar_url = init_user.photo_url
-            if is_dev_user and user.access_code_fingerprint != settings.access_code_fingerprint:
-                user.access_code_fingerprint = settings.access_code_fingerprint
-                user.access_granted_at = now
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+    async def _nearest_city_id(self, ip_address: str | None) -> int | None:
+        cities = (await self.session.scalars(
+            select(City).where(City.latitude.is_not(None), City.longitude.is_not(None)).order_by(City.id)
+        )).all()
+        point = await IpGeolocationService().lookup(ip_address)
+        if not cities:
+            return await self.session.scalar(select(City.id).order_by(City.id).limit(1))
+        if point is None:
+            return cities[0].id
+        latitude, longitude = point
+        nearest = min(
+            cities,
+            key=lambda city: (city.latitude - latitude) ** 2 + (city.longitude - longitude) ** 2,
+        )
+        return nearest.id
 
     async def create_user_event(self, user: MaxUser, data: EventCreate) -> Event:
         city_exists = await self.session.scalar(select(City.id).where(City.id == data.city_id))
@@ -81,6 +86,18 @@ class EventsService:
         await self.session.commit()
         await self.session.refresh(event)
         return event
+
+    async def replace_photos(self, event_id: int, data: EventPhotoUpdate) -> list[str]:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        await self.session.execute(delete(EventPhoto).where(EventPhoto.event_id == event_id))
+        self.session.add_all([
+            EventPhoto(event_id=event_id, url=url, position=position)
+            for position, url in enumerate(data.images)
+        ])
+        await self.session.commit()
+        return data.images
 
     async def visible_event(self, event_id: int) -> Event:
         event = await self.session.scalar(
@@ -134,6 +151,9 @@ class EventsService:
         )
         reviews = list(await self.session.scalars(select(EventReview).where(EventReview.event_id == event.id)))
         reviews.sort(key=lambda review: (review.user_id is not None, review.created_at))
+        photos = list(await self.session.scalars(
+            select(EventPhoto).where(EventPhoto.event_id == event.id).order_by(EventPhoto.position, EventPhoto.id)
+        ))
         now = datetime.now(timezone.utc)
         if event.starts_at > now:
             phase = "scheduled"
@@ -165,7 +185,7 @@ class EventsService:
             "pushkin_card": official.pushkin_card if official is not None else None,
             "chat_connected": event.chat_max_id is not None,
             "area": area.path if area is not None else None,
-            "images": [],
+            "images": [photo.url for photo in photos],
             "going": going is not None,
             "attendees_count": attendees_count or 0,
             "reviews": [await self._review_payload(review) for review in reviews],

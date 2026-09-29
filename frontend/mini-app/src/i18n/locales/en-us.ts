@@ -3,22 +3,11 @@ import type { TranslationSchema } from './ru-ru'
 export const localeName = 'English'
 export const translation: TranslationSchema = {
   geolocation: {
-    locationMapHint: 'Your position will appear after location access is allowed',
-    retryButton: 'Allow',
-    title: 'Show your location on the map?',
-    description: 'Allow location access to see your current position and nearby events. Your coordinates stay on this device and are never sent to the server.',
-    allow: 'Allow location',
-    later: 'Not now',
-    declinedTitle: 'Allow location to see yourself on the map',
-    declinedDescription: 'The map cannot show your position yet. Allow access here so your browser can ask for system permission.',
-    deniedTitle: 'Location access is off',
-    deniedDescription: 'To see yourself on the map, allow location in your browser settings, then try again.',
-    errorTitle: 'Could not get your location',
-    errorDescription: 'Check your location settings and try again.',
-    unavailableDescription: 'This browser does not support geolocation.',
+    locationMapHint: 'Show my location',
+    retryButton: 'Enable',
+    permissionDenied: 'Location access is blocked in your browser. Allow it in this site’s settings.',
+    recenter: 'Return to my location',
     retry: 'Try again',
-    mapHint: 'Allow access to see yourself on the map.',
-    mapRetry: 'Enable location',
   },
   app: { name: 'Tut & Tam' },
   common: {

@@ -51,7 +51,7 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     pushkinCard: user ? false : Boolean(item.pushkin_card),
     attendeesCount: item.attendees_count ?? 0,
     source: user ? 'user' : 'external',
-    images: item.images?.length ? item.images : ['/event-embankment.jpg'],
+    images: item.images ?? [],
     address: item.address || '',
     reviews: item.reviews || [],
     isPast: new Date(item.starts_at) < new Date(),
