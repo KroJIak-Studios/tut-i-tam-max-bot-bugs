@@ -2,7 +2,7 @@ import secrets
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -10,7 +10,7 @@ from app.core.admin_tokens import bearer, require_admin
 from app.core.settings import Settings, get_settings
 from app.db import get_session
 from app.models.event import City, CityName, Event, MapArea, UserEvent
-from app.models.profile import Interest, InterestName, Locale
+from app.models.profile import Interest, InterestName, Locale, UserInterest
 from app.models.user import MaxUser
 from app.schemas.admin_auth import AdminLogin, AdminRefresh, AdminSession, AdminStats, AdminTokens
 from app.schemas.admin_events import (
@@ -253,7 +253,13 @@ async def list_interests(session: AsyncSession = Depends(get_session)):
     interests = (await session.scalars(
         select(Interest).options(selectinload(Interest.names)).order_by(Interest.id)
     )).all()
-    return [{"id": interest.id, "names": names_payload(interest.names)} for interest in interests]
+    counts = dict((await session.execute(
+        select(UserInterest.interest_id, func.count()).group_by(UserInterest.interest_id)
+    )).all())
+    return [
+        {"id": interest.id, "names": names_payload(interest.names), "users_count": counts.get(interest.id, 0)}
+        for interest in interests
+    ]
 
 
 @router.post("/interests", status_code=201, dependencies=[Depends(require_admin)])

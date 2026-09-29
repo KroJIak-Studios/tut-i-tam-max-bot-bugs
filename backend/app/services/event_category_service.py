@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.event import Event
@@ -16,6 +16,12 @@ class EventCategoryService:
 
     async def list(self) -> list[EventCategory]:
         return await self._categories.list()
+
+    async def event_counts(self) -> dict[int, int]:
+        rows = await self._session.execute(
+            select(Event.category_id, func.count()).where(Event.category_id.is_not(None)).group_by(Event.category_id)
+        )
+        return {category_id: count for category_id, count in rows}
 
     async def create(self, data: EventCategoryCreate) -> EventCategory:
         category = EventCategory(names=[])
