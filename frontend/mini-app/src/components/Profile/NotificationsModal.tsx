@@ -4,100 +4,19 @@ import type { NotificationSettings } from '../../types'
 import { IconClose } from '../Icons'
 import styles from './NotificationsModal.module.css'
 
-interface NotificationsModalProps {
-  settings: NotificationSettings
-  onClose: () => void
-  onChange: (settings: Partial<NotificationSettings>) => void
-}
-
-interface NotificationItem {
-  id: keyof NotificationSettings
-  label: string
-}
-
-export const NotificationsModal: React.FC<NotificationsModalProps> = ({
-  settings,
-  onClose,
-  onChange,
-}) => {
+interface Props { settings: NotificationSettings; onClose: () => void; onChange: (settings: Partial<NotificationSettings>) => void }
+export const NotificationsModal: React.FC<Props> = ({ settings, onClose, onChange }) => {
   const { t } = useTranslation()
-
-  const notificationItems: NotificationItem[] = [
-    { id: 'interestEvents', label: t('profile.notificationInterestEvents') },
-    { id: 'eventReminders', label: t('profile.notificationReminders') },
-    { id: 'aiRecommendations', label: t('profile.notificationAiRecommendations') },
-    { id: 'scheduleChanges', label: t('profile.notificationScheduleChanges') },
-  ]
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onClose])
-
-  const handleToggle = (id: keyof NotificationSettings) => {
-    onChange({ [id]: !settings[id] })
-  }
-
-  return (
-    <div
-      className={styles.backdrop}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('profile.notifications')}
-    >
-      <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.headerRow}>
-          <h3 className={styles.title}>{t('profile.notifications')}</h3>
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label={t('common.close')}
-          >
-            <IconClose size={18} color="currentColor" />
-          </button>
-        </div>
-
-        <div className={styles.subtitle}>
-          {t('profile.notificationsModalSubtitle')}
-        </div>
-
-        <div className={styles.switchesList} role="group" aria-label={t('profile.notifications')}>
-          {notificationItems.map((item) => (
-            <label key={item.id} className={styles.switchRow}>
-              <span className={styles.switchLabel}>{item.label}</span>
-              <div className={styles.switchControl}>
-                <input
-                  type="checkbox"
-                  className={styles.switchInput}
-                  checked={settings[item.id]}
-                  onChange={() => handleToggle(item.id)}
-                  aria-label={item.label}
-                />
-                <span className={styles.switchTrack} />
-              </div>
-            </label>
-          ))}
-        </div>
-
-        <div className={styles.actionsRow}>
-          <button
-            type="button"
-            className={styles.doneBtn}
-            onClick={onClose}
-          >
-            {t('common.done')}
-          </button>
-        </div>
-      </div>
+  useEffect(() => { const key = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key) }, [onClose])
+  const topics: { id: 'eventReminders' | 'scheduleChanges'; label: string }[] = [{ id: 'eventReminders', label: t('profile.notificationReminders') }, { id: 'scheduleChanges', label: t('profile.notificationScheduleChanges') }]
+  return <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true"><div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.headerRow}><h3 className={styles.title}>{t('profile.notifications')}</h3><button type="button" className={styles.closeBtn} onClick={onClose}><IconClose size={18} /></button></div>
+    <div className={styles.switchesList}>
+      <Switch label={t('profile.allNotifications')} checked={settings.notificationsEnabled} onChange={() => onChange({ notificationsEnabled: !settings.notificationsEnabled })} />
+      <Switch label={t('profile.silentNotifications')} checked={settings.notificationsSilent} disabled={!settings.notificationsEnabled} onChange={() => onChange({ notificationsSilent: !settings.notificationsSilent })} />
     </div>
-  )
+    <div className={styles.switchesList}>{topics.map((item) => <Switch key={item.id} label={item.label} checked={settings[item.id]} disabled={!settings.notificationsEnabled} onChange={() => onChange({ [item.id]: !settings[item.id] })} />)}</div>
+    <div className={styles.actionsRow}><button type="button" className={styles.doneBtn} onClick={onClose}>{t('common.done')}</button></div>
+  </div></div>
 }
+function Switch({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled?: boolean; onChange: () => void }) { return <label className={`${styles.switchRow} ${disabled ? styles.switchRowDisabled : ''}`}><span className={styles.switchLabel}>{label}</span><div className={styles.switchControl}><input type="checkbox" className={styles.switchInput} checked={checked} disabled={disabled} onChange={onChange} /><span className={styles.switchTrack} /></div></label> }

@@ -44,7 +44,7 @@ export const HomePage: React.FC = () => {
     } else if (id === 'pushkinskaya') {
       navigate('/map?pushkin=true')
     } else if (id === 'volunteers') {
-      navigate('/map?category=volunteer')
+      navigate('/map?category=9')
     }
   }
 

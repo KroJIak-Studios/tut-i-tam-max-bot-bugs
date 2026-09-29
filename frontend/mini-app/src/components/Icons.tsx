@@ -5,6 +5,15 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   color?: string
 }
 
+export const IconTrash: React.FC<IconProps> = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M3 6h18" />
+    <path d="M8 6V4h8v2" />
+    <path d="M19 6 18 21H6L5 6" />
+    <path d="M10 11v6M14 11v6" />
+  </svg>
+)
+
 export const IconClose: React.FC<IconProps> = ({ size = 20, color = 'currentColor', ...props }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
     <line x1="18" y1="6" x2="6" y2="18" />

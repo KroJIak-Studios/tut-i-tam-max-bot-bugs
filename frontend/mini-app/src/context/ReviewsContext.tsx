@@ -7,7 +7,7 @@ import { ReviewsContext, type UserReviewData } from './reviewsContextDef'
 export const ReviewsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [reviews, setReviews] = useState<Record<string, UserReviewData>>({})
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([])
-  useEffect(() => { getMyAttendances('past').then((events) => setPastEvents(events.map((event) => ({ id: event.id, title: event.title, date: event.date, visitedDate: event.date, address: event.address || '', category: event.category, latitude: event.latitude, longitude: event.longitude, imageUrl: event.image })))).catch(() => setPastEvents([])) }, [])
+  useEffect(() => { getMyAttendances('past').then((events) => setPastEvents(events.map((event) => ({ id: event.id, title: event.title, date: event.date, visitedDate: event.date, address: event.address || '', category: event.category || 'events', latitude: event.latitude, longitude: event.longitude, imageUrl: event.image })))).catch(() => setPastEvents([])) }, [])
   const submitReview = useCallback((id: string, rating: number, comment: string) => { setReviews((prev) => ({ ...prev, [id]: { rating, comment, dateText: 'сегодня' } })); void submitEventReview(id, rating, comment) }, [])
   const getReview = useCallback((id: string) => reviews[id], [reviews])
   return <ReviewsContext.Provider value={{ reviews, pastEvents, getReview, submitReview }}>{children}</ReviewsContext.Provider>

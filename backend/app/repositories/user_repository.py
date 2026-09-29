@@ -2,6 +2,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat import BotChat
+from app.models.event import Event, UserEvent
 from app.models.user import MaxUser
 
 
@@ -18,6 +19,8 @@ class UserRepository:
         return user
 
     async def delete_user_data(self, user: MaxUser) -> None:
+        authored_event_ids = select(UserEvent.event_id).where(UserEvent.author_user_id == user.id)
+        await self._session.execute(delete(Event).where(Event.id.in_(authored_event_ids)))
         await self._session.execute(delete(BotChat).where(BotChat.user_id == user.id))
         await self._session.delete(user)
         await self._session.flush()

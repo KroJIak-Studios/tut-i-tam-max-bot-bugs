@@ -1,4 +1,7 @@
 export interface TranslationSchema {
+  app: {
+    name: string
+  }
   common: {
     back: string
     cancel: string
@@ -69,6 +72,8 @@ export interface TranslationSchema {
     title: string
     filterToolbar: string
     filters: string
+    allDates: string
+    loadMore: string
     free: string
     onMap: string
     showOnMap: string
@@ -87,7 +92,6 @@ export interface TranslationSchema {
     emptyTitle: string
     emptyDescription: string
     resetFilters: string
-    showToday: string
     loadError: string
   }
   map: {
@@ -116,12 +120,6 @@ export interface TranslationSchema {
     categoriesTitle: string
     categories: {
       all: string
-      events: string
-      places: string
-      parks: string
-      sports: string
-      volunteer: string
-      user: string
     }
     sourceTitle: string
     sources: {
@@ -132,12 +130,8 @@ export interface TranslationSchema {
     featuresTitle: string
     freeOnly: string
     pushkinCardOnly: string
-    volunteerOnly: string
-    maxPriceTitle: string
-    prices: {
-      any: string
-      upTo: string
-    }
+    pricePillsTitle: string
+    priceAll: string
     apply: string
   }
   dates: {
@@ -171,6 +165,11 @@ export interface TranslationSchema {
     heroAriaLabel: string
     city: string
     cityNotice: string
+    chooseCity: string
+    smartInterests: string
+    smartInterestsDescription: string
+    allNotifications: string
+    silentNotifications: string
     interests: string
     interestsSubtitle: string
     editInterests: string
@@ -203,6 +202,12 @@ export interface TranslationSchema {
     requestsUnderReviewCount_few: string
     requestsUnderReviewCount_many: string
     requestsUnderReviewCount_other: string
+    deleteData: string
+    deleteDataSubtitle: string
+    deleteDataTitle: string
+    deleteDataDescription: string
+    deleteDataConfirm: string
+    deleteDataError: string
   }
   chat: {
     title: string
@@ -468,7 +473,9 @@ export interface TranslationSchema {
   }
 }
 
-export const ruRU: TranslationSchema = {
+export const localeName = 'Русский'
+export const translation: TranslationSchema = {
+  app: { name: 'Тут и Там' },
   common: {
     back: 'Назад',
     cancel: 'Отмена',
@@ -539,6 +546,8 @@ export const ruRU: TranslationSchema = {
     title: 'Каталог',
     filterToolbar: 'Фильтры каталога',
     filters: 'Фильтры',
+    allDates: 'Все даты',
+    loadMore: 'Показать ещё',
     free: 'Бесплатно',
     onMap: 'На карте',
     showOnMap: 'Показать на карте: {{title}}',
@@ -557,7 +566,6 @@ export const ruRU: TranslationSchema = {
     emptyTitle: 'Ничего не найдено',
     emptyDescription: 'Попробуйте изменить дату или сбросить активные фильтры',
     resetFilters: 'Сбросить фильтры',
-    showToday: 'Показать сегодня',
     loadError: 'Не удалось загрузить события каталога',
   },
   map: {
@@ -586,12 +594,6 @@ export const ruRU: TranslationSchema = {
     categoriesTitle: 'Категория',
     categories: {
       all: 'Все',
-      events: 'Мероприятия',
-      places: 'Места',
-      parks: 'Парки',
-      sports: 'Спорт',
-      volunteer: 'Волонтёрство',
-      user: 'Пользовательские',
     },
     sourceTitle: 'Источник',
     sources: {
@@ -600,14 +602,10 @@ export const ruRU: TranslationSchema = {
       user: 'От жителей',
     },
     featuresTitle: 'Особенности',
-    freeOnly: 'Только бесплатные',
+    freeOnly: 'Бесплатно',
     pushkinCardOnly: 'Пушкинская карта',
-    volunteerOnly: 'Только волонтёрские',
-    maxPriceTitle: 'Максимальная цена: {{price}}',
-    prices: {
-      any: 'Любая',
-      upTo: 'до {{price}}',
-    },
+    pricePillsTitle: 'Стоимость',
+    priceAll: 'Все',
     apply: 'Показать',
   },
   dates: {
@@ -641,6 +639,11 @@ export const ruRU: TranslationSchema = {
     heroAriaLabel: 'Карточка профиля',
     city: 'Город',
     cityNotice: 'Пока сервис работает только в Казани',
+    chooseCity: 'Выберите город',
+    smartInterests: 'Подбирать автоматически',
+    smartInterestsDescription: 'Приложение само обновляет пятёрку интересов, когда другие становятся важнее. Вы можете выключить это и оставить свой выбор.',
+    allNotifications: 'Все уведомления',
+    silentNotifications: 'Без звука',
     interests: 'Интересы',
     interestsSubtitle: 'Для персональных рекомендаций',
     editInterests: 'Изменить интересы',
@@ -673,6 +676,12 @@ export const ruRU: TranslationSchema = {
     requestsUnderReviewCount_few: '{{count}} на проверке',
     requestsUnderReviewCount_many: '{{count}} на проверке',
     requestsUnderReviewCount_other: '{{count}} на проверке',
+    deleteData: 'Удалить все данные',
+    deleteDataSubtitle: 'Удалить профиль и все данные сервиса',
+    deleteDataTitle: 'Удалить все данные?',
+    deleteDataDescription: 'Все данные в сервисе будут удалены без возможности восстановления.',
+    deleteDataConfirm: 'Удалить',
+    deleteDataError: 'Не удалось удалить данные. Попробуйте ещё раз.',
   },
   chat: {
     title: 'Чат',

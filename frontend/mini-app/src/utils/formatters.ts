@@ -4,13 +4,13 @@
  */
 import { getIsoDate, parseIsoDate } from './dateUtils'
 
-export type SupportedLocale = 'ru-RU' | 'en-US'
+export type SupportedLocale = 'ru-ru' | 'en-us'
 
 function normalizeLocale(locale?: string): SupportedLocale {
   if (locale && locale.startsWith('en')) {
-    return 'en-US'
+    return 'en-us'
   }
-  return 'ru-RU'
+  return 'ru-ru'
 }
 
 /**
@@ -25,7 +25,7 @@ export function formatTime(timeStr?: string, locale?: string): string {
   if (isNaN(h) || isNaN(m)) return timeStr
 
   const norm = normalizeLocale(locale)
-  if (norm === 'ru-RU') {
+  if (norm === 'ru-ru') {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
   }
 
@@ -159,7 +159,7 @@ export function formatEventDateTime(
   locale?: string
 ): string {
   const norm = normalizeLocale(locale)
-  const isEn = norm === 'en-US'
+  const isEn = norm === 'en-us'
   const today = getIsoDate(0)
   const tomorrow = getIsoDate(1)
   const formattedTime = startTime ? formatTime(startTime, norm) : ''
@@ -275,7 +275,7 @@ export function formatEventDateTimeRange(
   if (!endDate) endDate = startDate
 
   const norm = normalizeLocale(locale)
-  const isEn = norm === 'en-US'
+  const isEn = norm === 'en-us'
   const isSameDay = startDate === endDate
 
   if (isSameDay) {
@@ -336,7 +336,7 @@ export function formatEventDateTimeRange(
  */
 export function formatChipDate(isoDate: string, locale?: string): string {
   const norm = normalizeLocale(locale)
-  const isEn = norm === 'en-US'
+  const isEn = norm === 'en-us'
   const today = getIsoDate(0)
   const tomorrow = getIsoDate(1)
 
@@ -367,7 +367,7 @@ export function formatMonthYear(date: Date, locale?: string): string {
   }).format(date)
 
   // Remove " г." in Russian if present
-  const cleaned = norm === 'ru-RU' ? formatted.replace(/\s*г\.?$/, '') : formatted
+  const cleaned = norm === 'ru-ru' ? formatted.replace(/\s*г\.?$/, '') : formatted
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
 }
 
@@ -378,7 +378,7 @@ export function formatMonthYear(date: Date, locale?: string): string {
  */
 export function formatDistance(meters: number, locale?: string): string {
   const norm = normalizeLocale(locale)
-  const isEn = norm === 'en-US'
+  const isEn = norm === 'en-us'
 
   if (meters < 1000) {
     const rounded = Math.round(meters / 10) * 10 || 50

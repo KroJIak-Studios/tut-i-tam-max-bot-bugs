@@ -34,16 +34,17 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   city: 'kazan',
   avatarUrl: '/avatar-anna.jpg',
   interests: ['walks', 'museums', 'sport', 'volunteering'],
+  smartInterestRotation: true,
   pushkinCard: true,
   defaultMapProvider: 'yandex',
   appMapProvider: 'osm',
   notifications: {
-    interestEvents: true,
+    notificationsEnabled: true,
+    notificationsSilent: false,
     eventReminders: true,
-    aiRecommendations: true,
     scheduleChanges: true,
   },
-  locale: 'ru-RU',
+  locale: 'ru-ru',
 }
 
 export const UserPreferencesContext = createContext<UserPreferencesContextValue | null>(null)

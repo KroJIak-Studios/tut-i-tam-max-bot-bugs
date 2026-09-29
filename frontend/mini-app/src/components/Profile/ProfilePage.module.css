@@ -21,6 +21,13 @@
   box-sizing: border-box;
 }
 
+.deleteError {
+  margin: 0 0 14px;
+  color: #B91C1C;
+  font-size: 13px;
+  text-align: center;
+}
+
 .footerNote {
   display: flex;
   align-items: center;

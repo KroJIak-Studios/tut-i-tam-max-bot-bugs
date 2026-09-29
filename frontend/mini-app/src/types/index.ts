@@ -26,13 +26,7 @@ export interface EventItem {
   tag?: string
 }
 
-export type EventCategory =
-  | 'events'
-  | 'places'
-  | 'volunteer'
-  | 'sports'
-  | 'parks'
-  | 'user'
+export type EventCategory = string
 
 export interface EventReview {
   id: string
@@ -49,7 +43,9 @@ export interface MapEvent {
   description: string
   latitude: number
   longitude: number
-  category: EventCategory
+  category: EventCategory | null
+  categoryId?: number | null
+  categoryName?: string | null
   date: string // "YYYY-MM-DD" (primary or fallback start date)
   startDate?: string // "YYYY-MM-DD"
   endDate?: string // "YYYY-MM-DD"
@@ -80,14 +76,12 @@ export interface MapZone {
 }
 
 export interface MapFilterState {
-  quickChip: 'all' | 'today' | 'free' | 'pushkin' | 'under500' | 'volunteer'
-  category: string
+  quickChip: 'all' | 'free' | 'pushkin'
+  category: number | 'all'
   dateFilter: 'all' | 'today' | 'tomorrow' | 'weekend'
   selectedDate: string // "YYYY-MM-DD"
   isFreeOnly: boolean
-  maxPrice: number | null
   pushkinCardOnly: boolean
-  volunteerOnly: boolean
   minAttendees: number
   source: 'all' | 'external' | 'user'
   timeSlotMinutes?: number | null // minutes from 00:00 (e.g. 19:00 = 1140)

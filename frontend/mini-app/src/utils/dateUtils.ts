@@ -26,7 +26,7 @@ export function parseIsoDate(iso: string): Date {
   return new Date(y, m - 1, d)
 }
 
-export function formatChipDate(isoDate: string, locale: string = 'ru-RU'): string {
+export function formatChipDate(isoDate: string, locale: string = 'ru-ru'): string {
   const isEn = locale.startsWith('en')
   const today = getIsoDate(0)
   const tomorrow = getIsoDate(1)
@@ -36,17 +36,17 @@ export function formatChipDate(isoDate: string, locale: string = 'ru-RU'): strin
 
   const dateObj = parseIsoDate(isoDate)
   if (isEn) {
-    return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short' }).format(dateObj)
+    return new Intl.DateTimeFormat('en-us', { day: 'numeric', month: 'short' }).format(dateObj)
   }
   const dayNum = dateObj.getDate()
   const monthStr = MONTH_NAMES_SHORT[dateObj.getMonth()] || ''
   return `${dayNum} ${monthStr}`
 }
 
-export function formatMonthYear(date: Date, locale: string = 'ru-RU'): string {
+export function formatMonthYear(date: Date, locale: string = 'ru-ru'): string {
   const isEn = locale.startsWith('en')
   if (isEn) {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date)
+    return new Intl.DateTimeFormat('en-us', { month: 'long', year: 'numeric' }).format(date)
   }
   const monthName = MONTH_NAMES_FULL[date.getMonth()]
   return `${monthName} ${date.getFullYear()}`
@@ -54,7 +54,7 @@ export function formatMonthYear(date: Date, locale: string = 'ru-RU'): string {
 
 export function getNextDays(
   count: number = 7,
-  locale: string = 'ru-RU'
+  locale: string = 'ru-ru'
 ): Array<{
   iso: string
   dayOfWeek: string
@@ -71,7 +71,7 @@ export function getNextDays(
     const iso = getIsoDate(i)
     let dayOfWeek = DAY_OF_WEEK_SHORT[d.getDay()]
     if (isEn) {
-      const rawWk = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(d)
+      const rawWk = new Intl.DateTimeFormat('en-us', { weekday: 'short' }).format(d)
       dayOfWeek = rawWk.charAt(0).toUpperCase() + rawWk.slice(1)
     }
     const dayNum = d.getDate()
@@ -179,7 +179,7 @@ export function generateMonthCalendar(
   return days
 }
 
-export function formatTime(timeStr?: string, locale: string = 'ru-RU'): string {
+export function formatTime(timeStr?: string, locale: string = 'ru-ru'): string {
   if (!timeStr) return ''
   const parts = timeStr.trim().split(':')
   if (parts.length < 2) return timeStr
@@ -189,7 +189,7 @@ export function formatTime(timeStr?: string, locale: string = 'ru-RU'): string {
 
   const isEn = locale.startsWith('en')
   const d = new Date(2026, 0, 1, h, m)
-  return new Intl.DateTimeFormat(isEn ? 'en-US' : 'ru-RU', {
+  return new Intl.DateTimeFormat(isEn ? 'en-us' : 'ru-ru', {
     hour: 'numeric',
     minute: '2-digit',
   }).format(d)
@@ -198,7 +198,7 @@ export function formatTime(timeStr?: string, locale: string = 'ru-RU'): string {
 export function formatEventDateTime(
   dateStr: string,
   startTime?: string,
-  locale: string = 'ru-RU'
+  locale: string = 'ru-ru'
 ): string {
   const isEn = locale.startsWith('en')
   const today = getIsoDate(0)
@@ -216,7 +216,7 @@ export function formatEventDateTime(
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const d = parseIsoDate(dateStr)
-    const formattedDate = new Intl.DateTimeFormat(isEn ? 'en-US' : 'ru-RU', {
+    const formattedDate = new Intl.DateTimeFormat(isEn ? 'en-us' : 'ru-ru', {
       day: 'numeric',
       month: 'long',
     }).format(d)

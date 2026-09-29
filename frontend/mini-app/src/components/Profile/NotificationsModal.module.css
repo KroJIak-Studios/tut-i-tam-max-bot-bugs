@@ -111,6 +111,17 @@
   border-bottom: none;
 }
 
+.switchRowDisabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  background: #F3F4F6;
+}
+
+.switchRowDisabled .switchInput,
+.switchRowDisabled .switchTrack {
+  cursor: not-allowed;
+}
+
 .switchLabel {
   font-size: 14px;
   font-weight: 500;

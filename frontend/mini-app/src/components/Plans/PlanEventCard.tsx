@@ -50,7 +50,7 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
             loading="lazy"
           />
         ) : (
-          <div className={`${styles.imagePlaceholder} ${styles[event.category] || styles.events}`}>
+          <div className={`${styles.imagePlaceholder} ${styles.events}`}>
             <IconCalendar size={28} color="#FFFFFF" />
           </div>
         )}

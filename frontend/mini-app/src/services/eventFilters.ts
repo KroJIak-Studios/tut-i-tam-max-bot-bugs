@@ -11,12 +11,10 @@ import { buildLocalDateTime } from '../utils/formatters'
 export const DEFAULT_FILTERS: MapFilterState = {
   quickChip: 'all',
   category: 'all',
-  dateFilter: 'today',
-  selectedDate: getIsoDate(0),
+  dateFilter: 'all',
+  selectedDate: 'all',
   isFreeOnly: false,
-  maxPrice: null,
   pushkinCardOnly: false,
-  volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
   timeSlotMinutes: null,
@@ -76,29 +74,9 @@ export function filterEvents(
     filtered = filtered.filter((e) => !isEventFinishedAt(e, now))
   }
 
-  // 2. Quick chips
-  if (filters.quickChip && filters.quickChip !== 'all') {
-    switch (filters.quickChip) {
-      case 'free':
-        filtered = filtered.filter((e) => e.isFree || e.price === 0)
-        break
-      case 'pushkin':
-        filtered = filtered.filter((e) => e.pushkinCard)
-        break
-      case 'under500':
-        filtered = filtered.filter((e) => e.price <= 500)
-        break
-      case 'volunteer':
-        filtered = filtered.filter((e) => e.category === 'volunteer')
-        break
-      default:
-        break
-    }
-  }
-
   // 3. Category
-  if (filters.category && filters.category !== 'all') {
-    filtered = filtered.filter((e) => e.category === filters.category)
+  if (filters.category !== 'all') {
+    filtered = filtered.filter((event) => event.categoryId === filters.category)
   }
 
   // 4. Free only
@@ -106,27 +84,17 @@ export function filterEvents(
     filtered = filtered.filter((e) => e.isFree || e.price === 0)
   }
 
-  // 5. Max price
-  if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
-    filtered = filtered.filter((e) => e.price <= (filters.maxPrice ?? 10000))
-  }
-
-  // 6. Pushkin card only
+  // 5. Pushkin card only
   if (filters.pushkinCardOnly) {
     filtered = filtered.filter((e) => e.pushkinCard)
   }
 
-  // 7. Volunteers only
-  if (filters.volunteerOnly) {
-    filtered = filtered.filter((e) => e.category === 'volunteer')
-  }
-
-  // 8. Source
+  // 6. Source
   if (filters.source && filters.source !== 'all') {
     filtered = filtered.filter((e) => e.source === filters.source)
   }
 
-  // 9. Min attendees
+  // 7. Min attendees
   if (filters.minAttendees && filters.minAttendees > 0) {
     filtered = filtered.filter((e) => e.attendeesCount >= (filters.minAttendees || 0))
   }
@@ -140,9 +108,7 @@ export function filterEvents(
 export function countExtraFilters(filters: MapFilterState): number {
   let count = 0
   if (filters.category !== 'all') count++
-  if (filters.maxPrice !== null) count++
   if (filters.pushkinCardOnly) count++
-  if (filters.volunteerOnly) count++
   if (filters.source !== 'all') count++
   if (filters.minAttendees > 0) count++
   return count

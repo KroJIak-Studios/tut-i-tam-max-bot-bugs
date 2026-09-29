@@ -1,8 +1,9 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CreateEventDraft, StepConfig, StepErrors } from './types'
-import { USER_EVENT_CATEGORIES } from './types'
-import type { EventCategory } from '../../types'
+import type { EventCategoryRecord } from './types'
+import { getEventCategoryName } from '../../services/eventCategoryService'
+import { FALLBACK_LOCALE } from '../../i18n'
 import { formatEventDateTimeRange } from '../../utils/formatters'
 import { CreateEventLocationMap } from './CreateEventLocationMap'
 import { CreateEventLocationPreview } from './CreateEventLocationPreview'
@@ -13,6 +14,7 @@ interface CreateEventStepContentProps {
   draft: CreateEventDraft
   errors: StepErrors
   submitError?: string | null
+  categories: EventCategoryRecord[]
   onUpdate: (patch: Partial<CreateEventDraft>) => void
   onGoToStep: (idx: number) => void
   onClearError: (field: keyof StepErrors) => void
@@ -26,10 +28,11 @@ const DESC_MAX = 500
 const StepBasics: React.FC<{
   draft: CreateEventDraft
   errors: StepErrors
+  categories: EventCategoryRecord[]
   onUpdate: (patch: Partial<CreateEventDraft>) => void
   onClearError: (field: keyof StepErrors) => void
-}> = ({ draft, errors, onUpdate, onClearError }) => {
-  const { t } = useTranslation()
+}> = ({ draft, errors, categories, onUpdate, onClearError }) => {
+  const { t, i18n } = useTranslation()
 
   return (
     <>
@@ -91,18 +94,18 @@ const StepBasics: React.FC<{
       <div className={styles.formGroup}>
         <span className={styles.label}>{t('createEvent.fields.categoryLabel')}</span>
         <div className={`${styles.chipsRow} ${errors.category ? styles.chipsError : ''}`}>
-          {USER_EVENT_CATEGORIES.map((cat) => (
+          {categories.map((category) => (
             <button
-              key={cat}
+              key={category.id}
               type="button"
-              className={`${styles.chip} ${draft.category === cat ? styles.chipSelected : ''}`}
+              className={`${styles.chip} ${draft.category === String(category.id) ? styles.chipSelected : ''}`}
               onClick={() => {
-                onUpdate({ category: draft.category === cat ? '' : (cat as EventCategory) })
+                onUpdate({ category: draft.category === String(category.id) ? '' : String(category.id) })
                 if (errors.category) onClearError('category')
               }}
-              aria-pressed={draft.category === cat}
+              aria-pressed={draft.category === String(category.id)}
             >
-              {t(`createEvent.categories.${cat}`)}
+              {getEventCategoryName(category, i18n.language, FALLBACK_LOCALE)}
             </button>
           ))}
         </div>
@@ -307,13 +310,14 @@ const StepLocation: React.FC<{
 
 const StepReview: React.FC<{
   draft: CreateEventDraft
+  categories: EventCategoryRecord[]
   submitError?: string | null
   onGoToStep: (idx: number) => void
-}> = ({ draft, submitError, onGoToStep }) => {
+}> = ({ draft, categories, submitError, onGoToStep }) => {
   const { t, i18n } = useTranslation()
 
-  const categoryLabel =
-    draft.category ? t(`createEvent.categories.${draft.category}`) : '—'
+  const selectedCategory = categories.find((category) => String(category.id) === draft.category)
+  const categoryLabel = selectedCategory ? getEventCategoryName(selectedCategory, i18n.language, FALLBACK_LOCALE) : '—'
 
   const effectiveStartDate = draft.startDate || draft.date || ''
   const effectiveEndDate = draft.endDate || effectiveStartDate
@@ -455,6 +459,7 @@ export const CreateEventStepContent: React.FC<CreateEventStepContentProps> = ({
   draft,
   errors,
   submitError,
+  categories,
   onUpdate,
   onGoToStep,
   onClearError,
@@ -462,13 +467,13 @@ export const CreateEventStepContent: React.FC<CreateEventStepContentProps> = ({
   const renderStep = () => {
     switch (currentStep.id) {
       case 'basics':
-        return <StepBasics draft={draft} errors={errors} onUpdate={onUpdate} onClearError={onClearError} />
+        return <StepBasics draft={draft} errors={errors} categories={categories} onUpdate={onUpdate} onClearError={onClearError} />
       case 'datetime':
         return <StepDatetime draft={draft} errors={errors} onUpdate={onUpdate} onClearError={onClearError} />
       case 'location':
         return <StepLocation draft={draft} errors={errors} onUpdate={onUpdate} onClearError={onClearError} />
       case 'review':
-        return <StepReview draft={draft} submitError={submitError} onGoToStep={onGoToStep} />
+        return <StepReview draft={draft} categories={categories} submitError={submitError} onGoToStep={onGoToStep} />
     }
   }
 

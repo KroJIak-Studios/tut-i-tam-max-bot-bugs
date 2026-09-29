@@ -5,6 +5,7 @@ from app.core.settings import Settings
 from app.models.user import MaxUser
 from app.repositories.chat_repository import ChatRepository
 from app.repositories.user_repository import UserRepository
+from app.services.user_data_service import UserDataService
 from app.schemas.bot_access import MaxIdentityRequest
 from app.schemas.bot_settings import (
     LocalePreferenceRequest,
@@ -20,6 +21,7 @@ class SettingsService:
         self._settings = settings
         self._users = UserRepository(session)
         self._chats = ChatRepository(session)
+        self._user_data = UserDataService(session)
 
     async def notification_preference(
         self, request: MaxIdentityRequest
@@ -40,7 +42,6 @@ class SettingsService:
         user.locale = canonicalize_locale(request.locale) or normalize_locale(
             request.locale, self._settings.fallback_locale
         )
-        user.locale_is_user_set = True
         await self._session.commit()
         return LocalePreferenceResponse(locale=user.locale)
 
@@ -48,8 +49,7 @@ class SettingsService:
         user = await self._users.get_by_max_user_id(request.max_user_id)
         if user is None:
             return
-        await self._users.delete_user_data(user)
-        await self._session.commit()
+        await self._user_data.delete(user)
 
     async def _identity(self, request: MaxIdentityRequest) -> MaxUser:
         user = await self._users.get_by_max_user_id(request.max_user_id)

@@ -1,4 +1,4 @@
-import type { MapEvent, EventCategory, EventReview } from '../types'
+import type { MapEvent, EventReview } from '../types'
 import { apiRequest } from './api'
 
 export interface DetailedEvent extends MapEvent {
@@ -14,7 +14,7 @@ interface ApiEvent {
   description?: string
   latitude: number
   longitude: number
-  category?: string
+  category_id?: number | null
   address?: string
   starts_at: string
   ends_at?: string
@@ -37,7 +37,8 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     description: item.description || '',
     latitude: item.latitude,
     longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category || 'events') as EventCategory,
+    category: item.category_id == null ? null : String(item.category_id),
+    categoryId: item.category_id ?? null,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10),
     endDate: item.ends_at?.slice(0, 10),

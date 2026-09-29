@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { MapEvent, MapZone, MapFilterState, NavTabId, EventCategory } from '../../types'
-import { getMapEvents, getMapZones } from '../../services/mapService'
+import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
+import { getEventCategories, getMapEvents, getMapZones } from '../../services/mapService'
+import type { EventCategoryRecord } from '../../services/mapService'
 import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
 import { getIsoDate, formatChipDate, getWeekendIsoDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
@@ -21,9 +22,7 @@ const DEFAULT_FILTERS: MapFilterState = {
   dateFilter: 'today',
   selectedDate: getIsoDate(0),
   isFreeOnly: false,
-  maxPrice: null,
   pushkinCardOnly: false,
-  volunteerOnly: false,
   minAttendees: 0,
   source: 'all',
   timeSlotMinutes: 19 * 60, // Default 19:00 for Kazan prime time
@@ -37,6 +36,7 @@ export const MapPage: React.FC = () => {
   // Data states
   const [events, setEvents] = useState<MapEvent[]>([])
   const [zones, setZones] = useState<MapZone[]>([])
+  const [categories, setCategories] = useState<EventCategoryRecord[]>([])
   const eventParam = searchParams.get('event')
   const [userSelectedId, setUserSelectedId] = useState<string | null | undefined>(undefined)
   const selectedEventId = userSelectedId !== undefined ? userSelectedId : eventParam
@@ -46,7 +46,7 @@ export const MapPage: React.FC = () => {
   // Filters state initialized from query params
   const [filters, setFilters] = useState<MapFilterState>(() => {
     const pushkin = searchParams.get('pushkin') === 'true'
-    const categoryParam = searchParams.get('category')
+    const categoryParam = searchParams.get('category_id')
     const eventIdParam = searchParams.get('event')
     const dateParam = searchParams.get('date')
 
@@ -54,14 +54,8 @@ export const MapPage: React.FC = () => {
     if (pushkin) {
       initial.pushkinCardOnly = true
     }
-    if (categoryParam) {
-      if (categoryParam === 'volunteer') {
-        initial.category = 'volunteer'
-        initial.volunteerOnly = true
-      } else {
-        initial.category = categoryParam as EventCategory
-      }
-    }
+    const initialCategoryId = Number(categoryParam)
+    if (Number.isInteger(initialCategoryId) && initialCategoryId > 0) initial.category = initialCategoryId
     if (eventIdParam) {
       const found = INITIAL_MAP_EVENTS.find(
         (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
@@ -92,7 +86,7 @@ export const MapPage: React.FC = () => {
   if (currentSearchParams !== prevSearchParams) {
     setPrevSearchParams(currentSearchParams)
     const pushkin = searchParams.get('pushkin') === 'true'
-    const categoryParam = searchParams.get('category')
+    const categoryParam = searchParams.get('category_id')
     const eventIdParam = searchParams.get('event')
     const dateParam = searchParams.get('date')
 
@@ -101,14 +95,8 @@ export const MapPage: React.FC = () => {
       if (pushkin) {
         updated.pushkinCardOnly = true
       }
-      if (categoryParam) {
-        if (categoryParam === 'volunteer') {
-          updated.category = 'volunteer'
-          updated.volunteerOnly = true
-        } else {
-          updated.category = categoryParam as EventCategory
-        }
-      }
+      const categoryId = Number(categoryParam)
+      if (Number.isInteger(categoryId) && categoryId > 0) updated.category = categoryId
       if (eventIdParam) {
         const found = INITIAL_MAP_EVENTS.find(
           (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
@@ -133,11 +121,10 @@ export const MapPage: React.FC = () => {
 
   const isToday = filters.selectedDate === getIsoDate(0)
 
-  // Load Zones once
+  // Load map support data once
   useEffect(() => {
-    getMapZones()
-      .then(setZones)
-      .catch((err) => console.error('Failed to load zones:', err))
+    getMapZones().then(setZones).catch((err) => console.error('Failed to load zones:', err))
+    getEventCategories().then(setCategories).catch((err) => console.error('Failed to load categories:', err))
   }, [])
 
   // Load Events when filters change
@@ -167,9 +154,7 @@ export const MapPage: React.FC = () => {
   const extraFilterCount = useMemo(() => {
     let count = 0
     if (filters.category !== 'all') count++
-    if (filters.maxPrice !== null) count++
     if (filters.pushkinCardOnly) count++
-    if (filters.volunteerOnly) count++
     if (filters.source !== 'all') count++
     if (filters.minAttendees > 0) count++
     return count
@@ -385,6 +370,7 @@ export const MapPage: React.FC = () => {
       {isFilterSheetOpen && (
         <MapFilterSheet
           filters={filters}
+          categories={categories}
           onClose={() => setIsFilterSheetOpen(false)}
           onApply={(newFilters) => {
             setLoading(true)

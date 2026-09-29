@@ -1,15 +1,24 @@
 from datetime import datetime
-from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
-Category = Literal['event','place','volunteer','sport','park']
+
 class EventCreate(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    title: str; description: str; category: Category; city_id: int; address: str
-    latitude: float; longitude: float; starts_at: datetime; ends_at: datetime|None = None
-    area: list[list[float]]|None = None
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(min_length=1, max_length=500)
+    description: str = Field(max_length=10000)
+    category_id: int | None = None
+    city_id: int
+    address: str = Field(min_length=1, max_length=500)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    starts_at: datetime
+    ends_at: datetime | None = None
+    area: list[list[float]] | None = None
+
+
 class ReviewCreate(BaseModel):
-    rating: int = Field(ge=1, le=5); text: str|None = None; anonymous: bool = False
-class MePatch(BaseModel):
-    city_id: int|None = None; smart_interest_rotation: bool|None = None
-    notify_event_reminders: bool|None = None; notify_schedule_changes: bool|None = None
+    rating: int = Field(ge=1, le=5)
+    text: str | None = None
+    anonymous: bool = False

@@ -14,6 +14,7 @@ from app.models.event import (
     OfficialEvent,
     UserEvent,
 )
+from app.models.event_category import EventCategory
 from app.models.user import MaxUser
 from app.schemas.events import EventCreate, ReviewCreate
 
@@ -32,14 +33,19 @@ class EventsService:
                 username=init_user.username,
                 avatar_url=init_user.photo_url,
                 full_avatar_url=init_user.photo_url,
+                smart_interest_rotation=True,
             )
             self.session.add(user)
+            await self.session.flush()
+            city_id = await self.session.scalar(select(City.id).order_by(City.id).limit(1))
+            user.city_id = city_id
         else:
             user.first_name = init_user.first_name
             user.last_name = init_user.last_name
             user.username = init_user.username
-            user.avatar_url = init_user.photo_url
-            user.full_avatar_url = init_user.photo_url
+            if init_user.photo_url is not None:
+                user.avatar_url = init_user.photo_url
+                user.full_avatar_url = init_user.photo_url
         await self.session.commit()
         await self.session.refresh(user)
         return user
@@ -48,6 +54,8 @@ class EventsService:
         city_exists = await self.session.scalar(select(City.id).where(City.id == data.city_id))
         if city_exists is None:
             raise HTTPException(status_code=422, detail="invalid_city")
+        if data.category_id is not None and await self.session.get(EventCategory, data.category_id) is None:
+            raise HTTPException(status_code=422, detail="invalid_category")
         event = Event(**data.model_dump(exclude={"area"}))
         self.session.add(event)
         await self.session.flush()
@@ -128,7 +136,7 @@ class EventsService:
             "id": event.id,
             "title": event.title,
             "description": event.description,
-            "category": event.category,
+            "category_id": event.category_id,
             "city_id": event.city_id,
             "address": event.address,
             "latitude": event.latitude,

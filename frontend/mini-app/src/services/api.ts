@@ -2,6 +2,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\
 
 type MaxWebApp = {
   initData?: string
+  close?: () => void
 }
 
 function maxInitData(): string {
@@ -43,6 +44,11 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
+}
+
+export function closeMaxMiniApp(): void {
+  const webApp = (window as Window & { WebApp?: MaxWebApp }).WebApp
+  webApp?.close?.()
 }
 
 export { API_BASE_URL }

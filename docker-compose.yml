@@ -38,6 +38,7 @@ services:
       ACCESS_CODE_ENABLED: ${ACCESS_CODE_ENABLED:-false}
       ACCESS_CODE: ${ACCESS_CODE}
       BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
     expose:
       - "8000"

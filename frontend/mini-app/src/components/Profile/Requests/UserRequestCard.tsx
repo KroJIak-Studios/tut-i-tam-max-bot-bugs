@@ -14,8 +14,6 @@ export const UserRequestCard: React.FC<UserRequestCardProps> = ({ request, onCli
   const { t, i18n } = useTranslation()
 
   const categoryLabel = request.category
-    ? t(`createEvent.categories.${request.category}`)
-    : ''
 
   const effectiveStartDate = request.startDate || request.date || ''
   const effectiveEndDate = request.endDate || effectiveStartDate

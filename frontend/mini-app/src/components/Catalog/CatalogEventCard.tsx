@@ -95,9 +95,7 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
               <span className={styles.pushkinBadge}>{t('events.pushkinCardShort')}</span>
             )}
 
-            {event.category === 'volunteer' && (
-              <span className={styles.volunteerBadge}>{t('events.volunteering')}</span>
-            )}
+            {event.categoryName && <span className={styles.categoryBadge}>{event.categoryName}</span>}
           </div>
         </div>
       </div>
