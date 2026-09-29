@@ -7,9 +7,11 @@ import type {
 } from '../types'
 
 export function getFallbackLocaleCode(locales: Locale[]): string {
-  const envFallback = import.meta.env.VITE_FALLBACK_LOCALE
-  if (envFallback && locales.some((l) => l.code === envFallback)) {
-    return envFallback
+  const configured = (import.meta.env.VITE_FALLBACK_LOCALE as string | undefined)?.trim()
+  if (configured) {
+    if (locales.length === 0 || locales.some((l) => l.code === configured)) {
+      return configured
+    }
   }
   const ru = locales.find((l) => l.code === 'ru-ru')
   if (ru) {

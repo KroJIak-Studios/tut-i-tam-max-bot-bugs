@@ -4,7 +4,6 @@ import {
   Plus,
   Trash2,
   AlertCircle,
-  Info,
   Globe,
 } from 'lucide-react'
 import type {
@@ -346,14 +345,7 @@ export const InterestModal: React.FC<InterestModalProps> = ({
             )}
           </div>
 
-          <div className={styles.infoCard}>
-            <Info size={16} className={styles.infoCardIcon} />
-            <span>
-              Цветовой код интереса: на текущем бэкенде генерируется сервером
-              автоматически. Ручная настройка цвета будет доступна после расширения
-              схемы API бэкенда.
-            </span>
-          </div>
+
         </form>
 
         <footer className={styles.footer}>
