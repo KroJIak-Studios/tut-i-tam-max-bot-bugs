@@ -1,42 +1,22 @@
-export type MetricAvailability = 'ready' | 'pending_backend' | 'error' | 'unauthorized'
-
-export interface EventsBreakdownData {
+export interface EventsStats {
   total: number
   official: number
   userCreated: number
 }
 
-export interface UsersMetricData {
+export interface UsersStats {
   total: number
 }
 
-export interface TaxonomyItem {
-  id: number | string
-  name: string
-  subtext?: string
-}
-
-export interface TaxonomyData {
-  count: number
-  items: TaxonomyItem[]
-}
-
-export interface MetricItem<T> {
-  status: MetricAvailability
-  data?: T
-  error?: string
-  notes?: string
-  endpoint?: string
+export interface DashboardStats {
+  events: EventsStats
+  users: UsersStats
 }
 
 export interface DashboardState {
-  events: MetricItem<EventsBreakdownData>
-  users: MetricItem<UsersMetricData>
-  categories: MetricItem<TaxonomyData>
-  cities: MetricItem<TaxonomyData>
-  interests: MetricItem<TaxonomyData>
-  locales: MetricItem<TaxonomyData>
+  data: DashboardStats | null
   isLoading: boolean
   isRefreshing: boolean
+  error: string | null
   lastUpdated: Date | null
 }
