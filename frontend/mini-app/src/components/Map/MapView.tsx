@@ -5,11 +5,16 @@ import 'leaflet/dist/leaflet.css'
 import type { MapEvent, MapZone } from '../../types'
 import { useUserPreferences } from '../../context/useUserPreferences'
 import { createMapTileLayer } from '../../services/mapProviders'
-import { KAZAN_MAP_CENTER, USER_CURRENT_LOCATION } from '../../mocks/mapData'
+import type { CityRecord } from '../../services/cityService'
+import type { GeoPoint } from '../../services/geolocationService'
+import { useTranslation } from 'react-i18next'
 import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
 
 interface MapViewProps {
+  userLocation: GeoPoint | null
+  currentCity: CityRecord | null
+  onRequestLocation: () => void
   events: MapEvent[]
   zones: MapZone[]
   selectedEventId: string | null
@@ -64,6 +69,9 @@ function createUserLocationIcon(): L.DivIcon {
 }
 
 export const MapView: React.FC<MapViewProps> = ({
+  userLocation,
+  currentCity,
+  onRequestLocation,
   events,
   zones,
   selectedEventId,
@@ -73,6 +81,7 @@ export const MapView: React.FC<MapViewProps> = ({
   onToggleGoing,
   onMoreDetails,
 }) => {
+  const { t } = useTranslation()
   const { preferences } = useUserPreferences()
   const appMapProviderRef = useRef(preferences.appMapProvider)
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -81,6 +90,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const markersLayerRef = useRef<L.LayerGroup | null>(null)
   const zonesLayerRef = useRef<L.LayerGroup | null>(null)
   const userMarkerRef = useRef<L.Marker | null>(null)
+  const userLocationRequestedRef = useRef(false)
 
   const [popupContainer] = useState<HTMLDivElement>(() => document.createElement('div'))
   const popupInstanceRef = useRef<L.Popup | null>(null)
@@ -100,8 +110,8 @@ export const MapView: React.FC<MapViewProps> = ({
     if (!mapContainerRef.current || mapInstanceRef.current) return
 
     const map = L.map(mapContainerRef.current, {
-      center: KAZAN_MAP_CENTER,
-      zoom: 14,
+      center: [currentCity?.latitude ?? 0, currentCity?.longitude ?? 0],
+      zoom: currentCity?.latitude == null || currentCity?.longitude == null ? 2 : 14,
       zoomControl: false,
       attributionControl: false,
     })
@@ -121,17 +131,9 @@ export const MapView: React.FC<MapViewProps> = ({
     const zonesLayer = L.layerGroup().addTo(map)
     const markersLayer = L.layerGroup().addTo(map)
 
-    // Current user location pin
-    const userMarker = L.marker(USER_CURRENT_LOCATION, {
-      icon: createUserLocationIcon(),
-      zIndexOffset: 500,
-    }).addTo(map)
-
     mapInstanceRef.current = map
     zonesLayerRef.current = zonesLayer
     markersLayerRef.current = markersLayer
-    userMarkerRef.current = userMarker
-
     return () => {
       if (popupInstanceRef.current) {
         popupInstanceRef.current.remove()
@@ -141,7 +143,27 @@ export const MapView: React.FC<MapViewProps> = ({
       mapInstanceRef.current = null
       tileLayerRef.current = null
     }
-  }, [])
+  }, [currentCity?.id, currentCity?.latitude, currentCity?.longitude])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (currentCity?.latitude != null && currentCity.longitude != null) map?.setView([currentCity.latitude, currentCity.longitude], map.getZoom(), { animate: true })
+  }, [currentCity])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !userLocation) return
+    const position: L.LatLngExpression = [userLocation.latitude, userLocation.longitude]
+    if (!userMarkerRef.current) {
+      userMarkerRef.current = L.marker(position, { icon: createUserLocationIcon(), zIndexOffset: 500 }).addTo(map)
+      if (!userLocationRequestedRef.current) {
+        userLocationRequestedRef.current = true
+        map.setView(position, 15, { animate: true })
+      }
+    } else {
+      userMarkerRef.current.setLatLng(position)
+    }
+  }, [userLocation])
 
   // Dynamic Basemap switching without disturbing markers or zones
   useEffect(() => {
@@ -256,6 +278,7 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [events, selectedEventId, onSelectEvent])
 
   return (
+    <>
     <div ref={mapContainerRef} className={styles.mapContainer}>
       {selectedEvent &&
         createPortal(
@@ -267,5 +290,7 @@ export const MapView: React.FC<MapViewProps> = ({
           popupContainer
         )}
     </div>
+    {!userLocation && <div className={styles.locationHint} role="status"><span>⌖</span><span>{t('geolocation.locationMapHint')}</span><button type="button" onClick={onRequestLocation}>{t('geolocation.retryButton')}</button></div>}
+    </>
   )
 }

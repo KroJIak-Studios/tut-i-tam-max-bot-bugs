@@ -1,22 +1,3 @@
-export type SupportedLocaleCode = 'ru-RU' | 'en-US'
+export type SupportedLocaleCode = string
 
-export interface SupportedLocale {
-  code: SupportedLocaleCode
-  nativeName: string
-  name: string
-}
-
-export const FALLBACK_LOCALE: SupportedLocaleCode = 'ru-RU'
-
-export const SUPPORTED_LOCALES: readonly SupportedLocale[] = [
-  {
-    code: 'ru-RU',
-    nativeName: 'Русский',
-    name: 'Russian',
-  },
-  {
-    code: 'en-US',
-    nativeName: 'English',
-    name: 'English',
-  },
-] as const
+export const FALLBACK_LOCALE: SupportedLocaleCode = import.meta.env.VITE_FALLBACK_LOCALE || 'ru-ru'

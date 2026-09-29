@@ -8,6 +8,7 @@ from app.core.max_init_data import MaxInitUser
 from app.core.settings import get_settings
 from app.models.event import (
     City,
+    CityName,
     Event,
     EventArea,
     EventAttendance,
@@ -15,6 +16,7 @@ from app.models.event import (
     OfficialEvent,
     UserEvent,
 )
+from app.models.event_category import EventCategory
 from app.models.user import MaxUser
 from app.schemas.events import EventCreate, ReviewCreate
 
@@ -28,9 +30,10 @@ class EventsService:
         now = datetime.now(timezone.utc)
         settings = get_settings()
         is_dev_user = settings.allow_dev_auth and init_user.id == 99999999
-        kazan_city_id = await self.session.scalar(select(City.id).where(City.name == "Казань"))
-        if kazan_city_id is None:
-            kazan_city_id = await self.session.scalar(select(City.id))
+        kazan_city_id = await self.session.scalar(
+            select(CityName.city_id).where(CityName.text == "Казань").limit(1)
+        )
+        default_city_id = kazan_city_id or await self.session.scalar(select(City.id).order_by(City.id).limit(1))
         if user is None:
             user = MaxUser(
                 max_user_id=init_user.id,
@@ -39,19 +42,24 @@ class EventsService:
                 username=init_user.username,
                 avatar_url=init_user.photo_url,
                 full_avatar_url=init_user.photo_url,
-                city_id=kazan_city_id,
+                smart_interest_rotation=True,
+                city_id=default_city_id,
+                access_code_fingerprint=settings.access_code_fingerprint if is_dev_user else None,
                 access_granted_at=now if is_dev_user else None,
             )
             self.session.add(user)
+            await self.session.flush()
         else:
+            if user.city_id is None and default_city_id is not None:
+                user.city_id = default_city_id
             user.first_name = init_user.first_name
             user.last_name = init_user.last_name
             user.username = init_user.username
-            user.avatar_url = init_user.photo_url
-            user.full_avatar_url = init_user.photo_url
-            if user.city_id is None and kazan_city_id is not None:
-                user.city_id = kazan_city_id
-            if is_dev_user and user.access_granted_at is None:
+            if init_user.photo_url is not None:
+                user.avatar_url = init_user.photo_url
+                user.full_avatar_url = init_user.photo_url
+            if is_dev_user and user.access_code_fingerprint != settings.access_code_fingerprint:
+                user.access_code_fingerprint = settings.access_code_fingerprint
                 user.access_granted_at = now
         await self.session.commit()
         await self.session.refresh(user)
@@ -61,6 +69,8 @@ class EventsService:
         city_exists = await self.session.scalar(select(City.id).where(City.id == data.city_id))
         if city_exists is None:
             raise HTTPException(status_code=422, detail="invalid_city")
+        if data.category_id is not None and await self.session.get(EventCategory, data.category_id) is None:
+            raise HTTPException(status_code=422, detail="invalid_category")
         event = Event(**data.model_dump(exclude={"area"}))
         self.session.add(event)
         await self.session.flush()
@@ -141,7 +151,7 @@ class EventsService:
             "id": event.id,
             "title": event.title,
             "description": event.description,
-            "category": event.category,
+            "category_id": event.category_id,
             "city_id": event.city_id,
             "address": event.address,
             "latitude": event.latitude,

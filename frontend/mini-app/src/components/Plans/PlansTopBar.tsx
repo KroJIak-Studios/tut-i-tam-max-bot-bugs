@@ -11,10 +11,10 @@ export const PlansTopBar: React.FC = () => {
         <div className={styles.brandLockup}>
           <img
             src="/brand/tut-i-tam-logo-128.png"
-            alt="Тут и Там"
+            alt={t('app.name')}
             className={styles.brandLogo}
           />
-          <span className={styles.brandTitle}>Тут и Там</span>
+          <span className={styles.brandTitle}>{t('app.name')}</span>
         </div>
         <h1 className={styles.pageTitle}>{t('plans.title')}</h1>
       </div>

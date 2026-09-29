@@ -34,9 +34,9 @@ export function calculateDistanceMeters(
  * RU: "390 м", "1,4 км"
  * EN: "390 m", "1.4 km"
  */
-export function formatDistance(meters: number, locale: string = 'ru-RU'): string {
-  const normLocale = locale.startsWith('en') ? 'en-US' : 'ru-RU'
-  const isEn = normLocale === 'en-US'
+export function formatDistance(meters: number, locale: string = 'ru-ru'): string {
+  const normLocale = locale.startsWith('en') ? 'en-us' : 'ru-ru'
+  const isEn = normLocale === 'en-us'
 
   if (meters < 1000) {
     const rounded = Math.round(meters / 10) * 10 || 50

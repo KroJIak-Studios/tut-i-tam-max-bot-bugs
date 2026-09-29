@@ -7,6 +7,32 @@
   z-index: 1;
 }
 
+.locationHint {
+  position: absolute;
+  z-index: 900;
+  top: 154px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  padding: 9px 12px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 3px 14px rgba(15,23,42,.12);
+  color: #475569;
+  font-size: 12px;
+}
+
+.locationHint button {
+  color: #2563EB;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
 /* Custom Pin Styles for Leaflet Markers */
 :global(.tut-pin-wrapper) {
   display: flex;

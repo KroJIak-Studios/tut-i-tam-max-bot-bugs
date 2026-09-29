@@ -27,10 +27,7 @@ export const normalizeLocale = (value: string | null | undefined, fallback: stri
   const normalized = value ? canonicalizeLocale(value) : normalizedFallback
 
   if (dictionaries.has(normalized)) return normalized
-
-  const language = normalized.split('-')[0]
-  const languageMatch = [...dictionaries.keys()].find((locale) => locale.split('-')[0] === language)
-  return languageMatch ?? normalizedFallback
+  return dictionaries.has(normalizedFallback) ? normalizedFallback : [...dictionaries.keys()][0]
 }
 
 export const escapeHtml = (value: string): string =>
@@ -71,12 +68,7 @@ export class I18n {
   languageDisplayName(locale: string): string {
     const dictionary = dictionaries.get(normalizeLocale(locale, locale))
     const nativeName = typeof dictionary?.locale_name === 'string' ? dictionary.locale_name : locale
-    const translatedNames = this.dictionary.language_names
-    const translatedName = typeof translatedNames === 'object' && translatedNames !== null
-      ? (translatedNames as Record<string, unknown>)[locale]
-      : undefined
-    const localName = typeof translatedName === 'string' ? translatedName : nativeName
-    return `${localName} (${nativeName})`
+    return nativeName
   }
 
   translate(key: TranslationKey, variables: Record<string, string> = {}): string {

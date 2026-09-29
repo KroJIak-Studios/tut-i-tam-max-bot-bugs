@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapFilterState } from '../../types'
+import type { EventCategoryRecord } from '../../services/eventCategoryService'
+import { getEventCategoryName } from '../../services/eventCategoryService'
+import { FALLBACK_LOCALE } from '../../i18n'
 import { IconClose } from '../Icons'
 import styles from './MapFilterSheet.module.css'
 
 interface MapFilterSheetProps {
   filters: MapFilterState
+  categories: EventCategoryRecord[]
   onClose: () => void
   onApply: (newFilters: MapFilterState) => void
   onReset: () => void
 }
-
-const CATEGORY_KEYS = [
-  { id: 'all', key: 'all' },
-  { id: 'events', key: 'events' },
-  { id: 'places', key: 'places' },
-  { id: 'parks', key: 'parks' },
-  { id: 'sports', key: 'sports' },
-  { id: 'volunteer', key: 'volunteer' },
-  { id: 'user', key: 'user' },
-] as const
 
 const SOURCE_KEYS = [
   { id: 'all', key: 'all' },
@@ -29,11 +23,12 @@ const SOURCE_KEYS = [
 
 export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
   filters,
+  categories,
   onClose,
   onApply,
   onReset,
 }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [draft, setDraft] = useState<MapFilterState>(filters)
 
   // Закрытие по нажатию клавиши Escape
@@ -59,18 +54,6 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
     onClose()
   }
 
-  const priceLabel =
-    draft.maxPrice !== null && draft.maxPrice !== undefined
-      ? `${draft.maxPrice} ₽`
-      : t('filters.prices.any')
-
-  const priceOptions = [
-    { val: null, label: t('filters.prices.any') },
-    { val: 0, label: '0 ₽' },
-    { val: 500, label: t('filters.prices.upTo', { price: '500 ₽' }) },
-    { val: 1000, label: t('filters.prices.upTo', { price: '1000 ₽' }) },
-  ]
-
   return (
     <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
@@ -86,14 +69,10 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
           <div className={styles.section}>
             <div className={styles.sectionTitle}>{t('filters.categoriesTitle')}</div>
             <div className={styles.chipGroup}>
-              {CATEGORY_KEYS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`${styles.filterOptionChip} ${draft.category === c.id ? styles.filterOptionChipSelected : ''}`}
-                  onClick={() => setDraft({ ...draft, category: c.id })}
-                >
-                  {t(`filters.categories.${c.key}`)}
+              <button type="button" className={`${styles.filterOptionChip} ${draft.category === 'all' ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, category: 'all' })}>{t('filters.categories.all')}</button>
+              {categories.map((category) => (
+                <button key={category.id} type="button" className={`${styles.filterOptionChip} ${draft.category === category.id ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, category: category.id })}>
+                  {getEventCategoryName(category, i18n.language, FALLBACK_LOCALE)}
                 </button>
               ))}
             </div>
@@ -116,57 +95,12 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
             </div>
           </div>
 
-          {/* Дополнительные параметры */}
           <div className={styles.section}>
             <div className={styles.sectionTitle}>{t('filters.featuresTitle')}</div>
-            
-            <label className={styles.toggleRow}>
-              <span>{t('filters.freeOnly')}</span>
-              <input
-                type="checkbox"
-                checked={draft.isFreeOnly}
-                onChange={(e) => setDraft({ ...draft, isFreeOnly: e.target.checked })}
-                className={styles.checkboxInput}
-              />
-            </label>
-
-            <label className={styles.toggleRow}>
-              <span>{t('filters.pushkinCardOnly')}</span>
-              <input
-                type="checkbox"
-                checked={draft.pushkinCardOnly}
-                onChange={(e) => setDraft({ ...draft, pushkinCardOnly: e.target.checked })}
-                className={styles.checkboxInput}
-              />
-            </label>
-
-            <label className={styles.toggleRow}>
-              <span>{t('filters.volunteerOnly')}</span>
-              <input
-                type="checkbox"
-                checked={draft.volunteerOnly}
-                onChange={(e) => setDraft({ ...draft, volunteerOnly: e.target.checked })}
-                className={styles.checkboxInput}
-              />
-            </label>
-          </div>
-
-          {/* Максимальная цена */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>
-              {t('filters.maxPriceTitle', { price: priceLabel })}
-            </div>
-            <div className={styles.chipGroup}>
-              {priceOptions.map((p, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={`${styles.filterOptionChip} ${draft.maxPrice === p.val ? styles.filterOptionChipSelected : ''}`}
-                  onClick={() => setDraft({ ...draft, maxPrice: p.val })}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div className={styles.chipGroup} role="group" aria-label={t('filters.featuresTitle')}>
+              <button type="button" className={`${styles.filterOptionChip} ${!draft.isFreeOnly && !draft.pushkinCardOnly ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, isFreeOnly: false, pushkinCardOnly: false, quickChip: 'all' })}>{t('filters.priceAll')}</button>
+              <button type="button" className={`${styles.filterOptionChip} ${draft.isFreeOnly ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, isFreeOnly: true, pushkinCardOnly: false, quickChip: 'free' })}>{t('filters.freeOnly')}</button>
+              <button type="button" className={`${styles.filterOptionChip} ${draft.pushkinCardOnly ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, isFreeOnly: false, pushkinCardOnly: true, quickChip: 'pushkin' })}>{t('filters.pushkinCardOnly')}</button>
             </div>
           </div>
         </div>

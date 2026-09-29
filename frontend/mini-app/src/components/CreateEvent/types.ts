@@ -1,14 +1,9 @@
 import type { EventCategory } from '../../types'
+import type { EventCategoryRecord } from '../../services/eventCategoryService'
 
 export type WizardStepId = 'basics' | 'datetime' | 'location' | 'review'
 
-export const USER_EVENT_CATEGORIES: Array<EventCategory> = [
-  'events',
-  'places',
-  'parks',
-  'sports',
-  'volunteer',
-]
+export type { EventCategoryRecord }
 
 export type EventLocationMode = 'point' | 'area'
 
@@ -88,5 +83,5 @@ export interface CreateEventRequest {
   locationPoint?: EventGeoPoint
   locationArea?: EventGeoArea
   createdAt: string
-  locale: 'ru-RU' | 'en-US'
+  locale: string
 }

@@ -1,9 +1,5 @@
 {
   "locale_name": "Русский",
-  "language_names": {
-    "ru-ru": "Русский",
-    "en-us": "Английский"
-  },
   "start": {
     "title": "<b>🧭 Тут И Там 🧭</b>",
     "greeting": "Привет, {name}!",

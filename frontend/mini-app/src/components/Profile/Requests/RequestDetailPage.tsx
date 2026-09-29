@@ -97,9 +97,7 @@ export const RequestDetailPage: React.FC = () => {
         ? t('requestDetail.statusRejectedDesc')
         : t('requestDetail.statusPendingDesc')
 
-  const categoryLabel = request.category
-    ? t(`createEvent.categories.${request.category}`)
-    : '—'
+  const categoryLabel = request.category || '—'
 
   const effectiveStartDate = request.startDate || request.date || ''
   const effectiveEndDate = request.endDate || effectiveStartDate

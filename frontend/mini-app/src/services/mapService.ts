@@ -1,5 +1,4 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
-import { getIsoDate } from '../utils/dateUtils'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
 import { apiRequest, ApiError } from './api'
 
@@ -12,35 +11,19 @@ function shouldFallbackToMocks(err: unknown): boolean {
   return err instanceof ApiError && err.status === 0
 }
 
-function categoryFromApi(cat?: string): EventCategory {
-  switch (cat) {
-    case 'event':
-      return 'events'
-    case 'place':
-      return 'places'
-    case 'sport':
-      return 'sports'
-    case 'park':
-      return 'parks'
-    case 'volunteer':
-      return 'volunteer'
-    default:
-      return 'events'
-  }
-}
 
 export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
 export function loadAttendanceMap(): Record<string, boolean> { return {} }
 export function getAttendanceMap(): Record<string, boolean> { return {} }
 export function saveAttendanceMap(_map: Record<string, boolean>): void { /* API is the source of truth. */ }
 
-interface ApiMapEvent {
+export interface ApiMapEvent {
   id: string | number
   title: string
   description?: string
   latitude: number
   longitude: number
-  category?: 'event' | 'place' | 'volunteer' | 'sport' | 'park'
+  category_id?: number | null
   date?: string
   starts_at: string
   ends_at?: string
@@ -52,9 +35,12 @@ interface ApiMapEvent {
   image?: string
   images?: string[]
   area?: [number, number][]
+  going?: boolean
 }
 
-function mapEvent(item: ApiMapEvent): MapEvent {
+export interface EventCategoryRecord { id: number; names: Array<{ locale_code: string; text: string }> }
+
+export function mapApiEvent(item: ApiMapEvent): MapEvent {
   const start = new Date(item.starts_at)
   const end = item.ends_at ? new Date(item.ends_at) : undefined
   const source = item.origin === 'user' ? 'user' : 'external'
@@ -62,20 +48,24 @@ function mapEvent(item: ApiMapEvent): MapEvent {
   return {
     id: String(item.id), title: item.title, description: item.description || '',
     latitude: item.latitude, longitude: item.longitude,
-    category: categoryFromApi(item.category),
+    category: item.category_id == null ? null : String(item.category_id), categoryId: item.category_id ?? null,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
     price, isFree: source === 'user' || price === 0,
     pushkinCard: source === 'user' ? false : Boolean(item.pushkin_card),
     attendeesCount: item.attendees_count ?? 0, source, image: item.image,
-    images: item.images, address: item.address, area: item.area,
+    images: item.images, address: item.address, area: item.area, isGoing: item.going,
   }
 }
 
-export async function getMapZones(): Promise<MapZone[]> {
+export async function getEventCategories(): Promise<EventCategoryRecord[]> {
+  return apiRequest<EventCategoryRecord[]>('/event-categories')
+}
+
+export async function getMapZones(cityId: number): Promise<MapZone[]> {
   try {
-    const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
+    const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>(`/map/areas?city_id=${cityId}`)
     return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
   } catch (err) {
     if (shouldFallbackToMocks(err)) {
@@ -89,16 +79,49 @@ export async function getMapZones(): Promise<MapZone[]> {
 export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEvent[]> {
   try {
     const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
-    return items.map((item) => ({ ...mapEvent(item), isGoing: when === 'upcoming', isPast: when === 'past' }))
+    return items.map((item) => ({ ...mapApiEvent(item), isPast: when === 'past' }))
   } catch {
     return []
   }
 }
 
-export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<MapEvent[]> {
+export interface CatalogQuery {
+  cityId?: number
+  categoryId?: number | null
+  source?: 'all' | 'external' | 'user'
+  free?: boolean
+  pushkin?: boolean
+  q?: string
+  limit?: number
+  offset?: number
+  startsAfter?: string
+  startsBefore?: string
+}
+
+export async function getCatalogEvents(query: CatalogQuery = {}): Promise<MapEvent[]> {
+  const params = new URLSearchParams()
+  if (query.cityId !== undefined) params.set('city_id', String(query.cityId))
+  if (query.categoryId != null) params.set('category_id', String(query.categoryId))
+  if (query.source && query.source !== 'all') params.set('source', query.source)
+  if (query.free !== undefined) params.set('free', String(query.free))
+  if (query.pushkin !== undefined) params.set('pushkin', String(query.pushkin))
+  if (query.q) params.set('q', query.q)
+  if (query.limit !== undefined) params.set('limit', String(query.limit))
+  if (query.offset !== undefined) params.set('offset', String(query.offset))
+  if (query.startsAfter) params.set('starts_after', query.startsAfter)
+  if (query.startsBefore) params.set('starts_before', query.startsBefore)
+  const suffix = params.size ? `?${params.toString()}` : ''
+  const items = await apiRequest<ApiMapEvent[]>(`/events${suffix}`)
+  return items.map(mapApiEvent)
+}
+
+export async function getMapEvents(filters?: Partial<MapFilterState>, cityId?: number): Promise<MapEvent[]> {
   try {
-    const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
-    let events = items.map(mapEvent)
+    const params = new URLSearchParams()
+    if (cityId !== undefined) params.set('city_id', String(cityId))
+    const suffix = params.size ? `?${params.toString()}` : ''
+    const items = await apiRequest<ApiMapEvent[]>(`/map/events${suffix}`)
+    let events = items.map(mapApiEvent)
     if (filters) events = filterEvents(events, filters)
     return events
   } catch (err) {
@@ -130,5 +153,7 @@ export async function setEventAttendance(eventId: string, going: boolean): Promi
 export interface NewUserMarkerInput { title: string; category: EventCategory; startTime: string; latitude: number; longitude: number; description?: string; address?: string }
 export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent> {
   const events = await getMapEvents()
-  return events.find((event) => event.title === input.title) || { ...events[0], ...input, id: `user-${Date.now()}`, source: 'user', price: 0, isFree: true, pushkinCard: false, date: getIsoDate(0), startDate: getIsoDate(0), startTime: input.startTime }
+  const existing = events.find((event) => event.title === input.title)
+  if (!existing) throw new Error('User markers are created through the event API')
+  return existing
 }

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     access_code_enabled: bool = Field(default=False, validation_alias="ACCESS_CODE_ENABLED")
     access_code: str = Field(default="", validation_alias="ACCESS_CODE")
     bot_token: str = Field(default="", validation_alias="BOT_TOKEN")
+    admin_password: str = Field(default="", validation_alias="ADMIN_PASSWORD")
     fallback_locale: str = Field(default="ru-ru", validation_alias="FALLBACK_LOCALE")
     allow_dev_auth: bool = Field(default=False, validation_alias="ALLOW_DEV_AUTH")
 

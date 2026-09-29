@@ -26,6 +26,10 @@
   border-bottom: none;
 }
 
+.settingRow:last-child .settingTitle {
+  color: #DC2626;
+}
+
 .settingRowClickable {
   cursor: pointer;
 }

@@ -1,24 +1,7 @@
-import type { MapEvent, EventCategory, EventReview } from '../types'
+import type { MapEvent, EventReview } from '../types'
 import { apiRequest, ApiError } from './api'
 import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
 import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
-
-function categoryFromApi(cat?: string): EventCategory {
-  switch (cat) {
-    case 'event':
-      return 'events'
-    case 'place':
-      return 'places'
-    case 'sport':
-      return 'sports'
-    case 'park':
-      return 'parks'
-    case 'volunteer':
-      return 'volunteer'
-    default:
-      return 'events'
-  }
-}
 
 export interface DetailedEvent extends MapEvent {
   images: string[]
@@ -33,7 +16,7 @@ interface ApiEvent {
   description?: string
   latitude: number
   longitude: number
-  category?: string
+  category_id?: number | null
   address?: string
   starts_at: string
   ends_at?: string
@@ -56,7 +39,8 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     description: item.description || '',
     latitude: item.latitude,
     longitude: item.longitude,
-    category: categoryFromApi(item.category),
+    category: item.category_id == null ? null : String(item.category_id),
+    categoryId: item.category_id ?? null,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10),
     endDate: item.ends_at?.slice(0, 10),

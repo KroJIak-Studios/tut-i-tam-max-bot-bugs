@@ -18,14 +18,10 @@
   width: 78px;
   height: 78px;
   margin-bottom: 6px;
+  font-size: 78px;
 }
 
-.avatarImage {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
+.avatarFrame {
   border: 2.5px solid #FFFFFF;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
 }

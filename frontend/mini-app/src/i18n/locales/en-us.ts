@@ -1,6 +1,26 @@
-import type { TranslationSchema } from './ru-RU'
+import type { TranslationSchema } from './ru-ru'
 
-export const enUS: TranslationSchema = {
+export const localeName = 'English'
+export const translation: TranslationSchema = {
+  geolocation: {
+    locationMapHint: 'Your position will appear after location access is allowed',
+    retryButton: 'Allow',
+    title: 'Show your location on the map?',
+    description: 'Allow location access to see your current position and nearby events. Your coordinates stay on this device and are never sent to the server.',
+    allow: 'Allow location',
+    later: 'Not now',
+    declinedTitle: 'Allow location to see yourself on the map',
+    declinedDescription: 'The map cannot show your position yet. Allow access here so your browser can ask for system permission.',
+    deniedTitle: 'Location access is off',
+    deniedDescription: 'To see yourself on the map, allow location in your browser settings, then try again.',
+    errorTitle: 'Could not get your location',
+    errorDescription: 'Check your location settings and try again.',
+    unavailableDescription: 'This browser does not support geolocation.',
+    retry: 'Try again',
+    mapHint: 'Allow access to see yourself on the map.',
+    mapRetry: 'Enable location',
+  },
+  app: { name: 'Tut & Tam' },
   common: {
     back: 'Back',
     cancel: 'Cancel',
@@ -71,6 +91,8 @@ export const enUS: TranslationSchema = {
     title: 'Catalog',
     filterToolbar: 'Catalog filters',
     filters: 'Filters',
+    allDates: 'All dates',
+    loadMore: 'Load more',
     free: 'Free',
     onMap: 'On map',
     showOnMap: 'View on map: {{title}}',
@@ -89,7 +111,6 @@ export const enUS: TranslationSchema = {
     emptyTitle: 'Nothing found',
     emptyDescription: 'Try changing the date or clearing filters',
     resetFilters: 'Reset filters',
-    showToday: 'Show today',
     loadError: 'Failed to load catalog events',
   },
   map: {
@@ -118,12 +139,6 @@ export const enUS: TranslationSchema = {
     categoriesTitle: 'Category',
     categories: {
       all: 'All',
-      events: 'Events',
-      places: 'Places',
-      parks: 'Parks',
-      sports: 'Sports',
-      volunteer: 'Volunteering',
-      user: 'Community',
     },
     sourceTitle: 'Source',
     sources: {
@@ -132,14 +147,10 @@ export const enUS: TranslationSchema = {
       user: 'From locals',
     },
     featuresTitle: 'Features',
-    freeOnly: 'Free only',
+    freeOnly: 'Free',
     pushkinCardOnly: 'Pushkin Card',
-    volunteerOnly: 'Volunteering only',
-    maxPriceTitle: 'Maximum price: {{price}}',
-    prices: {
-      any: 'Any',
-      upTo: 'up to {{price}}',
-    },
+    pricePillsTitle: 'Price',
+    priceAll: 'All',
     apply: 'Show',
   },
   dates: {
@@ -173,6 +184,11 @@ export const enUS: TranslationSchema = {
     heroAriaLabel: 'Profile card',
     city: 'City',
     cityNotice: 'Service is currently available only in Kazan',
+    chooseCity: 'Choose a city',
+    smartInterests: 'Choose automatically',
+    smartInterestsDescription: 'The app updates your five interests when others become more relevant. You can turn this off and keep your own choice.',
+    allNotifications: 'All notifications',
+    silentNotifications: 'Silent',
     interests: 'Interests',
     interestsSubtitle: 'For personalized recommendations',
     editInterests: 'Edit interests',
@@ -205,6 +221,12 @@ export const enUS: TranslationSchema = {
     requestsUnderReviewCount_few: '{{count}} under review',
     requestsUnderReviewCount_many: '{{count}} under review',
     requestsUnderReviewCount_other: '{{count}} under review',
+    deleteData: 'Delete all data',
+    deleteDataSubtitle: 'Delete your profile and all service data',
+    deleteDataTitle: 'Delete all data?',
+    deleteDataDescription: 'All service data will be permanently deleted and cannot be restored.',
+    deleteDataConfirm: 'Delete',
+    deleteDataError: 'Could not delete data. Please try again.',
   },
   chat: {
     title: 'Chat',

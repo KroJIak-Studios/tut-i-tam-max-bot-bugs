@@ -2,20 +2,32 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
 class City(Base):
     __tablename__ = "cities"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), unique=True)
+    latitude: Mapped[float | None] = mapped_column()
+    longitude: Mapped[float | None] = mapped_column()
+    names: Mapped[list["CityName"]] = relationship(
+        cascade="all, delete-orphan",
+        order_by="CityName.locale_code",
+    )
+
+
+class CityName(Base):
+    __tablename__ = "city_names"
+    city_id: Mapped[int] = mapped_column(ForeignKey("cities.id", ondelete="CASCADE"), primary_key=True)
+    locale_code: Mapped[str] = mapped_column(ForeignKey("locales.code"), primary_key=True)
+    text: Mapped[str] = mapped_column(String(255))
 
 class Event(Base):
     __tablename__ = "events"
     id: Mapped[int] = mapped_column(primary_key=True)
     city_id: Mapped[int] = mapped_column(ForeignKey("cities.id"))
-    category: Mapped[str] = mapped_column(String(32))
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("event_categories.id"))
     visible: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     title: Mapped[str] = mapped_column(String(500))
     description: Mapped[str] = mapped_column(Text)

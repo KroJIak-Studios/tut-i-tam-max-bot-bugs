@@ -1,9 +1,5 @@
 {
   "locale_name": "English",
-  "language_names": {
-    "ru-ru": "Russian",
-    "en-us": "English"
-  },
   "start": {
     "title": "<b>🧭 Tut & Tam 🧭</b>",
     "greeting": "Hello, {name}!",

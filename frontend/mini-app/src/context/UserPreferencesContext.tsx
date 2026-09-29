@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import type { UserPreferences, MapProvider, AppMapProviderId, NotificationSettings, SupportedLocaleCode } from '../types'
 import { UserPreferencesContext, DEFAULT_PREFERENCES } from './userPreferencesDef'
-import { resolveInitialLocale, normalizeLocale, i18n } from '../i18n'
+import { canonicalizeLocale, resolveInitialLocale, normalizeLocale, i18n } from '../i18n'
 
 const STORAGE_KEY_PREFERENCES = 'tut_i_tam_user_preferences'
 
@@ -67,7 +67,7 @@ function loadPreferences(): UserPreferences {
       }
     }
     const parsed = JSON.parse(raw)
-    const resolvedLocale = resolveInitialLocale(parsed.locale)
+    const resolvedLocale = resolveInitialLocale(canonicalizeLocale(parsed.locale))
     return {
       ...DEFAULT_PREFERENCES,
       ...parsed,
