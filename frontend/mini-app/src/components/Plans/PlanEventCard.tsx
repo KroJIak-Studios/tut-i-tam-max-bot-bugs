@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { formatEventDateTimeRange } from '../../utils/formatters'
 import { IconCheck, IconUsers, IconCalendar } from '../Icons'
+import { EventPhoto } from '../EventPhoto'
 import styles from './PlanEventCard.module.css'
 
 interface PlanEventCardProps {
@@ -43,12 +44,7 @@ export const PlanEventCard: React.FC<PlanEventCardProps> = ({
       {/* 1. Left: Image or category placeholder */}
       <div className={styles.imageWrapper}>
         {event.image ? (
-          <img
-            src={event.image}
-            alt={event.title}
-            className={styles.image}
-            loading="lazy"
-          />
+          <EventPhoto src={event.image} />
         ) : (
           <div className={`${styles.imagePlaceholder} ${styles.events}`}>
             <IconCalendar size={28} color="#FFFFFF" />

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EventCreate(BaseModel):
@@ -16,20 +16,6 @@ class EventCreate(BaseModel):
     starts_at: datetime
     ends_at: datetime | None = None
     area: list[list[float]] | None = None
-
-
-class EventPhotoUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    images: list[str] = Field(max_length=3)
-
-    @field_validator("images")
-    @classmethod
-    def image_urls(cls, values: list[str]) -> list[str]:
-        cleaned = [value.strip() for value in values]
-        if any(not url or len(url) > 2048 for url in cleaned):
-            raise ValueError("event photo url is invalid")
-        return cleaned
 
 
 class ReviewCreate(BaseModel):

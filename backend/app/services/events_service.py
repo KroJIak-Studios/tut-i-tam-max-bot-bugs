@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.max_init_data import MaxInitUser
@@ -17,8 +17,10 @@ from app.models.event import (
 )
 from app.models.event_category import EventCategory
 from app.models.user import MaxUser
-from app.schemas.events import EventCreate, EventPhotoUpdate, ReviewCreate
+from app.schemas.admin_events import AdminEventPatch, AdminEventWrite
+from app.schemas.events import EventCreate, ReviewCreate
 from app.services.ip_geolocation_service import IpGeolocationService
+from app.services.media_storage import MediaStorage
 
 
 class EventsService:
@@ -87,17 +89,208 @@ class EventsService:
         await self.session.refresh(event)
         return event
 
-    async def replace_photos(self, event_id: int, data: EventPhotoUpdate) -> list[str]:
+    async def admin_list(
+        self,
+        *,
+        city_id: int | None,
+        category_id: int | None,
+        source: str | None,
+        visible: bool | None,
+        free: bool | None,
+        pushkin: bool | None,
+        query: str | None,
+        limit: int,
+        offset: int,
+    ) -> dict:
+        statement = select(Event)
+        count_statement = select(func.count()).select_from(Event)
+        if city_id is not None:
+            statement = statement.where(Event.city_id == city_id)
+            count_statement = count_statement.where(Event.city_id == city_id)
+        if category_id is not None:
+            statement = statement.where(Event.category_id == category_id)
+            count_statement = count_statement.where(Event.category_id == category_id)
+        if visible is not None:
+            statement = statement.where(Event.visible.is_(visible))
+            count_statement = count_statement.where(Event.visible.is_(visible))
+        if source == "user":
+            condition = Event.id.in_(select(UserEvent.event_id))
+            statement = statement.where(condition)
+            count_statement = count_statement.where(condition)
+        elif source == "official":
+            condition = Event.id.in_(select(OfficialEvent.event_id))
+            statement = statement.where(condition)
+            count_statement = count_statement.where(condition)
+        if query:
+            pattern = f"%{query}%"
+            condition = or_(Event.title.ilike(pattern), Event.description.ilike(pattern), Event.address.ilike(pattern))
+            statement = statement.where(condition)
+            count_statement = count_statement.where(condition)
+        if free is not None or pushkin is not None:
+            statement = statement.join(OfficialEvent)
+            count_statement = count_statement.join(OfficialEvent)
+            if free is True:
+                statement = statement.where(OfficialEvent.price_rub == 0)
+                count_statement = count_statement.where(OfficialEvent.price_rub == 0)
+            elif free is False:
+                statement = statement.where(OfficialEvent.price_rub > 0)
+                count_statement = count_statement.where(OfficialEvent.price_rub > 0)
+            if pushkin is not None:
+                statement = statement.where(OfficialEvent.pushkin_card.is_(pushkin))
+                count_statement = count_statement.where(OfficialEvent.pushkin_card.is_(pushkin))
+        total = await self.session.scalar(count_statement) or 0
+        rows = (await self.session.scalars(statement.order_by(Event.starts_at.desc(), Event.id.desc()).limit(limit).offset(offset))).all()
+        return {"total": total, "limit": limit, "offset": offset, "items": [await self.admin_card(event) for event in rows]}
+
+    async def admin_card(self, event: Event) -> dict:
+        official = await self.session.scalar(select(OfficialEvent).where(OfficialEvent.event_id == event.id))
+        user_event = await self.session.scalar(select(UserEvent).where(UserEvent.event_id == event.id))
+        area = await self.session.scalar(select(EventArea).where(EventArea.event_id == event.id))
+        photos = list(await self.session.scalars(
+            select(EventPhoto).where(EventPhoto.event_id == event.id).order_by(EventPhoto.position, EventPhoto.id)
+        ))
+        attendees_count = await self.session.scalar(
+            select(func.count()).select_from(EventAttendance).where(EventAttendance.event_id == event.id)
+        )
+        author = None
+        if user_event is not None:
+            user = await self.session.get(MaxUser, user_event.author_user_id)
+            author = None if user is None else {"id": user.id, "first_name": user.first_name, "last_name": user.last_name}
+        now = datetime.now(timezone.utc)
+        if event.starts_at > now:
+            phase = "scheduled"
+        elif event.ends_at is not None and event.ends_at > now:
+            phase = "ongoing"
+        else:
+            phase = "finished"
+        return {
+            "id": event.id,
+            "title": event.title,
+            "description": event.description,
+            "city_id": event.city_id,
+            "category_id": event.category_id,
+            "visible": event.visible,
+            "address": event.address,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "starts_at": event.starts_at,
+            "ends_at": event.ends_at,
+            "phase": phase,
+            "origin": "official" if official is not None else "user",
+            "price_rub": official.price_rub if official is not None else None,
+            "pushkin_card": official.pushkin_card if official is not None else None,
+            "chat_invite_url": event.chat_invite_url,
+            "chat_connected": event.chat_max_id is not None,
+            "chat_id": event.chat_max_id,
+            "area": area.path if area is not None else None,
+            "images": [
+                {"id": photo.id, "url": MediaStorage().public_url(photo.storage_key), "position": photo.position}
+                for photo in photos
+            ],
+            "attendees_count": attendees_count or 0,
+            "author": author,
+        }
+
+    async def create_official_event(self, data: AdminEventWrite) -> dict:
+        await self._require_place(data.city_id, data.category_id)
+        event = Event(**data.model_dump(exclude={"price_rub", "pushkin_card", "area"}))
+        self.session.add(event)
+        await self.session.flush()
+        self.session.add(OfficialEvent(event_id=event.id, price_rub=data.price_rub, pushkin_card=data.pushkin_card))
+        if data.area is not None:
+            self.session.add(EventArea(event_id=event.id, path=data.area))
+        await self.session.commit()
+        await self.session.refresh(event)
+        return await self.admin_card(event)
+
+    async def update_event(self, event_id: int, data: AdminEventPatch) -> dict:
         event = await self.session.get(Event, event_id)
         if event is None:
             raise HTTPException(status_code=404, detail="event_not_found")
-        await self.session.execute(delete(EventPhoto).where(EventPhoto.event_id == event_id))
-        self.session.add_all([
-            EventPhoto(event_id=event_id, url=url, position=position)
-            for position, url in enumerate(data.images)
-        ])
+        changes = data.model_dump(exclude_unset=True)
+        city_id = changes.get("city_id", event.city_id)
+        category_id = changes.get("category_id", event.category_id)
+        await self._require_place(city_id, category_id)
+        official = await self.session.scalar(select(OfficialEvent).where(OfficialEvent.event_id == event.id))
+        if official is None and ("price_rub" in changes or "pushkin_card" in changes):
+            raise HTTPException(status_code=422, detail="user_event_has_no_price")
+        for field in ("title", "description", "city_id", "category_id", "address", "latitude", "longitude", "starts_at", "ends_at", "visible", "chat_invite_url"):
+            if field in changes:
+                setattr(event, field, changes[field])
+        if official is not None and "price_rub" in changes:
+            official.price_rub = changes["price_rub"]
+        if official is not None and "pushkin_card" in changes:
+            official.pushkin_card = changes["pushkin_card"]
+        if "area" in changes:
+            area = await self.session.scalar(select(EventArea).where(EventArea.event_id == event.id))
+            if changes["area"] is None and area is not None:
+                await self.session.delete(area)
+            elif changes["area"] is not None and area is None:
+                self.session.add(EventArea(event_id=event.id, path=changes["area"]))
+            elif area is not None:
+                area.path = changes["area"]
         await self.session.commit()
-        return data.images
+        await self.session.refresh(event)
+        return await self.admin_card(event)
+
+    async def delete_event(self, event_id: int) -> None:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        photos = list(await self.session.scalars(select(EventPhoto).where(EventPhoto.event_id == event_id)))
+        keys = [photo.storage_key for photo in photos]
+        await self.session.delete(event)
+        await self.session.commit()
+        storage = MediaStorage()
+        for key in keys:
+            storage.delete(key)
+
+    async def connect_chat(self, event_id: int, invite_url: str, check: dict) -> dict:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        event.chat_invite_url = invite_url
+        event.chat_max_id = check["chat_id"] if check["bot_ready"] else None
+        await self.session.commit()
+        return check
+
+    async def _require_place(self, city_id: int, category_id: int | None) -> None:
+        if await self.session.scalar(select(City.id).where(City.id == city_id)) is None:
+            raise HTTPException(status_code=422, detail="invalid_city")
+        if category_id is not None and await self.session.get(EventCategory, category_id) is None:
+            raise HTTPException(status_code=422, detail="invalid_category")
+
+    async def add_photo(self, event_id: int, upload) -> dict:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        count = await self.session.scalar(
+            select(func.count()).select_from(EventPhoto).where(EventPhoto.event_id == event_id)
+        )
+        if count is not None and count >= 3:
+            raise HTTPException(status_code=409, detail="event_photo_limit")
+        storage = MediaStorage()
+        storage_key, content_type = await storage.save(upload)
+        position = int(count or 0)
+        photo = EventPhoto(event_id=event_id, storage_key=storage_key, content_type=content_type, position=position)
+        self.session.add(photo)
+        try:
+            await self.session.commit()
+        except Exception:
+            storage.delete(storage_key)
+            raise
+        return {"id": photo.id, "url": storage.public_url(storage_key), "position": position}
+
+    async def delete_photo(self, event_id: int, photo_id: int) -> None:
+        photo = await self.session.scalar(
+            select(EventPhoto).where(EventPhoto.id == photo_id, EventPhoto.event_id == event_id)
+        )
+        if photo is None:
+            raise HTTPException(status_code=404, detail="photo_not_found")
+        storage_key = photo.storage_key
+        await self.session.delete(photo)
+        await self.session.commit()
+        MediaStorage().delete(storage_key)
 
     async def visible_event(self, event_id: int) -> Event:
         event = await self.session.scalar(
@@ -185,7 +378,7 @@ class EventsService:
             "pushkin_card": official.pushkin_card if official is not None else None,
             "chat_connected": event.chat_max_id is not None,
             "area": area.path if area is not None else None,
-            "images": [photo.url for photo in photos],
+            "images": [MediaStorage().public_url(photo.storage_key) for photo in photos],
             "going": going is not None,
             "attendees_count": attendees_count or 0,
             "reviews": [await self._review_payload(review) for review in reviews],

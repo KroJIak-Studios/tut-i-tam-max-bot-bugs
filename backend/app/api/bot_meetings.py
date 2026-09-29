@@ -3,7 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.settings import get_settings
 from app.db import get_session
-from app.schemas.bot_meetings import BotMeetingAttendanceRequest, BotMeetingCard, BotMeetingsRequest, BotMeetingsResponse
+from app.schemas.bot_meetings import (
+    BotMeetingAttendanceRequest,
+    BotMeetingCard,
+    BotMeetingsRequest,
+    BotMeetingsResponse,
+    BotPhotoTokenRequest,
+)
 from app.services.bot_meetings_service import BotMeetingsService
 
 router = APIRouter(prefix="/bot/meetings", tags=["bot-meetings"])
@@ -19,6 +25,18 @@ async def list_meetings(
     service: BotMeetingsService = Depends(get_meetings_service),
 ) -> BotMeetingsResponse:
     return await service.list_meetings(request)
+
+
+@router.post("/photos/{photo_id}/token")
+async def save_photo_token(
+    photo_id: int,
+    request: BotPhotoTokenRequest,
+    service: BotMeetingsService = Depends(get_meetings_service),
+) -> dict[str, str]:
+    token = await service.save_image_token(request, photo_id, request.token)
+    if token is None:
+        raise HTTPException(status_code=404, detail="photo_not_found")
+    return {"token": token}
 
 
 @router.post("/{event_id}", response_model=BotMeetingCard)

@@ -1,6 +1,6 @@
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,11 +13,12 @@ from app.models.event import City, CityName, Event, MapArea
 from app.models.profile import Interest, InterestName, Locale
 from app.models.user import MaxUser
 from app.schemas.admin_auth import AdminLogin, AdminRefresh, AdminSession, AdminStats, AdminTokens
-from app.schemas.events import EventPhotoUpdate
+from app.schemas.admin_events import AdminChatCheck, AdminEventPatch, AdminEventWrite
 from app.schemas.profile import CityCreate, InterestCreate, InterestPatch
 from app.services.admin_auth_service import AdminAuthService
 from app.services.admin_stats_service import AdminStatsService
 from app.services.events_service import EventsService
+from app.services.max_chat_service import MaxChatService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -86,13 +87,70 @@ async def save_interest_names(session: AsyncSession, interest: Interest, values:
     interest.names.extend(InterestName(locale_code=item["locale_code"], text=item["text"]) for item in values)
 
 
-@router.patch("/events/{event_id}/photos", dependencies=[Depends(require_admin)])
-async def update_event_photos(
-    event_id: int,
-    data: EventPhotoUpdate,
+@router.get("/events", dependencies=[Depends(require_admin)])
+async def list_admin_events(
+    city_id: int | None = None,
+    category_id: int | None = None,
+    source: str | None = Query(default=None, pattern="^(official|user)$"),
+    visible: bool | None = None,
+    free: bool | None = None,
+    pushkin: bool | None = None,
+    q: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_session),
 ):
-    return {"id": event_id, "images": await EventsService(session).replace_photos(event_id, data)}
+    return await EventsService(session).admin_list(
+        city_id=city_id, category_id=category_id, source=source, visible=visible,
+        free=free, pushkin=pushkin, query=q, limit=limit, offset=offset,
+    )
+
+
+@router.post("/events", status_code=201, dependencies=[Depends(require_admin)])
+async def create_admin_event(data: AdminEventWrite, session: AsyncSession = Depends(get_session)):
+    return await EventsService(session).create_official_event(data)
+
+
+@router.get("/events/{event_id}", dependencies=[Depends(require_admin)])
+async def get_admin_event(event_id: int, session: AsyncSession = Depends(get_session)):
+    event = await session.get(Event, event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="event_not_found")
+    return await EventsService(session).admin_card(event)
+
+
+@router.patch("/events/{event_id}", dependencies=[Depends(require_admin)])
+async def update_admin_event(event_id: int, data: AdminEventPatch, session: AsyncSession = Depends(get_session)):
+    return await EventsService(session).update_event(event_id, data)
+
+
+@router.delete("/events/{event_id}", status_code=204, dependencies=[Depends(require_admin)])
+async def delete_admin_event(event_id: int, session: AsyncSession = Depends(get_session)):
+    await EventsService(session).delete_event(event_id)
+
+
+@router.post("/events/{event_id}/chat", dependencies=[Depends(require_admin)])
+async def check_event_chat(event_id: int, data: AdminChatCheck, session: AsyncSession = Depends(get_session)):
+    result = await MaxChatService().check(data.chat_invite_url)
+    return await EventsService(session).connect_chat(event_id, data.chat_invite_url, result)
+
+
+@router.post("/events/{event_id}/photos", status_code=201, dependencies=[Depends(require_admin)])
+async def upload_event_photo(
+    event_id: int,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session),
+):
+    return await EventsService(session).add_photo(event_id, file)
+
+
+@router.delete("/events/{event_id}/photos/{photo_id}", status_code=204, dependencies=[Depends(require_admin)])
+async def delete_event_photo(
+    event_id: int,
+    photo_id: int,
+    session: AsyncSession = Depends(get_session),
+):
+    await EventsService(session).delete_photo(event_id, photo_id)
 
 
 @router.get("/locales", dependencies=[Depends(require_admin)])

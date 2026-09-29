@@ -45,6 +45,9 @@ services:
       LOCAL_DEV_AUTH_HOSTS: ${LOCAL_DEV_AUTH_HOSTS:-}
       FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
       MINI_APP_PUBLIC_URL: ${MINI_APP_PUBLIC_URL:-}
+      MEDIA_ROOT: /var/lib/tut-i-tam/media
+    volumes:
+      - media-data:/var/lib/tut-i-tam/media
     expose:
       - "8000"
     depends_on:
@@ -83,7 +86,7 @@ services:
     build:
       context: ./frontend/admin-panel
     environment:
-      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      BACKEND_URL: http://api:8000
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
       - "80"
@@ -95,7 +98,7 @@ services:
     build:
       context: ./frontend/mini-app
     environment:
-      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      BACKEND_URL: http://api:8000
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
       - "80"
@@ -105,3 +108,4 @@ services:
 
 volumes:
   postgres-data:
+  media-data:

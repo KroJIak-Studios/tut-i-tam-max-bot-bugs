@@ -20,6 +20,7 @@ import {
 import { ConfirmRemoveModal } from '../Plans/ConfirmRemoveModal'
 import { ReviewModal } from '../Plans/ReviewModal'
 import { BottomNavigation } from '../BottomNavigation'
+import { EventPhoto } from '../EventPhoto'
 import type { MapEvent, NavTabId } from '../../types'
 import type { PastEvent } from '../../mocks/plansData'
 import styles from './EventDetailsPage.module.css'
@@ -233,11 +234,7 @@ export const EventDetailsPage: React.FC = () => {
           >
             {event.images.map((imgSrc, idx) => (
               <div key={idx} className={styles.gallerySlide}>
-                <img
-                  src={imgSrc}
-                  alt={`${event.title} — фото ${idx + 1}`}
-                  className={styles.galleryImage}
-                />
+                <EventPhoto src={imgSrc} />
               </div>
             ))}
           </div>

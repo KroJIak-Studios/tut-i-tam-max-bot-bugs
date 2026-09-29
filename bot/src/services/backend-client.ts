@@ -23,12 +23,18 @@ export interface BotMeeting {
   chat_invite_url: string | null
 }
 
+export interface BotMeetingPhoto {
+  id: number
+  url: string
+  max_image_token: string | null
+}
+
 export interface BotMeetingCard extends BotMeeting {
   latitude: number
   longitude: number
   price_rub: number | null
   pushkin_card: boolean
-  images: string[]
+  images: BotMeetingPhoto[]
   attendees_count: number
   going: boolean
 }
@@ -163,6 +169,18 @@ export class BackendClient {
 
   async setMeetingAttendance(input: UserProfileInput, meetingId: number, going: boolean): Promise<BotMeetingCard | null> {
     return this.meetingRequest(input, `/api/bot/meetings/${meetingId}/attendance`, { going })
+  }
+
+  async savePhotoToken(input: UserProfileInput, photoId: number, token: string): Promise<string | null> {
+    const response = await fetch(new URL(`/api/bot/meetings/photos/${photoId}/token`, this.baseUrl), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...this.identity(input), token }),
+    })
+    if (response.status === 404) return null
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`)
+    const body = await response.json() as { token?: string }
+    return body.token ?? null
   }
 
   async getPrimaryMessageId(input: UserProfileInput): Promise<string | null> {

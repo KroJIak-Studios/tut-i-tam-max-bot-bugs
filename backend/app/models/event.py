@@ -65,8 +65,10 @@ class EventPhoto(Base):
     __tablename__ = "event_photos"
     id: Mapped[int] = mapped_column(primary_key=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
-    url: Mapped[str] = mapped_column(String(2048))
+    storage_key: Mapped[str] = mapped_column(String(64), unique=True)
+    content_type: Mapped[str] = mapped_column(String(64))
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    max_image_token: Mapped[str | None] = mapped_column(String(1024))
 
 class EventArea(Base):
     __tablename__ = "event_areas"
