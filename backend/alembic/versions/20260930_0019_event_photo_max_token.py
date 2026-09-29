@@ -15,7 +15,9 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.add_column("event_photos", sa.Column("max_image_token", sa.String(length=1024), nullable=True))
+    columns = {column["name"] for column in sa.inspect(op.get_bind()).get_columns("event_photos")}
+    if "max_image_token" not in columns:
+        op.add_column("event_photos", sa.Column("max_image_token", sa.String(length=1024), nullable=True))
 
 
 def downgrade() -> None:

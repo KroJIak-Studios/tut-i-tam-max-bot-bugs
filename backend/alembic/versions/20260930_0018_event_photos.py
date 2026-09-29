@@ -15,14 +15,19 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "event_photos",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("event_id", sa.Integer(), sa.ForeignKey("events.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("url", sa.String(2048), nullable=False),
-        sa.Column("position", sa.Integer(), nullable=False, server_default="0"),
-    )
-    op.create_index("ix_event_photos_event_id_position", "event_photos", ["event_id", "position"])
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if "event_photos" not in inspector.get_table_names():
+        op.create_table(
+            "event_photos",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("event_id", sa.Integer(), sa.ForeignKey("events.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("url", sa.String(2048), nullable=False),
+            sa.Column("position", sa.Integer(), nullable=False, server_default="0"),
+        )
+    indexes = {index["name"] for index in inspector.get_indexes("event_photos")}
+    if "ix_event_photos_event_id_position" not in indexes:
+        op.create_index("ix_event_photos_event_id_position", "event_photos", ["event_id", "position"])
 
 
 def downgrade() -> None:

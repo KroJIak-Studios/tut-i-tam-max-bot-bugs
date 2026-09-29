@@ -15,13 +15,18 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.add_column("event_photos", sa.Column("storage_key", sa.String(length=64), nullable=True))
-    op.add_column("event_photos", sa.Column("content_type", sa.String(length=64), nullable=True))
+    columns = {column["name"] for column in sa.inspect(op.get_bind()).get_columns("event_photos")}
+    if "storage_key" in columns and "url" not in columns:
+        return
+    if "storage_key" not in columns:
+        op.add_column("event_photos", sa.Column("storage_key", sa.String(length=64), nullable=True))
+        op.add_column("event_photos", sa.Column("content_type", sa.String(length=64), nullable=True))
     op.execute("DELETE FROM event_photos")
     op.alter_column("event_photos", "storage_key", nullable=False)
     op.alter_column("event_photos", "content_type", nullable=False)
     op.create_unique_constraint("uq_event_photos_storage_key", "event_photos", ["storage_key"])
-    op.drop_column("event_photos", "url")
+    if "url" in columns:
+        op.drop_column("event_photos", "url")
 
 
 def downgrade() -> None:
