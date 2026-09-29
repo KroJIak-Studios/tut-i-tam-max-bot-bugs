@@ -25,8 +25,10 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
     Boolean(filters.search) ||
     filters.cityId !== 'all' ||
     filters.categoryId !== 'all' ||
-    filters.origin !== 'all' ||
-    filters.freeOnly
+    filters.source !== 'all' ||
+    filters.visible !== 'all' ||
+    filters.freeOnly ||
+    filters.pushkinOnly
 
   return (
     <div className={styles.filtersContainer} role="search" aria-label="Фильтры мероприятий">
@@ -100,22 +102,42 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
         </div>
 
         <div className={styles.filterGroup}>
-          <label htmlFor="filter-origin" className={styles.filterLabel}>
+          <label htmlFor="filter-source" className={styles.filterLabel}>
             Происхождение
           </label>
           <select
-            id="filter-origin"
+            id="filter-source"
             className={styles.selectInput}
-            value={filters.origin}
+            value={filters.source}
             onChange={(e) =>
               onUpdateFilters({
-                origin: e.target.value as 'all' | 'official' | 'user',
+                source: e.target.value as 'all' | 'official' | 'user',
               })
             }
           >
             <option value="all">Все типы</option>
             <option value="official">Официальные события</option>
             <option value="user">Пользовательские события</option>
+          </select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label htmlFor="filter-visible" className={styles.filterLabel}>
+            Видимость в каталоге
+          </label>
+          <select
+            id="filter-visible"
+            className={styles.selectInput}
+            value={filters.visible}
+            onChange={(e) =>
+              onUpdateFilters({
+                visible: e.target.value as 'all' | 'visible' | 'hidden',
+              })
+            }
+          >
+            <option value="all">Все (видимые и скрытые)</option>
+            <option value="visible">Только видимые</option>
+            <option value="hidden">Только скрытые</option>
           </select>
         </div>
 
@@ -126,7 +148,17 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
             checked={filters.freeOnly}
             onChange={(e) => onUpdateFilters({ freeOnly: e.target.checked })}
           />
-          <span>Только бесплатные</span>
+          <span>Бесплатные</span>
+        </label>
+
+        <label className={styles.checkboxContainer}>
+          <input
+            type="checkbox"
+            className={styles.checkboxInput}
+            checked={filters.pushkinOnly}
+            onChange={(e) => onUpdateFilters({ pushkinOnly: e.target.checked })}
+          />
+          <span>Пушкинская карта</span>
         </label>
 
         {hasActiveFilters && (

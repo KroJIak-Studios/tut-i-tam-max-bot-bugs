@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
-import { LayoutGrid, List, AlertCircle, CalendarOff, RefreshCw } from 'lucide-react'
+import {
+  LayoutGrid,
+  List,
+  AlertCircle,
+  CalendarOff,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { useEvents } from '../hooks/useEvents'
 import { EventsHeader } from './EventsHeader'
 import { EventsFilters } from './EventsFilters'
@@ -11,19 +18,23 @@ import styles from './EventsView.module.css'
 
 export const EventsView: React.FC = () => {
   const {
-    filteredEvents,
+    events,
     cities,
     categories,
     stats,
     isLoading,
-    isUnavailable,
     error,
     filters,
+    page,
+    total,
+    totalPages,
     selectedEvent,
     isDetailOpen,
+    isLoadingDetail,
     isPhotosModalOpen,
-    isSavingPhotos,
+    isMutatingPhoto,
     photosError,
+    setPage,
     refresh,
     updateFilters,
     resetFilters,
@@ -31,7 +42,8 @@ export const EventsView: React.FC = () => {
     closeDetail,
     openPhotosModal,
     closePhotosModal,
-    savePhotos,
+    uploadPhoto,
+    deletePhoto,
   } = useEvents()
 
   // Default to cards on small screens, table on larger screens
@@ -67,43 +79,27 @@ export const EventsView: React.FC = () => {
           <div className={styles.spinner} aria-hidden="true" />
           <span>Загрузка мероприятий...</span>
         </div>
-      ) : isUnavailable || filteredEvents.length === 0 ? (
+      ) : events.length === 0 ? (
         <div className={styles.emptyState}>
           <CalendarOff size={40} className={styles.emptyIcon} aria-hidden="true" />
-          <h2 className={styles.emptyTitle}>
-            {isUnavailable
-              ? 'Каталог мероприятий пуст или синхронизируется'
-              : 'Мероприятия не найдены'}
-          </h2>
+          <h2 className={styles.emptyTitle}>Мероприятия не найдены</h2>
           <p className={styles.emptyText}>
-            {isUnavailable
-              ? 'Серверный каталог событий синхронизируется с базой данных. Вы можете обновить страницу или проверить статус позже.'
-              : 'По выбранным фильтрам и условиям поиска событий не обнаружено. Попробуйте сбросить параметры фильтрации.'}
+            По выбранным фильтрам и параметрам поиска событий не обнаружено.
+            Попробуйте сбросить параметры фильтрации.
           </p>
-          {isUnavailable ? (
-            <button
-              type="button"
-              className={styles.emptyActionBtn}
-              onClick={refresh}
-            >
-              <RefreshCw size={15} aria-hidden="true" />
-              <span>Обновить данные</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={styles.emptyActionBtn}
-              onClick={resetFilters}
-            >
-              Сбросить фильтры
-            </button>
-          )}
+          <button
+            type="button"
+            className={styles.emptyActionBtn}
+            onClick={resetFilters}
+          >
+            Сбросить фильтры
+          </button>
         </div>
       ) : (
         <>
           <div className={styles.viewControlsRow}>
             <span className={styles.countLabel}>
-              Найдено мероприятий: {filteredEvents.length}
+              Найдено мероприятий: {total}
             </span>
 
             <div className={styles.viewModeToggle} role="group" aria-label="Вид отображения">
@@ -134,7 +130,7 @@ export const EventsView: React.FC = () => {
 
           {viewMode === 'table' ? (
             <EventsTable
-              events={filteredEvents}
+              events={events}
               cities={cities}
               categories={categories}
               onOpenDetail={openDetail}
@@ -142,7 +138,7 @@ export const EventsView: React.FC = () => {
             />
           ) : (
             <div className={styles.cardsGrid}>
-              {filteredEvents.map((event) => (
+              {events.map((event) => (
                 <EventsCard
                   key={event.id}
                   event={event}
@@ -154,6 +150,41 @@ export const EventsView: React.FC = () => {
               ))}
             </div>
           )}
+
+          {/* Server-side Pagination */}
+          <div className={styles.paginationRow}>
+            <span className={styles.paginationTotal}>
+              Всего: {total} {total === 1 ? 'мероприятие' : 'мероприятий'}
+            </span>
+
+            <div className={styles.paginationControls}>
+              <button
+                type="button"
+                className={styles.paginationBtn}
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1 || isLoading}
+                aria-label="Предыдущая страница"
+              >
+                <ChevronLeft size={16} aria-hidden="true" />
+                <span>Предыдущая</span>
+              </button>
+
+              <span className={styles.paginationCurrent}>
+                {page} из {totalPages}
+              </span>
+
+              <button
+                type="button"
+                className={styles.paginationBtn}
+                onClick={() => setPage(page + 1)}
+                disabled={page >= totalPages || isLoading}
+                aria-label="Следующая страница"
+              >
+                <span>Следующая</span>
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
         </>
       )}
 
@@ -161,21 +192,23 @@ export const EventsView: React.FC = () => {
       <EventDetailModal
         event={selectedEvent}
         isOpen={isDetailOpen}
+        isLoading={isLoadingDetail}
         cities={cities}
         categories={categories}
         onClose={closeDetail}
         onOpenPhotos={openPhotosModal}
       />
 
-      {/* Event Photos Modal (PATCH /admin/events/{event_id}/photos) */}
+      {/* Event Photos Modal */}
       <EventPhotosModal
         key={selectedEvent ? `photos-${selectedEvent.id}-${isPhotosModalOpen}` : 'photos-none'}
         event={selectedEvent}
         isOpen={isPhotosModalOpen}
-        isSaving={isSavingPhotos}
+        isMutating={isMutatingPhoto}
         error={photosError}
         onClose={closePhotosModal}
-        onSave={savePhotos}
+        onUpload={uploadPhoto}
+        onDelete={deletePhoto}
       />
     </div>
   )

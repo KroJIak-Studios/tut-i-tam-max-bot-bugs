@@ -13,6 +13,8 @@ import {
   formatEventPrice,
   getOriginBadge,
   getPhaseBadge,
+  getVisibilityBadge,
+  getFirstImageUrl,
   resolveCityName,
   resolveCategoryName,
 } from '../utils/eventFormatters'
@@ -38,11 +40,12 @@ export const EventsCard: React.FC<EventsCardProps> = ({
 }) => {
   const originInfo = getOriginBadge(event.origin)
   const phaseInfo = getPhaseBadge(event.phase)
+  const visibilityInfo = getVisibilityBadge(event.visible)
   const cityName = resolveCityName(event.city_id, cities)
   const categoryName = resolveCategoryName(event.category_id, categories)
   const priceDisplay = formatEventPrice(event)
   const hasPhotos = event.images && event.images.length > 0
-  const firstPhoto = hasPhotos ? event.images[0] : null
+  const firstPhoto = getFirstImageUrl(event.images)
 
   return (
     <article className={styles.card} aria-label={`Мероприятие: ${event.title}`}>
@@ -54,6 +57,13 @@ export const EventsCard: React.FC<EventsCardProps> = ({
             }`}
           >
             {originInfo.label}
+          </span>
+          <span
+            className={`${styles.badge} ${
+              event.visible ? styles.badgeVisible : styles.badgeHidden
+            }`}
+          >
+            {visibilityInfo.label}
           </span>
           <span
             className={`${styles.badge} ${

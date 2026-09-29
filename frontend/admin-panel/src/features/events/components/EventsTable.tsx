@@ -4,6 +4,8 @@ import {
   formatEventDateTime,
   formatEventPrice,
   getOriginBadge,
+  getVisibilityBadge,
+  getFirstImageUrl,
   resolveCityName,
   resolveCategoryName,
 } from '../utils/eventFormatters'
@@ -36,6 +38,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
             <th className={styles.th}>Город</th>
             <th className={styles.th}>Категория</th>
             <th className={styles.th}>Тип</th>
+            <th className={styles.th}>Видимость</th>
             <th className={styles.th}>Дата и время</th>
             <th className={styles.th}>Стоимость</th>
             <th className={styles.th}>Чат</th>
@@ -45,10 +48,11 @@ export const EventsTable: React.FC<EventsTableProps> = ({
         <tbody>
           {events.map((event) => {
             const originInfo = getOriginBadge(event.origin)
+            const visibilityInfo = getVisibilityBadge(event.visible)
             const cityName = resolveCityName(event.city_id, cities)
             const categoryName = resolveCategoryName(event.category_id, categories)
             const priceDisplay = formatEventPrice(event)
-            const firstPhoto = event.images && event.images.length > 0 ? event.images[0] : null
+            const firstPhoto = getFirstImageUrl(event.images)
 
             return (
               <tr key={event.id} className={styles.tr}>
@@ -91,6 +95,16 @@ export const EventsTable: React.FC<EventsTableProps> = ({
                     }`}
                   >
                     {originInfo.label}
+                  </span>
+                </td>
+
+                <td className={styles.td}>
+                  <span
+                    className={`${styles.badge} ${
+                      event.visible ? styles.badgeVisible : styles.badgeHidden
+                    }`}
+                  >
+                    {visibilityInfo.label}
                   </span>
                 </td>
 
