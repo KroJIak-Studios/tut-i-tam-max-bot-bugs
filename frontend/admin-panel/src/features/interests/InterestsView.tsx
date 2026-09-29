@@ -10,7 +10,7 @@ import {
 import type { InterestItem, Locale } from './types'
 import { interestsApi } from './api/interestsApi'
 import { getFallbackLocaleCode } from './utils/localeUtils'
-import { InterestsList } from './components/InterestsList'
+import { LocalizedEntityList } from '../../components/LocalizedEntity/LocalizedEntityList'
 import { InterestModal } from './components/InterestModal'
 import { InterestDeleteModal } from './components/InterestDeleteModal'
 import styles from './InterestsView.module.css'
@@ -21,6 +21,7 @@ export const InterestsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [editingInterest, setEditingInterest] = useState<InterestItem | null>(null)
@@ -224,13 +225,20 @@ export const InterestsView: React.FC = () => {
           </button>
         </div>
       ) : (
-        <InterestsList
-          interests={interests}
+        <LocalizedEntityList<InterestItem>
+          items={interests}
           locales={locales}
           fallbackLocaleCode={fallbackLocaleCode}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           onEdit={handleOpenEdit}
           onDelete={handleOpenDelete}
           onCreateClick={handleOpenCreate}
+          entityLabel="Интерес"
+          createButtonLabel="Добавить интерес"
+          emptyTitle="Интересы не найдены"
+          emptyText="В справочнике пока нет интересов. Вы можете создать первый интерес с локализацией названий."
+          /* users_count not yet available in backend — omit countLabel */
         />
       )}
 

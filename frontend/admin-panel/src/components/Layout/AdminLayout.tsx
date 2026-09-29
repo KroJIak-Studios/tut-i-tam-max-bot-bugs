@@ -12,34 +12,26 @@ import {
   IconMenu,
 } from '../Icons'
 import { useAuth } from '../../hooks/useAuth'
-import {
-  getRequestsStats,
-  ADMIN_REQUESTS_CHANGED_EVENT,
-} from '../../services/adminRequestsRepository'
+import { useModerationCounts } from '../../features/moderation/hooks/useModerationCounts'
 import styles from './AdminLayout.module.css'
 
 export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth()
-  const [pendingCount, setPendingCount] = useState<number>(0)
+  const { pendingCount } = useModerationCounts()
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
-
-  const refreshStats = () => {
-    getRequestsStats().then((stats) => {
-      setPendingCount(stats.pending)
-    })
-  }
-
-  useEffect(() => {
-    refreshStats()
-    window.addEventListener(ADMIN_REQUESTS_CHANGED_EVENT, refreshStats)
-    return () => {
-      window.removeEventListener(ADMIN_REQUESTS_CHANGED_EVENT, refreshStats)
-    }
-  }, [])
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false)
   }
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) closeMobileMenu()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [mobileMenuOpen])
 
   const userInitials =
     (user?.username || 'AD')
@@ -58,6 +50,7 @@ export const AdminLayout: React.FC = () => {
             className={styles.menuToggleBtn}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Переключить меню навигации"
+            aria-expanded={mobileMenuOpen}
           >
             <IconMenu size={20} />
           </button>
@@ -99,10 +92,11 @@ export const AdminLayout: React.FC = () => {
         )}
 
         <aside
-          className={`${styles.sidebar} ${
-            mobileMenuOpen ? styles.mobileOpen : ''
-          }`}
+          className={`${styles.sidebar} ${mobileMenuOpen ? styles.mobileOpen : ''}`}
+          role="navigation"
+          aria-label="Главное меню"
         >
+          {/* ОБЗОР */}
           <div className={styles.navSectionTitle}>Обзор</div>
 
           <NavLink
@@ -118,7 +112,21 @@ export const AdminLayout: React.FC = () => {
             </div>
           </NavLink>
 
-          <div className={styles.navSectionTitle}>Модерация</div>
+          {/* СОБЫТИЯ */}
+          <div className={styles.navSectionTitle}>События</div>
+
+          <NavLink
+            to="/events"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconEvents size={18} />
+              <span className={styles.navItemText}>Мероприятия</span>
+            </div>
+          </NavLink>
 
           <NavLink
             to="/requests"
@@ -141,7 +149,8 @@ export const AdminLayout: React.FC = () => {
             )}
           </NavLink>
 
-          <div className={styles.navSectionTitle}>Справочники & Данные</div>
+          {/* СПРАВОЧНИКИ & ДАННЫЕ */}
+          <div className={styles.navSectionTitle}>Справочники &amp; Данные</div>
 
           <NavLink
             to="/categories"
@@ -179,21 +188,6 @@ export const AdminLayout: React.FC = () => {
             <div className={styles.navItemLeft}>
               <IconHeart size={18} />
               <span className={styles.navItemText}>Интересы</span>
-            </div>
-          </NavLink>
-
-          <div className={styles.navSectionTitle}>События</div>
-
-          <NavLink
-            to="/events"
-            onClick={closeMobileMenu}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.active : ''}`
-            }
-          >
-            <div className={styles.navItemLeft}>
-              <IconEvents size={18} />
-              <span className={styles.navItemText}>Мероприятия</span>
             </div>
           </NavLink>
         </aside>

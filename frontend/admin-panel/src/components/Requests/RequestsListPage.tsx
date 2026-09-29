@@ -1,398 +1,479 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Search, X, ChevronRight, AlertCircle } from 'lucide-react'
+import { moderationApi } from '../../features/moderation/api/moderationApi'
 import type {
-  AdminEventRequest,
-  AdminRequestStatus,
-  EventCategory,
-  LocationMode,
-} from '../../types/request'
+  ModerationStatus,
+  ModerationQueueResponse,
+  ModerationCounts,
+  ModerationEventCard,
+} from '../../features/moderation/types'
 import {
-  getRequests,
-  getRequestsStats,
-  ADMIN_REQUESTS_CHANGED_EVENT,
-} from '../../services/adminRequestsRepository'
-import {
-  getStatusLabel,
-  getCategoryLabel,
-  formatDateTimeRange,
-  formatSubmissionTime,
-} from '../../utils/formatters'
-import {
-  IconSearch,
-  IconX,
-  IconArrowRight,
-  IconMapPin,
-  IconPolygon,
-} from '../Icons'
+  getModerationStatusLabel,
+  formatTimeAgo,
+  formatDateRange,
+} from '../../utils/moderationFormatters'
+import { categoriesApi } from '../../features/categories/api/categoriesApi'
+import { citiesApi } from '../../features/cities/api/citiesApi'
+import type { EventCategory } from '../../features/categories/types'
+import type { City } from '../../features/cities/types/city'
 import styles from './RequestsListPage.module.css'
+
+const PAGE_SIZE = 20
+
+const STATUS_TABS: Array<{ value: ModerationStatus | 'all'; label: string }> = [
+  { value: 'all', label: 'Все' },
+  { value: 'pending', label: 'На проверке' },
+  { value: 'changes_requested', label: 'На доработку' },
+  { value: 'approved', label: 'Одобрено' },
+  { value: 'rejected', label: 'Отклонено' },
+]
+
+function getStatusBadgeClass(status: ModerationStatus): string {
+  switch (status) {
+    case 'pending':
+      return styles.statusPending
+    case 'approved':
+      return styles.statusApproved
+    case 'rejected':
+      return styles.statusRejected
+    case 'changes_requested':
+      return styles.statusChanges
+    default:
+      return ''
+  }
+}
+
+function getCategoryName(
+  categoryId: number | null,
+  categories: EventCategory[],
+): string {
+  if (categoryId === null) return '—'
+  const found = categories.find((c) => c.id === categoryId)
+  if (!found) return `#${categoryId}`
+  const ruName = found.names.find((n) => n.locale_code === 'ru')
+  if (ruName) return ruName.text
+  return found.names[0]?.text || `#${categoryId}`
+}
+
+function getCityName(cityId: number, cities: City[]): string {
+  const found = cities.find((c) => c.id === cityId)
+  if (!found) return `#${cityId}`
+  const ruName = found.names.find((n) => n.locale_code === 'ru')
+  if (ruName) return ruName.text
+  return found.names[0]?.text || `#${cityId}`
+}
 
 export const RequestsListPage: React.FC = () => {
   const navigate = useNavigate()
-  const [requests, setRequests] = useState<AdminEventRequest[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    needsChanges: 0,
-    approved: 0,
-    rejected: 0,
-  })
 
-  // Filters
-  const [search, setSearch] = useState<string>('')
-  const [selectedStatus, setSelectedStatus] = useState<AdminRequestStatus | 'all'>('all')
-  const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all')
-  const [selectedLocationMode, setSelectedLocationMode] = useState<LocationMode | 'all'>('all')
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
+  const [data, setData] = useState<ModerationQueueResponse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const loadData = useCallback(() => {
-    let isCurrent = true
-    Promise.all([
-      getRequests({
-        search,
-        status: selectedStatus,
-        category: selectedCategory,
-        locationMode: selectedLocationMode,
-        sort: sortOrder,
-      }),
-      getRequestsStats(),
-    ]).then(([list, st]) => {
-      if (isCurrent) {
-        setRequests(list)
-        setStats(st)
-        setLoading(false)
-      }
-    })
-    return () => {
-      isCurrent = false
-    }
-  }, [search, selectedStatus, selectedCategory, selectedLocationMode, sortOrder])
+  const [selectedStatus, setSelectedStatus] = useState<ModerationStatus | 'all'>('all')
+  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [selectedCityId, setSelectedCityId] = useState<number | 'all'>('all')
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | 'all'>('all')
+  const [offset, setOffset] = useState(0)
 
+  const [categories, setCategories] = useState<EventCategory[]>([])
+  const [cities, setCities] = useState<City[]>([])
+
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Load reference data once
   useEffect(() => {
-    const cleanup = loadData()
-    return cleanup
-  }, [loadData])
-
-  useEffect(() => {
-    const handleChanged = () => {
-      loadData()
-    }
-    window.addEventListener(ADMIN_REQUESTS_CHANGED_EVENT, handleChanged)
-    return () => {
-      window.removeEventListener(ADMIN_REQUESTS_CHANGED_EVENT, handleChanged)
-    }
-  }, [loadData])
-
-  const hasActiveFilters = useMemo(() => {
-    return (
-      search.trim().length > 0 ||
-      selectedStatus !== 'all' ||
-      selectedCategory !== 'all' ||
-      selectedLocationMode !== 'all' ||
-      sortOrder !== 'newest'
+    Promise.allSettled([categoriesApi.getCategories(), citiesApi.listCities()]).then(
+      ([catResult, cityResult]) => {
+        if (catResult.status === 'fulfilled') setCategories(catResult.value)
+        if (cityResult.status === 'fulfilled') setCities(cityResult.value)
+      },
     )
-  }, [search, selectedStatus, selectedCategory, selectedLocationMode, sortOrder])
+  }, [])
 
-  const handleResetFilters = () => {
-    setSearch('')
-    setSelectedStatus('all')
-    setSelectedCategory('all')
-    setSelectedLocationMode('all')
-    setSortOrder('newest')
+  const load = useCallback(() => {
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+
+    setIsLoading(true)
+    setError(null)
+
+    moderationApi
+      .getQueue({
+        status: selectedStatus === 'all' ? undefined : selectedStatus,
+        city_id: selectedCityId === 'all' ? undefined : selectedCityId,
+        category_id: selectedCategoryId === 'all' ? undefined : selectedCategoryId,
+        q: search || undefined,
+        limit: PAGE_SIZE,
+        offset,
+      })
+      .then((res) => {
+        if (!ctrl.signal.aborted) {
+          setData(res)
+          setIsLoading(false)
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ctrl.signal.aborted) {
+          setError(err instanceof Error ? err.message : 'Не удалось загрузить заявки')
+          setIsLoading(false)
+        }
+      })
+  }, [selectedStatus, selectedCityId, selectedCategoryId, search, offset])
+
+  useEffect(() => {
+    setOffset(0)
+  }, [selectedStatus, selectedCityId, selectedCategoryId, search])
+
+  useEffect(() => {
+    load()
+    return () => abortRef.current?.abort()
+  }, [load])
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => {
+      setSearch(value)
+    }, 350)
   }
 
-  const getStatusBadgeClass = (status: AdminRequestStatus) => {
-    switch (status) {
-      case 'pending':
-        return styles.statusPending
-      case 'needs_changes':
-        return styles.statusNeedsChanges
-      case 'approved':
-        return styles.statusApproved
-      case 'rejected':
-        return styles.statusRejected
-      default:
-        return ''
-    }
+  const handleClearSearch = () => {
+    setSearchInput('')
+    setSearch('')
+  }
+
+  const counts: ModerationCounts = data?.counts ?? {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    changes_requested: 0,
+  }
+
+  const total = data?.total ?? 0
+  const items: ModerationEventCard[] = data?.items ?? []
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const currentPage = Math.floor(offset / PAGE_SIZE) + 1
+
+  const tabCount = (tab: ModerationStatus | 'all'): number | null => {
+    if (tab === 'all') return total
+    if (tab === 'pending') return counts.pending
+    if (tab === 'approved') return counts.approved
+    if (tab === 'rejected') return counts.rejected
+    if (tab === 'changes_requested') return counts.changes_requested
+    return null
   }
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Заявки на мероприятия</h1>
-        <p className={styles.pageSubtitle}>
-          Модерация предложений от пользователей платформы «Тут и Там»
-        </p>
+      {/* Header */}
+      <header className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.pageTitle}>Заявки на мероприятия</h1>
+          <p className={styles.pageSubtitle}>
+            Модерация пользовательских мероприятий
+          </p>
+        </div>
+      </header>
+
+      {/* Status tabs */}
+      <div className={styles.statsBar} role="tablist" aria-label="Фильтр по статусу">
+        {STATUS_TABS.map((tab) => {
+          const count = tabCount(tab.value)
+          const isActive = selectedStatus === tab.value
+          return (
+            <button
+              key={tab.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`${styles.statTab} ${isActive ? styles.active : ''}`}
+              onClick={() => setSelectedStatus(tab.value)}
+            >
+              <span>{tab.label}</span>
+              {count !== null && count >= 0 && (
+                <span
+                  className={`${styles.statCount} ${tab.value === 'pending' && count > 0 ? styles.statCountPending : ''}`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Summary counters / tabs bar */}
-      <div className={styles.statsBar}>
-        <button
-          type="button"
-          className={`${styles.statTab} ${selectedStatus === 'all' ? styles.active : ''}`}
-          onClick={() => setSelectedStatus('all')}
-        >
-          <span>Все заявки</span>
-          <span className={styles.statCount}>{stats.total}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.statTab} ${selectedStatus === 'pending' ? styles.active : ''}`}
-          onClick={() => setSelectedStatus('pending')}
-        >
-          <span>На проверке</span>
-          <span
-            className={`${styles.statCount} ${stats.pending > 0 ? styles.statCountPending : ''}`}
-          >
-            {stats.pending}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.statTab} ${selectedStatus === 'needs_changes' ? styles.active : ''}`}
-          onClick={() => setSelectedStatus('needs_changes')}
-        >
-          <span>Нужны уточнения</span>
-          <span className={styles.statCount}>{stats.needsChanges}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.statTab} ${selectedStatus === 'approved' ? styles.active : ''}`}
-          onClick={() => setSelectedStatus('approved')}
-        >
-          <span>Одобрены</span>
-          <span className={styles.statCount}>{stats.approved}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.statTab} ${selectedStatus === 'rejected' ? styles.active : ''}`}
-          onClick={() => setSelectedStatus('rejected')}
-        >
-          <span>Отклонены</span>
-          <span className={styles.statCount}>{stats.rejected}</span>
-        </button>
-      </div>
-
-      {/* Filter toolbar */}
-      <div className={styles.filterCard}>
-        <div className={styles.filterRow}>
-          <div className={styles.searchBox}>
-            <IconSearch size={16} color="var(--color-text-muted)" />
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Поиск по названию, автору, ID..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                type="button"
-                className={styles.clearSearchBtn}
-                onClick={() => setSearch('')}
-                aria-label="Очистить поиск"
-              >
-                <IconX size={14} />
-              </button>
-            )}
-          </div>
-
-          <select
-            className={styles.filterSelect}
-            value={selectedStatus}
-            onChange={(e) =>
-              setSelectedStatus(e.target.value as AdminRequestStatus | 'all')
-            }
-          >
-            <option value="all">Все статусы</option>
-            <option value="pending">На проверке</option>
-            <option value="needs_changes">Нужны уточнения</option>
-            <option value="approved">Одобрено</option>
-            <option value="rejected">Отклонено</option>
-          </select>
-
-          <select
-            className={styles.filterSelect}
-            value={selectedCategory}
-            onChange={(e) =>
-              setSelectedCategory(e.target.value as EventCategory | 'all')
-            }
-          >
-            <option value="all">Все категории</option>
-            <option value="events">Мероприятия</option>
-            <option value="sports">Спорт</option>
-            <option value="volunteer">Волонтёрство</option>
-            <option value="parks">Парки</option>
-            <option value="places">Места</option>
-          </select>
-
-          <select
-            className={styles.filterSelect}
-            value={selectedLocationMode}
-            onChange={(e) =>
-              setSelectedLocationMode(e.target.value as LocationMode | 'all')
-            }
-          >
-            <option value="all">Формат места: Все</option>
-            <option value="point">Точка на карте</option>
-            <option value="area">Зона проведения</option>
-          </select>
-
-          <select
-            className={styles.filterSelect}
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-          >
-            <option value="newest">Сначала новые</option>
-            <option value="oldest">Сначала старые</option>
-          </select>
-
-          {hasActiveFilters && (
+      {/* Filters */}
+      <div className={styles.filtersRow}>
+        <div className={styles.searchWrapper}>
+          <Search size={15} className={styles.searchIcon} aria-hidden="true" />
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Поиск по названию, описанию, адресу..."
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-label="Поиск заявок"
+          />
+          {searchInput && (
             <button
               type="button"
-              className={styles.resetFiltersBtn}
-              onClick={handleResetFilters}
+              className={styles.clearSearchBtn}
+              onClick={handleClearSearch}
+              aria-label="Очистить поиск"
             >
-              Сбросить фильтры
+              <X size={14} />
             </button>
           )}
         </div>
+
+        {cities.length > 0 && (
+          <select
+            className={styles.filterSelect}
+            value={selectedCityId}
+            onChange={(e) =>
+              setSelectedCityId(e.target.value === 'all' ? 'all' : Number(e.target.value))
+            }
+            aria-label="Фильтр по городу"
+          >
+            <option value="all">Все города</option>
+            {cities.map((city) => {
+              const name = city.names.find((n) => n.locale_code === 'ru')?.text ?? city.names[0]?.text ?? `#${city.id}`
+              return (
+                <option key={city.id} value={city.id}>
+                  {name}
+                </option>
+              )
+            })}
+          </select>
+        )}
+
+        {categories.length > 0 && (
+          <select
+            className={styles.filterSelect}
+            value={selectedCategoryId}
+            onChange={(e) =>
+              setSelectedCategoryId(
+                e.target.value === 'all' ? 'all' : Number(e.target.value),
+              )
+            }
+            aria-label="Фильтр по категории"
+          >
+            <option value="all">Все категории</option>
+            {categories.map((cat) => {
+              const name =
+                cat.names.find((n) => n.locale_code === 'ru')?.text ??
+                cat.names[0]?.text ??
+                `#${cat.id}`
+              return (
+                <option key={cat.id} value={cat.id}>
+                  {name}
+                </option>
+              )
+            })}
+          </select>
+        )}
+
+        {(selectedCityId !== 'all' || selectedCategoryId !== 'all' || search) && (
+          <button
+            type="button"
+            className={styles.resetFiltersBtn}
+            onClick={() => {
+              setSelectedCityId('all')
+              setSelectedCategoryId('all')
+              handleClearSearch()
+            }}
+          >
+            Сбросить фильтры
+          </button>
+        )}
       </div>
 
-      {/* Table */}
+      {/* Error state */}
+      {error && !isLoading && (
+        <div className={styles.errorState} role="alert">
+          <AlertCircle size={20} />
+          <span>{error}</span>
+          <button type="button" className={styles.retryBtn} onClick={load}>
+            Повторить
+          </button>
+        </div>
+      )}
+
+      {/* Table card */}
       <div className={styles.tableCard}>
-        {loading ? (
+        {isLoading ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyTitle}>Загрузка данных...</div>
+            <div className={styles.spinner} />
+            <div className={styles.emptyTitle}>Загрузка заявок...</div>
           </div>
-        ) : requests.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyTitle}>Заявок не найдено</div>
             <p className={styles.emptyText}>
-              По заданным критериям фильтрации нет ни одной заявки. Попробуйте
-              сбросить фильтры.
+              По заданным критериям фильтрации нет ни одной заявки.
             </p>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                className={styles.resetFiltersBtn}
-                onClick={handleResetFilters}
-              >
-                Сбросить фильтры
-              </button>
-            )}
           </div>
         ) : (
-          <div className={styles.tableResponsive}>
-            <table className={styles.table}>
-              <thead className={styles.thead}>
-                <tr>
-                  <th className={styles.th}>ID</th>
-                  <th className={styles.th}>Название</th>
-                  <th className={styles.th}>Автор</th>
-                  <th className={styles.th}>Категория</th>
-                  <th className={styles.th}>Дата проведения</th>
-                  <th className={styles.th}>Место</th>
-                  <th className={styles.th}>Подано</th>
-                  <th className={styles.th}>Статус</th>
-                  <th className={styles.th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.map((req) => (
-                  <tr
-                    key={req.id}
-                    className={styles.tr}
-                    onClick={() => navigate(`/requests/${req.id}`)}
-                  >
-                    <td className={`${styles.td} ${styles.idCell}`}>
-                      #{req.id}
-                    </td>
-                    <td className={`${styles.td} ${styles.titleCell}`}>
-                      {req.title}
-                    </td>
-                    <td className={styles.td}>
-                      <div className={styles.authorCell}>
-                        <span className={styles.authorName}>
-                          {req.author.name}
+          <>
+            {/* Desktop table */}
+            <div className={styles.tableResponsive}>
+              <table className={styles.table}>
+                <thead className={styles.thead}>
+                  <tr>
+                    <th className={styles.th}>ID</th>
+                    <th className={styles.th}>Название</th>
+                    <th className={styles.th}>Автор</th>
+                    <th className={styles.th}>Город</th>
+                    <th className={styles.th}>Категория</th>
+                    <th className={styles.th}>Дата</th>
+                    <th className={styles.th}>Подано</th>
+                    <th className={styles.th}>Статус</th>
+                    <th className={styles.th} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className={styles.tr}
+                      onClick={() => navigate(`/requests/${item.id}`)}
+                    >
+                      <td className={`${styles.td} ${styles.idCell}`}>#{item.id}</td>
+                      <td className={`${styles.td} ${styles.titleCell}`}>
+                        {item.title}
+                      </td>
+                      <td className={styles.td}>
+                        {item.author ? (
+                          <div className={styles.authorCell}>
+                            <span className={styles.authorName}>
+                              {item.author.first_name}
+                              {item.author.last_name ? ` ${item.author.last_name}` : ''}
+                            </span>
+                            <span className={styles.authorId}>#{item.author.id}</span>
+                          </div>
+                        ) : (
+                          <span className={styles.noValue}>—</span>
+                        )}
+                      </td>
+                      <td className={styles.td}>
+                        <span className={styles.cityBadge}>
+                          {getCityName(item.city_id, cities)}
                         </span>
-                        <span className={styles.authorId}>
-                          {req.author.id}
+                      </td>
+                      <td className={styles.td}>
+                        <span className={styles.categoryBadge}>
+                          {getCategoryName(item.category_id, categories)}
                         </span>
-                      </div>
-                    </td>
-                    <td className={styles.td}>
-                      <span className={styles.categoryBadge}>
-                        {getCategoryLabel(req.category)}
-                      </span>
-                    </td>
-                    <td className={`${styles.td} ${styles.dateCell}`}>
-                      {formatDateTimeRange(
-                        req.startDate,
-                        req.startTime,
-                        req.endDate,
-                        req.endTime,
-                      )}
-                    </td>
-                    <td className={styles.td}>
-                      <div className={styles.locationCell}>
-                        <span className={styles.locationAddress} title={req.address}>
-                          {req.address}
-                        </span>
-                        <span className={styles.locationTypeBadge}>
-                          {req.locationMode === 'point' ? (
-                            <>
-                              <IconMapPin size={12} />
-                              <span>Точка</span>
-                            </>
-                          ) : (
-                            <>
-                              <IconPolygon size={12} />
-                              <span>
-                                Зона ({req.locationArea?.points.length || 0})
-                              </span>
-                            </>
-                          )}
-                        </span>
-                      </div>
-                    </td>
-                    <td className={`${styles.td} ${styles.timeAgo}`}>
-                      {formatSubmissionTime(req.submittedAt)}
-                    </td>
-                    <td className={styles.td}>
+                      </td>
+                      <td className={`${styles.td} ${styles.dateCell}`}>
+                        {formatDateRange(item.starts_at, item.ends_at)}
+                      </td>
+                      <td className={`${styles.td} ${styles.timeAgo}`}>
+                        {formatTimeAgo(item.moderation?.submitted_at)}
+                      </td>
+                      <td className={styles.td}>
+                        {item.moderation && (
+                          <span
+                            className={`${styles.statusBadge} ${getStatusBadgeClass(item.moderation.status)}`}
+                          >
+                            <span className={styles.statusDot} />
+                            {getModerationStatusLabel(item.moderation.status)}
+                          </span>
+                        )}
+                      </td>
+                      <td className={styles.td}>
+                        <button
+                          type="button"
+                          className={styles.openLink}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/requests/${item.id}`)
+                          }}
+                          aria-label={`Открыть заявку ${item.title}`}
+                        >
+                          <span>Открыть</span>
+                          <ChevronRight size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className={styles.mobileCardList}>
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={styles.mobileCard}
+                  onClick={() => navigate(`/requests/${item.id}`)}
+                >
+                  <div className={styles.mobileCardTop}>
+                    <span className={styles.mobileCardTitle}>{item.title}</span>
+                    {item.moderation && (
                       <span
-                        className={`${styles.statusBadge} ${getStatusBadgeClass(
-                          req.status,
-                        )}`}
+                        className={`${styles.statusBadge} ${getStatusBadgeClass(item.moderation.status)}`}
                       >
                         <span className={styles.statusDot} />
-                        {getStatusLabel(req.status)}
+                        {getModerationStatusLabel(item.moderation.status)}
                       </span>
-                    </td>
-                    <td className={styles.td}>
-                      <button
-                        type="button"
-                        className={styles.openLink}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigate(`/requests/${req.id}`)
-                        }}
-                      >
-                        <span>Открыть</span>
-                        <IconArrowRight size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    )}
+                  </div>
+                  <div className={styles.mobileCardMeta}>
+                    {item.author && (
+                      <span>
+                        {item.author.first_name}
+                        {item.author.last_name ? ` ${item.author.last_name}` : ''} · #{item.author.id}
+                      </span>
+                    )}
+                    <span>{getCityName(item.city_id, cities)}</span>
+                    <span>{formatTimeAgo(item.moderation?.submitted_at)}</span>
+                  </div>
+                  <ChevronRight size={16} className={styles.mobileCardChevron} />
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            type="button"
+            className={styles.pageBtn}
+            disabled={currentPage <= 1}
+            onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+          >
+            ← Назад
+          </button>
+          <span className={styles.pageInfo}>
+            Страница {currentPage} из {totalPages} · {total} заявок
+          </span>
+          <button
+            type="button"
+            className={styles.pageBtn}
+            disabled={currentPage >= totalPages}
+            onClick={() => setOffset(offset + PAGE_SIZE)}
+          >
+            Далее →
+          </button>
+        </div>
+      )}
+
+      {!isLoading && total > 0 && totalPages <= 1 && (
+        <div className={styles.totalInfo}>
+          Показано {items.length} из {total} заявок
+        </div>
+      )}
     </div>
   )
 }
