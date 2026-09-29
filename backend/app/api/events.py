@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
+from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy import delete, exists, func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.max_init_data import validate_init_data
+from app.core.local_dev_auth import LOCAL_DEV_AUTH_PREFIX, local_dev_auth_allowed, request_host
+from app.core.max_init_data import MaxInitUser, validate_init_data
 from app.core.settings import get_settings
 from app.db import get_session
 from app.models.event import City, CityName, Event, EventAttendance, EventView, MapArea, OfficialEvent, UserEvent
@@ -22,22 +24,41 @@ router = APIRouter(prefix="/v1", tags=["events"])
 
 
 async def current_user(
+    request: Request,
     authorization: str = Header(...),
     session: AsyncSession = Depends(get_session),
 ) -> tuple[AsyncSession, MaxUser]:
     scheme, _, init_data = authorization.partition(" ")
-    if scheme != "tma" or not init_data:
-        raise HTTPException(status_code=401, detail="init_data_required")
+    settings = get_settings()
+    hostname = request_host(request.headers.get("x-forwarded-host"), request.headers.get("host"))
+    local_auth = init_data.startswith(LOCAL_DEV_AUTH_PREFIX) and local_dev_auth_allowed(settings, hostname)
     try:
-        init_user = validate_init_data(init_data, get_settings().bot_token)
-    except ValueError:
-        raise HTTPException(status_code=401, detail="init_data_invalid") from None
+        if local_auth:
+            _prefix, raw_id, raw_name, raw_locale = (init_data.split(":", 3) + [""] * 4)[:4]
+            try:
+                dev_id = int(raw_id)
+            except ValueError:
+                raise ValueError("init_data_invalid") from None
+            init_user = MaxInitUser(id=dev_id, first_name=unquote(raw_name) or "Local Tester", last_name=None, username=None, language_code=raw_locale or "ru-ru", photo_url=None, ip=None)
+        elif scheme == "tma" and init_data:
+            init_user = validate_init_data(init_data, settings.bot_token)
+        else:
+            raise ValueError("init_data_required")
+    except ValueError as error:
+        detail = "init_data_required" if str(error) == "init_data_required" else "init_data_invalid"
+        raise HTTPException(status_code=401, detail=detail) from None
     service = EventsService(session)
     user = await service.identity(init_user)
-    settings = get_settings()
-    if settings.access_code_enabled and user.access_code_fingerprint != settings.access_code_fingerprint:
+    if settings.access_code_enabled and not local_auth and user.access_code_fingerprint != settings.access_code_fingerprint:
         raise HTTPException(status_code=403, detail="access_code_required")
     return session, user
+
+
+@router.get("/local-dev-auth")
+async def local_dev_auth(request: Request) -> dict[str, bool]:
+    settings = get_settings()
+    hostname = request_host(request.headers.get("x-forwarded-host"), request.headers.get("host"))
+    return {"enabled": local_dev_auth_allowed(settings, hostname)}
 
 
 def visible_events(

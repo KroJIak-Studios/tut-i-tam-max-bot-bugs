@@ -7,6 +7,30 @@
   z-index: 1;
 }
 
+/* Custom Pin Styles for Leaflet Markers */
+:global(.tut-pin-wrapper) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+:global(.tut-pin-wrapper:hover) { transform: scale(1.12); }
+:global(.tut-pin-selected) { transform: scale(1.25) !important; filter: drop-shadow(0 6px 12px rgba(37, 99, 235, 0.45)); }
+:global(.tut-pin-svg) { filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22)); }
+:global(.tut-user-location-marker) { width: 32px; height: 32px; background: #FFFFFF; border-radius: 50%; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #4B5563; }
+:global(.tut-user-location-pulse) { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(59, 130, 246, 0.25); animation: pulseLocation 2.4s ease-out infinite; pointer-events: none; }
+@keyframes pulseLocation { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.6); opacity: 0; } }
+:global(.tut-pin-user-badge) { position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: #10B981; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+:global(.tut-custom-popup) { margin-bottom: 0; }
+:global(.tut-custom-popup .leaflet-popup-content-wrapper) { background: #FFFFFF; padding: 0; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06); border: 1px solid rgba(0, 0, 0, 0.06); overflow: hidden; }
+:global(.tut-custom-popup .leaflet-popup-content) { margin: 0; line-height: inherit; width: auto !important; }
+:global(.tut-custom-popup .leaflet-popup-tip) { background: #FFFFFF; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); }
+.mapContainer :global(.leaflet-bottom.leaflet-right) { bottom: calc(var(--bottom-nav-height, 68px) + var(--bottom-nav-overhang, 0px) + 78px); right: 10px; }
+.mapContainer :global(.leaflet-control-attribution) { background: rgba(255,255,255,.85); border-radius: 4px; padding: 2px 5px; font-size: 9px; color: #6B7280; }
+.mapContainer :global(.leaflet-control-attribution a) { color: #4B5563; }
+
 .locationHint {
   position: absolute;
   z-index: 900;
@@ -25,132 +49,4 @@
   color: #475569;
   font-size: 12px;
 }
-
-.locationHint button {
-  color: #2563EB;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-
-/* Custom Pin Styles for Leaflet Markers */
-:global(.tut-pin-wrapper) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-:global(.tut-pin-wrapper:hover) {
-  transform: scale(1.12);
-}
-
-:global(.tut-pin-selected) {
-  transform: scale(1.25) !important;
-  filter: drop-shadow(0 6px 12px rgba(37, 99, 235, 0.45));
-}
-
-:global(.tut-pin-svg) {
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
-}
-
-:global(.tut-user-location-marker) {
-  width: 32px;
-  height: 32px;
-  background: #FFFFFF;
-  border-radius: 50%;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  border: 2px solid #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4B5563;
-}
-
-:global(.tut-user-location-pulse) {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(59, 130, 246, 0.25);
-  animation: pulseLocation 2.4s ease-out infinite;
-  pointer-events: none;
-}
-
-@keyframes pulseLocation {
-  0% { transform: scale(0.6); opacity: 0.9; }
-  100% { transform: scale(1.6); opacity: 0; }
-}
-
-/* User marker badge */
-:global(.tut-pin-user-badge) {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 14px;
-  height: 14px;
-  background: #10B981;
-  border: 2px solid #FFFFFF;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-/* Custom Popup Styles anchored to markers */
-:global(.tut-custom-popup) {
-  margin-bottom: 0;
-}
-
-:global(.tut-custom-popup .leaflet-popup-content-wrapper) {
-  background: #FFFFFF;
-  padding: 0;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-:global(.tut-custom-popup .leaflet-popup-content) {
-  margin: 0;
-  line-height: inherit;
-  width: auto !important;
-}
-
-:global(.tut-custom-popup .leaflet-popup-tip) {
-  background: #FFFFFF;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-/* Attribution Control styling positioned neatly above the bottom nav / scrubber */
-.mapContainer :global(.leaflet-bottom.leaflet-right) {
-  bottom: calc(var(--bottom-nav-height, 68px) + var(--bottom-nav-overhang, 0px) + 78px);
-  right: 12px;
-  pointer-events: auto;
-  z-index: 500;
-}
-
-.mapContainer :global(.leaflet-control-attribution) {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(4px);
-  font-size: 10px !important;
-  line-height: 1.25 !important;
-  color: #4B5563 !important;
-  padding: 2px 6px !important;
-  border-radius: 6px !important;
-  border: 1px solid rgba(229, 231, 235, 0.85) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-  margin: 0 !important;
-  max-width: 240px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mapContainer :global(.leaflet-control-attribution a) {
-  color: #2563EB !important;
-  text-decoration: none;
-}
-
-.mapContainer :global(.leaflet-control-attribution a:hover) {
-  text-decoration: underline;
-}
+.locationHint button { color: #2563EB; font-weight: 700; white-space: nowrap; }

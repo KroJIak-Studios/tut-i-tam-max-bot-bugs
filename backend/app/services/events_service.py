@@ -17,6 +17,7 @@ from app.models.event import (
 from app.models.event_category import EventCategory
 from app.models.user import MaxUser
 from app.schemas.events import EventCreate, ReviewCreate
+from app.services.ip_geolocation_service import IpGeolocationService
 
 
 class EventsService:
@@ -37,11 +38,11 @@ class EventsService:
             )
             self.session.add(user)
             await self.session.flush()
-            city_id = await self.session.scalar(select(City.id).order_by(City.id).limit(1))
+            city_id = await self._nearest_city_id(init_user.ip)
             user.city_id = city_id
         else:
             if user.city_id is None:
-                user.city_id = await self.session.scalar(select(City.id).order_by(City.id).limit(1))
+                user.city_id = await self._nearest_city_id(init_user.ip)
             user.first_name = init_user.first_name
             user.last_name = init_user.last_name
             user.username = init_user.username
@@ -51,6 +52,22 @@ class EventsService:
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+    async def _nearest_city_id(self, ip_address: str | None) -> int | None:
+        cities = (await self.session.scalars(
+            select(City).where(City.latitude.is_not(None), City.longitude.is_not(None)).order_by(City.id)
+        )).all()
+        point = await IpGeolocationService().lookup(ip_address)
+        if not cities:
+            return await self.session.scalar(select(City.id).order_by(City.id).limit(1))
+        if point is None:
+            return cities[0].id
+        latitude, longitude = point
+        nearest = min(
+            cities,
+            key=lambda city: (city.latitude - latitude) ** 2 + (city.longitude - longitude) ** 2,
+        )
+        return nearest.id
 
     async def create_user_event(self, user: MaxUser, data: EventCreate) -> Event:
         city_exists = await self.session.scalar(select(City.id).where(City.id == data.city_id))

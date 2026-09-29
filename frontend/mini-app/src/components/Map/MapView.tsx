@@ -7,14 +7,17 @@ import { useUserPreferences } from '../../context/useUserPreferences'
 import { createMapTileLayer } from '../../services/mapProviders'
 import type { CityRecord } from '../../services/cityService'
 import type { GeoPoint } from '../../services/geolocationService'
-import { useTranslation } from 'react-i18next'
+import { LocationHint } from './LocationHint'
+import { RecenterButton } from './RecenterButton'
 import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
 
 interface MapViewProps {
   userLocation: GeoPoint | null
+  locationStatus: import('../../context/GeolocationContext').GeolocationStatus
   currentCity: CityRecord | null
   onRequestLocation: () => void
+  onRetryLocation: () => void
   events: MapEvent[]
   zones: MapZone[]
   selectedEventId: string | null
@@ -70,8 +73,10 @@ function createUserLocationIcon(): L.DivIcon {
 
 export const MapView: React.FC<MapViewProps> = ({
   userLocation,
+  locationStatus,
   currentCity,
   onRequestLocation,
+  onRetryLocation,
   events,
   zones,
   selectedEventId,
@@ -81,7 +86,6 @@ export const MapView: React.FC<MapViewProps> = ({
   onToggleGoing,
   onMoreDetails,
 }) => {
-  const { t } = useTranslation()
   const { preferences } = useUserPreferences()
   const appMapProviderRef = useRef(preferences.appMapProvider)
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -91,6 +95,11 @@ export const MapView: React.FC<MapViewProps> = ({
   const zonesLayerRef = useRef<L.LayerGroup | null>(null)
   const userMarkerRef = useRef<L.Marker | null>(null)
   const userLocationRequestedRef = useRef(false)
+  const [mapReady, setMapReady] = useState(false)
+  const recenter = () => {
+    if (userLocation && mapInstanceRef.current) mapInstanceRef.current.setView([userLocation.latitude, userLocation.longitude], 15, { animate: true })
+    else onRequestLocation()
+  }
 
   const [popupContainer] = useState<HTMLDivElement>(() => document.createElement('div'))
   const popupInstanceRef = useRef<L.Popup | null>(null)
@@ -132,6 +141,7 @@ export const MapView: React.FC<MapViewProps> = ({
     const markersLayer = L.layerGroup().addTo(map)
 
     mapInstanceRef.current = map
+    setMapReady(true)
     zonesLayerRef.current = zonesLayer
     markersLayerRef.current = markersLayer
     return () => {
@@ -141,6 +151,8 @@ export const MapView: React.FC<MapViewProps> = ({
       }
       map.remove()
       mapInstanceRef.current = null
+      userMarkerRef.current = null
+      userLocationRequestedRef.current = false
       tileLayerRef.current = null
     }
   }, [currentCity?.id, currentCity?.latitude, currentCity?.longitude])
@@ -163,7 +175,7 @@ export const MapView: React.FC<MapViewProps> = ({
     } else {
       userMarkerRef.current.setLatLng(position)
     }
-  }, [userLocation])
+  }, [userLocation, mapReady])
 
   // Dynamic Basemap switching without disturbing markers or zones
   useEffect(() => {
@@ -290,7 +302,8 @@ export const MapView: React.FC<MapViewProps> = ({
           popupContainer
         )}
     </div>
-    {!userLocation && <div className={styles.locationHint} role="status"><span>⌖</span><span>{t('geolocation.locationMapHint')}</span><button type="button" onClick={onRequestLocation}>{t('geolocation.retryButton')}</button></div>}
+    {!userLocation && <LocationHint status={locationStatus} onRequest={onRequestLocation} onRetry={onRetryLocation} />}
+    <RecenterButton disabled={locationStatus === 'unavailable'} onClick={recenter} />
     </>
   )
 }

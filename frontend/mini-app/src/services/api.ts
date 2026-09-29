@@ -5,9 +5,42 @@ type MaxWebApp = {
   close?: () => void
 }
 
+type MaxInitDataUnsafe = {
+  user?: { id?: number; first_name?: string; last_name?: string; username?: string; language_code?: string; photo_url?: string }
+}
+
+let localDevAuthEnabled = false
+
+export function isLocalDevelopment(): boolean {
+  return localDevAuthEnabled
+}
+
+export async function loadLocalDevAuth(): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/local-dev-auth`)
+  if (!response.ok) return false
+  const body = await response.json() as { enabled?: boolean }
+  localDevAuthEnabled = body.enabled === true
+  return localDevAuthEnabled
+}
+
+export function localDevUser(): MaxInitDataUnsafe['user'] {
+  try {
+    const value = localStorage.getItem('tut_i_tam_dev_user')
+    return value ? JSON.parse(value) as MaxInitDataUnsafe['user'] : undefined
+  } catch {
+    return undefined
+  }
+}
+
 function maxInitData(): string {
   const webApp = (window as Window & { WebApp?: MaxWebApp }).WebApp
   return webApp?.initData || ''
+}
+
+function localDevInitData(): string {
+  const user = localDevUser()
+  if (!user?.id) return ''
+  return `local-development:${user.id}:${encodeURIComponent(user.first_name || 'Local user')}:${user.language_code || 'ru-ru'}`
 }
 
 export class ApiError extends Error {
@@ -26,7 +59,7 @@ export function isAccessCodeRequired(error: unknown): boolean {
 }
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const initData = maxInitData()
+  const initData = maxInitData() || (isLocalDevelopment() ? localDevInitData() : '')
   if (!initData) throw new ApiError(401, 'init_data_required')
   const headers = new Headers(init.headers)
   headers.set('Authorization', `tma ${initData}`)
