@@ -47,6 +47,10 @@ export const authService = {
     }
   },
 
+  async me(): Promise<AdminSessionResponse> {
+    return apiClient.get<AdminSessionResponse>('/admin/me')
+  },
+
   async checkSession(): Promise<AdminUser | null> {
     const accessToken = tokenStorage.getAccessToken()
     const refreshToken = tokenStorage.getRefreshToken()
@@ -62,7 +66,7 @@ export const authService = {
         }
       }
 
-      const me = await apiClient.get<AdminSessionResponse>('/admin/me')
+      const me = await this.me()
       return {
         role: 'admin',
         authenticated: Boolean(me.authenticated),
