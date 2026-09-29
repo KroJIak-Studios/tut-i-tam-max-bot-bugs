@@ -14,6 +14,7 @@ function initialStatus(): GeolocationStatus {
 export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [point, setPoint] = useState<GeoPoint | null>(null)
   const [status, setStatus] = useState<GeolocationStatus>(initialStatus)
+  const [permissionCheckComplete, setPermissionCheckComplete] = useState(false)
   const stopWatchRef = useRef<(() => void) | null>(null)
   const runningRef = useRef(false)
 
@@ -33,6 +34,7 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
       },
       (error) => {
         runningRef.current = false
+        if (error.code === 1) localStorage.setItem(CONSENT_KEY, 'denied')
         setStatus(error.code === 1 ? 'denied' : error.message === 'geolocation_unavailable' ? 'unavailable' : 'error')
       },
     )
@@ -40,13 +42,18 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const request = useCallback(() => {
     localStorage.setItem(CONSENT_KEY, 'granted')
+    setPermissionCheckComplete(true)
     startWatch()
   }, [startWatch])
 
   const decline = useCallback(() => {
+    if (status === 'denied') {
+      setStatus('denied')
+      return
+    }
     localStorage.setItem(CONSENT_KEY, 'declined')
     setStatus('declined')
-  }, [])
+  }, [status])
 
   const retry = useCallback(() => {
     runningRef.current = false
@@ -57,12 +64,28 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   useEffect(() => {
     let active = true
-    if (localStorage.getItem(CONSENT_KEY) !== 'granted' || !navigator.permissions?.query) return
+    const consent = localStorage.getItem(CONSENT_KEY)
+    if (consent !== 'granted' || !navigator.permissions?.query) {
+      setPermissionCheckComplete(true)
+      return
+    }
     void navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
       if (!active) return
       if (permission.state === 'granted') startWatch()
-      else setStatus(permission.state === 'denied' ? 'denied' : 'prompt')
-    }).catch(() => setStatus('prompt'))
+      else if (permission.state === 'denied') {
+        localStorage.setItem(CONSENT_KEY, 'denied')
+        setStatus('denied')
+      } else {
+        localStorage.setItem(CONSENT_KEY, 'declined')
+        setStatus('declined')
+      }
+      setPermissionCheckComplete(true)
+    }).catch(() => {
+      if (active) {
+        setStatus('prompt')
+        setPermissionCheckComplete(true)
+      }
+    })
     return () => { active = false }
   }, [startWatch])
 
@@ -72,7 +95,7 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     runningRef.current = false
   }, [])
 
-  const value = useMemo(() => ({ point, status, request, decline, retry }), [point, status, request, decline, retry])
+  const value = useMemo(() => ({ point, status: permissionCheckComplete ? status : 'requesting' as GeolocationStatus, request, decline, retry }), [point, status, permissionCheckComplete, request, decline, retry])
   return <GeolocationContext.Provider value={value}>{children}</GeolocationContext.Provider>
 }
 

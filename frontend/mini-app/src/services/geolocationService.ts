@@ -15,12 +15,21 @@ export function watchUserLocation(onUpdate: (point: GeoPoint) => void, onError: 
     if (watchId !== null) navigator.geolocation.clearWatch(watchId)
     watchId = null
   }
+  const options: PositionOptions = { enableHighAccuracy: true, maximumAge: 10_000, timeout: 30_000 }
+  const emitPosition = (position: GeolocationPosition) => onUpdate({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy })
   const start = () => {
     if (disposed || document.hidden || watchId !== null) return
-    watchId = navigator.geolocation.watchPosition(
-      (position) => onUpdate({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy }),
-      (error) => { stopWatch(); onError(error) },
-      { enableHighAccuracy: true, maximumAge: 10_000, timeout: 15_000 },
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (disposed) return
+        emitPosition(position)
+        watchId = navigator.geolocation.watchPosition(emitPosition, (error) => { stopWatch(); onError(error) }, options)
+      },
+      (error) => {
+        if (disposed) return
+        onError(error)
+      },
+      options,
     )
   }
   const handleVisibility = () => document.hidden ? stopWatch() : start()
