@@ -322,3 +322,157 @@ export const IconRefreshCw: React.FC<IconProps> = ({ size = 16, className }) => 
     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
   </svg>
 )
+
+export const IconLock: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
+export const IconKey: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M21 2l-2 2m-1.5 1.5L16 7l-2 2-2-2-2 2-2-2m-2 2a6 6 0 1 0 8.49 8.49l7.07-7.07" />
+  </svg>
+)
+
+export const IconLogOut: React.FC<IconProps> = ({ size = 16, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+)
+
+export const IconLayers: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+)
+
+export const IconBuilding: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+    <line x1="9" y1="22" x2="9" y2="2" />
+    <line x1="8" y1="6" x2="10" y2="6" />
+    <line x1="14" y1="6" x2="16" y2="6" />
+    <line x1="8" y1="10" x2="10" y2="10" />
+    <line x1="14" y1="10" x2="16" y2="10" />
+    <line x1="8" y1="14" x2="10" y2="14" />
+    <line x1="14" y1="14" x2="16" y2="14" />
+    <line x1="8" y1="18" x2="10" y2="18" />
+    <line x1="14" y1="18" x2="16" y2="18" />
+  </svg>
+)
+
+export const IconHeart: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+)
+
+export const IconMenu: React.FC<IconProps> = ({ size = 20, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+)
+
+export const IconInfo: React.FC<IconProps> = ({ size = 16, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+)

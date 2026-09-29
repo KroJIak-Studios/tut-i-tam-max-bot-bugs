@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from 'react'
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, Link } from 'react-router-dom'
 import {
   IconLogo,
   IconRequests,
   IconEvents,
-  IconUsers,
-  IconSettings,
-  IconRefreshCw,
+  IconLayers,
+  IconBuilding,
+  IconHeart,
+  IconLogOut,
+  IconMenu,
 } from '../Icons'
+import { useAuth } from '../../hooks/useAuth'
 import {
   getRequestsStats,
-  resetToDefaults,
   ADMIN_REQUESTS_CHANGED_EVENT,
 } from '../../services/adminRequestsRepository'
 import styles from './AdminLayout.module.css'
 
 export const AdminLayout: React.FC = () => {
+  const { user, logout } = useAuth()
   const [pendingCount, setPendingCount] = useState<number>(0)
-  const [resetting, setResetting] = useState<boolean>(false)
-  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
 
   const refreshStats = () => {
     getRequestsStats().then((stats) => {
@@ -34,57 +36,84 @@ export const AdminLayout: React.FC = () => {
     }
   }, [])
 
-  const handleReset = async () => {
-    if (window.confirm('Сбросить демо-данные заявок к исходному состоянию?')) {
-      setResetting(true)
-      await resetToDefaults()
-      setResetting(false)
-    }
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false)
   }
 
-  const isRequestsActive =
-    location.pathname === '/' || location.pathname.startsWith('/requests')
+  const displayName = user?.username || 'Администратор'
+  const userInitials =
+    displayName
+      .split(' ')
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'AD'
 
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
-        <div className={styles.brandGroup}>
-          <IconLogo size={30} />
-          <span className={styles.brandTitle}>
-            Тут и Там
-            <span className={styles.adminBadge}>Админка</span>
-          </span>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.menuToggleBtn}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Переключить меню навигации"
+          >
+            <IconMenu size={20} />
+          </button>
+
+          <Link to="/" className={styles.brandGroup} onClick={closeMobileMenu}>
+            <IconLogo size={28} />
+            <span className={styles.brandTitle}>
+              Тут и Там
+              <span className={styles.adminBadge}>Панель</span>
+            </span>
+          </Link>
         </div>
 
         <div className={styles.headerRight}>
-          <button
-            type="button"
-            className={styles.resetBtn}
-            onClick={handleReset}
-            disabled={resetting}
-            title="Восстановить исходные 5 заявок для тестирования"
-          >
-            <IconRefreshCw size={14} />
-            <span>Сбросить демо</span>
-          </button>
-
           <div className={styles.userProfile}>
-            <div className={styles.avatar}>АК</div>
+            <div className={styles.avatar}>{userInitials}</div>
             <div className={styles.userInfo}>
-              <span className={styles.userName}>Анна К.</span>
-              <span className={styles.userRole}>Модератор</span>
+              <span className={styles.userName}>{displayName}</span>
+              <span className={styles.userRole}>Администратор</span>
             </div>
           </div>
+
+          <button
+            type="button"
+            className={styles.logoutBtn}
+            onClick={() => logout()}
+            title="Выйти из системы"
+          >
+            <IconLogOut size={16} />
+            <span className={styles.logoutText}>Выйти</span>
+          </button>
         </div>
       </header>
 
       <div className={styles.mainBody}>
-        <aside className={styles.sidebar}>
-          <div className={styles.navSectionTitle}>Основное</div>
+        {mobileMenuOpen && (
+          <div
+            className={styles.mobileBackdrop}
+            onClick={closeMobileMenu}
+            aria-hidden="true"
+          />
+        )}
+
+        <aside
+          className={`${styles.sidebar} ${
+            mobileMenuOpen ? styles.mobileOpen : ''
+          }`}
+        >
+          <div className={styles.navSectionTitle}>Модерация</div>
 
           <NavLink
             to="/requests"
-            className={`${styles.navItem} ${isRequestsActive ? styles.active : ''}`}
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
           >
             <div className={styles.navItemLeft}>
               <IconRequests size={18} />
@@ -100,40 +129,73 @@ export const AdminLayout: React.FC = () => {
             )}
           </NavLink>
 
-          <div className={styles.navSectionTitle}>Управление</div>
+          <div className={styles.navSectionTitle}>Справочники & Данные</div>
 
-          <div
-            className={`${styles.navItem} ${styles.disabled}`}
-            title="Раздел находится в разработке"
+          <NavLink
+            to="/categories"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconLayers size={18} />
+              <span className={styles.navItemText}>Категории</span>
+            </div>
+            <span className={styles.badgeReady} title="CRUD готов на бэкенде">
+              API
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/cities"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconBuilding size={18} />
+              <span className={styles.navItemText}>Города</span>
+            </div>
+            <span className={styles.badgeGap} title="Требуются координаты в ответе API">
+              Gap
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/interests"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconHeart size={18} />
+              <span className={styles.navItemText}>Интересы</span>
+            </div>
+            <span className={styles.badgeGap} title="Требуется поле color в схеме API">
+              Gap
+            </span>
+          </NavLink>
+
+          <div className={styles.navSectionTitle}>События</div>
+
+          <NavLink
+            to="/events"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
           >
             <div className={styles.navItemLeft}>
               <IconEvents size={18} />
               <span className={styles.navItemText}>Мероприятия</span>
             </div>
-            <span className={styles.badgeLater}>Позже</span>
-          </div>
-
-          <div
-            className={`${styles.navItem} ${styles.disabled}`}
-            title="Раздел находится в разработке"
-          >
-            <div className={styles.navItemLeft}>
-              <IconUsers size={18} />
-              <span className={styles.navItemText}>Пользователи</span>
-            </div>
-            <span className={styles.badgeLater}>Позже</span>
-          </div>
-
-          <div
-            className={`${styles.navItem} ${styles.disabled}`}
-            title="Раздел находится в разработке"
-          >
-            <div className={styles.navItemLeft}>
-              <IconSettings size={18} />
-              <span className={styles.navItemText}>Настройки</span>
-            </div>
-            <span className={styles.badgeLater}>Позже</span>
-          </div>
+            <span className={styles.badgeGap} title="Ожидает админский CRUD API">
+              Gap
+            </span>
+          </NavLink>
         </aside>
 
         <main className={styles.content}>
