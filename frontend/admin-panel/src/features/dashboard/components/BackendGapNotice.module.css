@@ -1,0 +1,155 @@
+.noticeCard {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .noticeCard {
+    padding: 20px;
+    gap: 20px;
+  }
+}
+
+.noticeHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.noticeDescription {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Table */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+}
+
+.statusTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.statusTable th {
+  padding: 10px 12px;
+  background-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.statusTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-main);
+  vertical-align: middle;
+}
+
+.statusTable tr:last-child td {
+  border-bottom: none;
+}
+
+.badgeReady {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-success);
+  background-color: var(--color-success-soft);
+  border: 1px solid var(--color-success-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badgeGap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-warning);
+  background-color: var(--color-warning-soft);
+  border: 1px solid var(--color-warning-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.codeBadge {
+  font-family: monospace;
+  font-size: 11px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+}
+
+/* Suggested Contract Code Block */
+.contractBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.contractHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.contractPre {
+  margin: 0;
+  padding: 10px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--color-text-main);
+  overflow-x: auto;
+  line-height: 1.4;
+}
