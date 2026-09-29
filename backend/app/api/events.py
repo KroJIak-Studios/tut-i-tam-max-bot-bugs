@@ -261,7 +261,7 @@ async def delete_me(context: tuple[AsyncSession, MaxUser] = Depends(current_user
 
 @router.get("/map/events")
 async def map_events(
-    min_lat: float, min_lng: float, max_lat: float, max_lng: float,
+    min_lat: float | None = None, min_lng: float | None = None, max_lat: float | None = None, max_lng: float | None = None,
     city_id: int | None = None, category_id: int | None = None,
     starts_after: datetime | None = None, starts_before: datetime | None = None,
     free: bool | None = None, pushkin: bool | None = None, q: str | None = None,
@@ -281,7 +281,8 @@ async def map_events(
         city_id=city_id, category_id=category_id, starts_after=starts_after, starts_before=starts_before,
         free=free, pushkin=pushkin, query=q, source=source, limit=limit, offset=offset,
     )
-    rows = [event for event in rows if min_lat <= event.latitude <= max_lat and min_lng <= event.longitude <= max_lng]
+    if None not in (min_lat, min_lng, max_lat, max_lng):
+        rows = [event for event in rows if min_lat <= event.latitude <= max_lat and min_lng <= event.longitude <= max_lng]
     service = EventsService(session)
     return [await service.card(user, event) for event in rows]
 

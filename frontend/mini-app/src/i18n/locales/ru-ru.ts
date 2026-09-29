@@ -1,4 +1,22 @@
 export interface TranslationSchema {
+  geolocation: {
+    locationMapHint: string
+    retryButton: string
+    title: string
+    description: string
+    allow: string
+    later: string
+    declinedTitle: string
+    declinedDescription: string
+    deniedTitle: string
+    deniedDescription: string
+    errorTitle: string
+    errorDescription: string
+    unavailableDescription: string
+    retry: string
+    mapHint: string
+    mapRetry: string
+  }
   app: {
     name: string
   }
@@ -475,6 +493,24 @@ export interface TranslationSchema {
 
 export const localeName = 'Русский'
 export const translation: TranslationSchema = {
+  geolocation: {
+    locationMapHint: 'Ваша позиция появится после разрешения геолокации',
+    retryButton: 'Разрешить',
+    title: 'Показывать вас на карте?',
+    description: 'Разрешите доступ к местоположению, чтобы карта показывала вашу актуальную позицию и события рядом. Координаты останутся на этом устройстве и не будут отправлены на сервер.',
+    allow: 'Разрешить геолокацию',
+    later: 'Пока без неё',
+    declinedTitle: 'Разрешите геолокацию, чтобы увидеть себя на карте',
+    declinedDescription: 'Карта пока не знает вашу позицию. Разрешите доступ здесь, чтобы браузер запросил системное подтверждение.',
+    deniedTitle: 'Геолокация отключена',
+    deniedDescription: 'Чтобы увидеть себя на карте, разрешите местоположение в настройках браузера и повторите попытку.',
+    errorTitle: 'Не удалось получить местоположение',
+    errorDescription: 'Проверьте настройки геолокации и попробуйте ещё раз.',
+    unavailableDescription: 'Этот браузер не поддерживает геолокацию.',
+    retry: 'Повторить запрос',
+    mapHint: 'Разрешите доступ, чтобы увидеть себя на карте.',
+    mapRetry: 'Включить геолокацию',
+  },
   app: { name: 'Тут и Там' },
   common: {
     back: 'Назад',

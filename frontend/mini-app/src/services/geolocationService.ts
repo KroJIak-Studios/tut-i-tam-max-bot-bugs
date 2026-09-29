@@ -10,19 +10,29 @@ export function watchUserLocation(onUpdate: (point: GeoPoint) => void, onError: 
     return () => undefined
   }
   let watchId: number | null = null
-  const stop = () => {
+  let disposed = false
+  const stopWatch = () => {
     if (watchId !== null) navigator.geolocation.clearWatch(watchId)
     watchId = null
   }
   const start = () => {
+    if (disposed || document.hidden || watchId !== null) return
     watchId = navigator.geolocation.watchPosition(
       (position) => onUpdate({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy }),
-      onError,
+      (error) => { stopWatch(); onError(error) },
       { enableHighAccuracy: true, maximumAge: 10_000, timeout: 15_000 },
     )
   }
+  const handleVisibility = () => document.hidden ? stopWatch() : start()
+  const handlePageHide = () => stop()
+  const stop = () => {
+    disposed = true
+    stopWatch()
+    document.removeEventListener('visibilitychange', handleVisibility)
+    window.removeEventListener('pagehide', handlePageHide)
+  }
+  document.addEventListener('visibilitychange', handleVisibility)
+  window.addEventListener('pagehide', handlePageHide)
   start()
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else if (watchId === null) start() })
-  window.addEventListener('pagehide', stop, { once: true })
   return stop
 }

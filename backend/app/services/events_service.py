@@ -40,6 +40,8 @@ class EventsService:
             city_id = await self.session.scalar(select(City.id).order_by(City.id).limit(1))
             user.city_id = city_id
         else:
+            if user.city_id is None:
+                user.city_id = await self.session.scalar(select(City.id).order_by(City.id).limit(1))
             user.first_name = init_user.first_name
             user.last_name = init_user.last_name
             user.username = init_user.username

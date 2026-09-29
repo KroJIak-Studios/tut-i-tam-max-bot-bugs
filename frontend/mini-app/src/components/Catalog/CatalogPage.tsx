@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapFilterState, NavTabId, CatalogSort } from '../../types'
 import { getCatalogEvents, getEventCategories, type EventCategoryRecord } from '../../services/mapService'
-import { getCities, chooseInitialCity, type CityRecord } from '../../services/cityService'
+import { getCities, chooseInitialCity } from '../../services/cityService'
+import { useGeolocation } from '../../context/GeolocationContext'
 import { apiRequest } from '../../services/api'
 import { getEventCategoryName } from '../../services/eventCategoryService'
 import { FALLBACK_LOCALE } from '../../i18n'
 import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
-import { USER_CURRENT_LOCATION } from '../../mocks/mapData'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
 import { getIsoDate } from '../../utils/dateUtils'
 import { getEventStart } from '../../utils/eventTime'
@@ -26,6 +26,7 @@ interface EventWithDistance { event: MapEvent; distanceMeters: number }
 
 export const CatalogPage: React.FC = () => {
   const { t, i18n } = useTranslation()
+  const { point } = useGeolocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState<MapFilterState>(() => {
@@ -40,7 +41,6 @@ export const CatalogPage: React.FC = () => {
   })
   const [rawEvents, setRawEvents] = useState<MapEvent[]>([])
   const [categories, setCategories] = useState<EventCategoryRecord[]>([])
-  const [, setCities] = useState<CityRecord[]>([])
   const [cityId, setCityId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -53,16 +53,17 @@ export const CatalogPage: React.FC = () => {
 
   useEffect(() => {
     let active = true
-    Promise.all([getEventCategories(), getCities(), new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+    Promise.all([getEventCategories(), getCities(), apiRequest<{ city: { id: number } | null }>('/me'), new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
       if (!navigator.geolocation) return resolve(null)
       navigator.geolocation.getCurrentPosition((position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }), () => resolve(null), { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 })
-    })]).then(([categoryItems, cityItems, point]) => {
+    })]).then(([categoryItems, cityItems, profile, point]) => {
       if (!active) return
       setCategories(categoryItems)
-      setCities(cityItems)
-      const selectedCity = chooseInitialCity(cityItems, point ? { ...point, accuracy: 0 } : null)
-      setCityId(selectedCity?.id ?? null)
-      if (selectedCity) void apiRequest('/me', { method: 'PATCH', body: JSON.stringify({ city_id: selectedCity.id }) })
+      const selectedCity = profile.city ? cityItems.find((item) => item.id === profile.city?.id) ?? null : chooseInitialCity(cityItems, point ? { ...point, accuracy: 0 } : null)
+      setCityId(selectedCity?.id ?? profile.city?.id ?? null)
+      if (selectedCity && profile.city?.id !== selectedCity.id) {
+        void apiRequest('/me', { method: 'PATCH', body: JSON.stringify({ city_id: selectedCity.id }) })
+      }
     }).catch(() => { if (active) setHasError(true) })
     return () => { active = false }
   }, [])
@@ -98,7 +99,8 @@ export const CatalogPage: React.FC = () => {
   }, [filters, offset, requestVersion, cityId])
 
   const sortedEvents: EventWithDistance[] = useMemo(() => {
-    const [userLat, userLon] = USER_CURRENT_LOCATION
+    const userLat = point?.latitude ?? 0
+    const userLon = point?.longitude ?? 0
     const list = rawEvents.filter((event) => !event.isPast).map((event) => ({
       event,
       distanceMeters: calculateDistanceMeters(userLat, userLon, event.latitude, event.longitude),
@@ -110,7 +112,7 @@ export const CatalogPage: React.FC = () => {
       case 'price': return list.sort((a, b) => a.event.price - b.event.price)
       default: return list
     }
-  }, [rawEvents, sortOrder])
+  }, [rawEvents, sortOrder, point])
 
   const extraFilterCount = useMemo(() => countExtraFilters(filters), [filters])
   const handleToggleFree = useCallback(() => setFilters((prev) => ({ ...prev, isFreeOnly: !prev.isFreeOnly, pushkinCardOnly: false, quickChip: !prev.isFreeOnly ? 'free' : 'all' })), [])

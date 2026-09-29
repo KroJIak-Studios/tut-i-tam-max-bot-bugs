@@ -1,5 +1,4 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
-import { getIsoDate } from '../utils/dateUtils'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
 import { apiRequest } from './api'
 
@@ -56,8 +55,8 @@ export async function getEventCategories(): Promise<EventCategoryRecord[]> {
   return apiRequest<EventCategoryRecord[]>('/event-categories')
 }
 
-export async function getMapZones(): Promise<MapZone[]> {
-  const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
+export async function getMapZones(cityId: number): Promise<MapZone[]> {
+  const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>(`/map/areas?city_id=${cityId}`)
   return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
 }
 
@@ -96,8 +95,11 @@ export async function getCatalogEvents(query: CatalogQuery = {}): Promise<MapEve
   return items.map(mapApiEvent)
 }
 
-export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<MapEvent[]> {
-  const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
+export async function getMapEvents(filters?: Partial<MapFilterState>, cityId?: number): Promise<MapEvent[]> {
+  const params = new URLSearchParams()
+  if (cityId !== undefined) params.set('city_id', String(cityId))
+  const suffix = params.size ? `?${params.toString()}` : ''
+  const items = await apiRequest<ApiMapEvent[]>(`/map/events${suffix}`)
   let events = items.map(mapApiEvent)
   if (filters) events = filterEvents(events, filters)
   return events
@@ -123,5 +125,7 @@ export async function setEventAttendance(eventId: string, going: boolean): Promi
 export interface NewUserMarkerInput { title: string; category: EventCategory; startTime: string; latitude: number; longitude: number; description?: string; address?: string }
 export async function addUserMarker(input: NewUserMarkerInput): Promise<MapEvent> {
   const events = await getMapEvents()
-  return events.find((event) => event.title === input.title) || { ...events[0], ...input, id: `user-${Date.now()}`, source: 'user', price: 0, isFree: true, pushkinCard: false, date: getIsoDate(0), startDate: getIsoDate(0), startTime: input.startTime }
+  const existing = events.find((event) => event.title === input.title)
+  if (!existing) throw new Error('User markers are created through the event API')
+  return existing
 }

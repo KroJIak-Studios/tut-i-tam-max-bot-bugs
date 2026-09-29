@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapZone, MapFilterState, NavTabId } from '../../types'
 import { getEventCategories, getMapEvents, getMapZones } from '../../services/mapService'
+import { getCities, type CityRecord } from '../../services/cityService'
+import { apiRequest } from '../../services/api'
 import type { EventCategoryRecord } from '../../services/mapService'
-import { INITIAL_MAP_EVENTS } from '../../mocks/mapData'
 import { getIsoDate, formatChipDate, getWeekendIsoDate } from '../../utils/dateUtils'
 import { useAttendance } from '../../context/useAttendance'
+import { useGeolocation } from '../../context/GeolocationContext'
 import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapDatePickerSheet, type DatePreset } from './MapDatePickerSheet'
@@ -25,11 +27,12 @@ const DEFAULT_FILTERS: MapFilterState = {
   pushkinCardOnly: false,
   minAttendees: 0,
   source: 'all',
-  timeSlotMinutes: 19 * 60, // Default 19:00 for Kazan prime time
+  timeSlotMinutes: null,
 }
 
 export const MapPage: React.FC = () => {
   const { t, i18n } = useTranslation()
+  const { point: userLocation, request: requestLocation } = useGeolocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -37,9 +40,9 @@ export const MapPage: React.FC = () => {
   const [events, setEvents] = useState<MapEvent[]>([])
   const [zones, setZones] = useState<MapZone[]>([])
   const [categories, setCategories] = useState<EventCategoryRecord[]>([])
-  const eventParam = searchParams.get('event')
-  const [userSelectedId, setUserSelectedId] = useState<string | null | undefined>(undefined)
-  const selectedEventId = userSelectedId !== undefined ? userSelectedId : eventParam
+  const [currentCity, setCurrentCity] = useState<CityRecord | null>(null)
+  const [userSelectedId, setUserSelectedId] = useState<string | null>(null)
+  const selectedEventId = userSelectedId
   const [loading, setLoading] = useState<boolean>(true)
   const [hasError, setHasError] = useState<boolean>(false)
 
@@ -47,7 +50,6 @@ export const MapPage: React.FC = () => {
   const [filters, setFilters] = useState<MapFilterState>(() => {
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category_id')
-    const eventIdParam = searchParams.get('event')
     const dateParam = searchParams.get('date')
 
     const initial = { ...DEFAULT_FILTERS }
@@ -56,14 +58,6 @@ export const MapPage: React.FC = () => {
     }
     const initialCategoryId = Number(categoryParam)
     if (Number.isInteger(initialCategoryId) && initialCategoryId > 0) initial.category = initialCategoryId
-    if (eventIdParam) {
-      const found = INITIAL_MAP_EVENTS.find(
-        (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
-      )
-      if (found && found.date) {
-        initial.selectedDate = found.date
-      }
-    }
     if (dateParam === 'weekend') {
       initial.dateFilter = 'weekend'
       initial.selectedDate = getWeekendIsoDate()
@@ -87,24 +81,15 @@ export const MapPage: React.FC = () => {
     setPrevSearchParams(currentSearchParams)
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category_id')
-    const eventIdParam = searchParams.get('event')
     const dateParam = searchParams.get('date')
 
-    if (pushkin || categoryParam || eventIdParam || dateParam) {
+    if (pushkin || categoryParam || dateParam) {
       const updated = { ...filters }
       if (pushkin) {
         updated.pushkinCardOnly = true
       }
       const categoryId = Number(categoryParam)
       if (Number.isInteger(categoryId) && categoryId > 0) updated.category = categoryId
-      if (eventIdParam) {
-        const found = INITIAL_MAP_EVENTS.find(
-          (e) => e.id === eventIdParam || e.aliasIds?.includes(eventIdParam)
-        )
-        if (found && found.date) {
-          updated.selectedDate = found.date
-        }
-      }
       if (dateParam === 'weekend') {
         updated.dateFilter = 'weekend'
         updated.selectedDate = getWeekendIsoDate()
@@ -123,15 +108,19 @@ export const MapPage: React.FC = () => {
 
   // Load map support data once
   useEffect(() => {
-    getMapZones().then(setZones).catch((err) => console.error('Failed to load zones:', err))
-    getEventCategories().then(setCategories).catch((err) => console.error('Failed to load categories:', err))
+    Promise.all([apiRequest<{ city: { id: number } | null }>('/me'), getCities(), getEventCategories()]).then(([profile, cities, categoryItems]) => {
+      const city = cities.find((item) => item.id === profile.city?.id) ?? null
+      setCurrentCity(city)
+      setCategories(categoryItems)
+      if (city) getMapZones(city.id).then(setZones).catch((error) => console.error('Failed to load city zones:', error))
+    }).catch((error) => console.error('Failed to load map context:', error))
   }, [])
 
   // Load Events when filters change
   useEffect(() => {
     let active = true
 
-    getMapEvents(filters)
+    getMapEvents(filters, currentCity?.id)
       .then((data) => {
         if (!active) return
         setEvents(data)
@@ -148,7 +137,7 @@ export const MapPage: React.FC = () => {
     return () => {
       active = false
     }
-  }, [filters])
+  }, [filters, currentCity?.id])
 
   // Count active non-default filters excluding quick buttons (today & free)
   const extraFilterCount = useMemo(() => {
@@ -221,11 +210,10 @@ export const MapPage: React.FC = () => {
     preset?: DatePreset
   ) => {
     setUserSelectedId(null)
-    const isNewToday = newIsoDate === getIsoDate(0)
     setFilters((prev) => ({
       ...prev,
       selectedDate: newIsoDate,
-      timeSlotMinutes: isNewToday ? 19 * 60 : 9 * 60,
+      timeSlotMinutes: null,
       dateFilter:
         preset === 'weekend'
           ? 'weekend'
@@ -329,6 +317,9 @@ export const MapPage: React.FC = () => {
       {/* 3. Интерактивная карта (Leaflet) */}
       <div className={styles.mapArea}>
         <MapView
+          currentCity={currentCity}
+          userLocation={userLocation}
+          onRequestLocation={requestLocation}
           events={displayedEvents}
           zones={zones}
           selectedEventId={selectedEvent?.id ?? null}
