@@ -27,10 +27,14 @@ function eventToRequest(event: ApiEvent, locale: string, categories: EventCatego
 }
 
 export async function getCreateEventRequests(): Promise<CreateEventRequest[]> {
-  const [events, categories] = await Promise.all([
-    apiRequest<ApiEvent[]>('/me/attendances?when=upcoming'), getEventCategories(),
-  ])
-  return events.map((event) => eventToRequest(event, i18n.language, categories))
+  try {
+    const [events, categories] = await Promise.all([
+      apiRequest<ApiEvent[]>('/me/attendances?when=upcoming'), getEventCategories(),
+    ])
+    return events.map((event) => eventToRequest(event, i18n.language, categories))
+  } catch {
+    return []
+  }
 }
 
 export async function getCreateEventRequestById(id: string): Promise<CreateEventRequest | null> {

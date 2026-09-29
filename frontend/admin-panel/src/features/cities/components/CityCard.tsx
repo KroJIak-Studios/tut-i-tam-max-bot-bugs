@@ -1,0 +1,97 @@
+import React from 'react'
+import { Pencil, MapPin, Trash2 } from 'lucide-react'
+import type { City, Locale } from '../types/city'
+import {
+  getCityAdditionalNames,
+  getCityMainName,
+} from '../constants/locales'
+import styles from './CityCard.module.css'
+
+interface CityCardProps {
+  city: City
+  locales: Locale[]
+  fallbackLocale: Locale
+  onEdit: (city: City) => void
+  onDelete: (city: City) => void
+}
+
+export const CityCard: React.FC<CityCardProps> = ({
+  city,
+  fallbackLocale,
+  onEdit,
+  onDelete,
+}) => {
+  const mainName = getCityMainName(city, fallbackLocale.code)
+  const additionalNames = getCityAdditionalNames(city, fallbackLocale.code)
+  const hasCoords = city.latitude != null && city.longitude != null
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.topRow}>
+        <div className={styles.titleGroup}>
+          <div className={styles.titleRow}>
+            <span className={styles.cityId}>#{city.id}</span>
+            <h3 className={styles.cityName}>{mainName}</h3>
+          </div>
+
+          <div className={styles.translationsRow}>
+            {additionalNames.length > 0 ? (
+              additionalNames.map((name) => (
+                <span key={name.locale_code} className={styles.transPill}>
+                  <span className={styles.transCode}>{name.locale_code}</span>
+                  <span>{name.text}</span>
+                </span>
+              ))
+            ) : (
+              <span className={styles.transEmpty}>
+                (только {fallbackLocale.native_name})
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.coordsGroup}>
+          {hasCoords ? (
+            <div className={`${styles.coordsBadge} ${styles.coordsActive}`}>
+              <MapPin size={12} />
+              <span>
+                {city.latitude?.toFixed(4)}, {city.longitude?.toFixed(4)}
+              </span>
+            </div>
+          ) : (
+            <div
+              className={`${styles.coordsBadge} ${styles.coordsMissing}`}
+              title="Координаты центра города не указаны"
+            >
+              <MapPin size={12} />
+              <span>Координаты не указаны</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.editBtn}
+          onClick={() => onEdit(city)}
+          title="Редактировать город"
+          aria-label={`Редактировать город ${mainName}`}
+        >
+          <Pencil size={15} />
+          <span>Редактировать</span>
+        </button>
+        <button
+          type="button"
+          className={styles.deleteBtn}
+          onClick={() => onDelete(city)}
+          title="Удалить город"
+          aria-label={`Удалить город ${mainName}`}
+        >
+          <Trash2 size={15} />
+          <span>Удалить</span>
+        </button>
+      </div>
+    </div>
+  )
+}

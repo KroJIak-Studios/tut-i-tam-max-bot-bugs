@@ -16,7 +16,16 @@ class MaxInitUser:
     ip: str | None
 
 
-def validate_init_data(init_data: str, bot_token: str) -> MaxInitUser:
+def validate_init_data(init_data: str, bot_token: str, allow_dev_auth: bool = False) -> MaxInitUser:
+    if allow_dev_auth and (init_data == "dev" or init_data.startswith("dev_")):
+        return MaxInitUser(
+            id=99999999,
+            first_name="Тестовый",
+            last_name="Пользователь",
+            username="dev_user",
+            language_code="ru",
+            photo_url=None,
+        )
     pairs = parse_qsl(init_data, keep_blank_values=True, strict_parsing=True)
     keys = [key for key, _value in pairs]
     if keys.count("hash") != 1 or len(keys) != len(set(keys)):

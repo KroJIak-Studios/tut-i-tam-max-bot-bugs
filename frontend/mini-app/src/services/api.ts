@@ -34,7 +34,15 @@ export function localDevUser(): MaxInitDataUnsafe['user'] {
 
 function maxInitData(): string {
   const webApp = (window as Window & { WebApp?: MaxWebApp }).WebApp
-  return webApp?.initData || ''
+  if (webApp?.initData) return webApp.initData
+
+  const isDevAuthEnabled =
+    import.meta.env.VITE_ALLOW_DEV_AUTH === 'true' ||
+    (import.meta.env.DEV && import.meta.env.VITE_ALLOW_DEV_AUTH !== 'false')
+  if (isDevAuthEnabled) {
+    return 'dev'
+  }
+  return ''
 }
 
 function localDevInitData(): string {
@@ -64,7 +72,14 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   const headers = new Headers(init.headers)
   headers.set('Authorization', `tma ${initData}`)
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+  } catch (err) {
+    throw new ApiError(0, err instanceof Error ? err.message : 'network_error')
+  }
+
   if (!response.ok) {
     let detail: string | undefined
     try {

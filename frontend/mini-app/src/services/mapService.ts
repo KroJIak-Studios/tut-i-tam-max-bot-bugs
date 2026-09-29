@@ -1,8 +1,16 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
-import { apiRequest } from './api'
+import { apiRequest, ApiError } from './api'
+
+import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 
 export { parseTimeToMinutes }
+
+function shouldFallbackToMocks(err: unknown): boolean {
+  if (import.meta.env.VITE_ALLOW_MOCK_FALLBACK !== 'true') return false
+  return err instanceof ApiError && err.status === 0
+}
+
 
 export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
 export function loadAttendanceMap(): Record<string, boolean> { return {} }
@@ -56,13 +64,25 @@ export async function getEventCategories(): Promise<EventCategoryRecord[]> {
 }
 
 export async function getMapZones(cityId: number): Promise<MapZone[]> {
-  const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>(`/map/areas?city_id=${cityId}`)
-  return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+  try {
+    const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>(`/map/areas?city_id=${cityId}`)
+    return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+  } catch (err) {
+    if (shouldFallbackToMocks(err)) {
+      console.warn('Backend unavailable and mock fallback enabled, using local zones.')
+      return MAP_ZONES
+    }
+    throw err
+  }
 }
 
 export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEvent[]> {
-  const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
-  return items.map((item) => ({ ...mapApiEvent(item), isPast: when === 'past' }))
+  try {
+    const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
+    return items.map((item) => ({ ...mapApiEvent(item), isPast: when === 'past' }))
+  } catch {
+    return []
+  }
 }
 
 export interface CatalogQuery {
@@ -96,13 +116,21 @@ export async function getCatalogEvents(query: CatalogQuery = {}): Promise<MapEve
 }
 
 export async function getMapEvents(filters?: Partial<MapFilterState>, cityId?: number): Promise<MapEvent[]> {
-  const params = new URLSearchParams()
-  if (cityId !== undefined) params.set('city_id', String(cityId))
-  const suffix = params.size ? `?${params.toString()}` : ''
-  const items = await apiRequest<ApiMapEvent[]>(`/map/events${suffix}`)
-  let events = items.map(mapApiEvent)
-  if (filters) events = filterEvents(events, filters)
-  return events
+  try {
+    const params = new URLSearchParams()
+    if (cityId !== undefined) params.set('city_id', String(cityId))
+    const suffix = params.size ? `?${params.toString()}` : ''
+    const items = await apiRequest<ApiMapEvent[]>(`/map/events${suffix}`)
+    let events = items.map(mapApiEvent)
+    if (filters) events = filterEvents(events, filters)
+    return events
+  } catch (err) {
+    if (shouldFallbackToMocks(err)) {
+      console.warn('Backend unavailable and mock fallback enabled, using local events.')
+      return filters ? filterEvents(INITIAL_MAP_EVENTS, filters) : INITIAL_MAP_EVENTS
+    }
+    throw err
+  }
 }
 
 export async function toggleEventAttendance(eventId: string): Promise<MapEvent> {

@@ -82,6 +82,8 @@ services:
   admin-panel:
     build:
       context: ./frontend/admin-panel
+      args:
+        VITE_FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
     environment:
       BACKEND_URL: ${BACKEND_URL:-http://api:8000}
       NGINX_ENVSUBST_FILTER: BACKEND_URL

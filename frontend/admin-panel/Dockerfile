@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+ARG VITE_FALLBACK_LOCALE=ru-ru
+ENV VITE_FALLBACK_LOCALE=$VITE_FALLBACK_LOCALE
+
 COPY . .
 RUN npm run build
 
