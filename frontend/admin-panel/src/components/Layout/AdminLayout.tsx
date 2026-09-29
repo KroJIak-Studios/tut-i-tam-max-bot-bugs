@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link } from 'react-router-dom'
 import {
   IconLogo,
+  IconDashboard,
   IconRequests,
   IconEvents,
   IconLayers,
@@ -106,6 +107,24 @@ export const AdminLayout: React.FC = () => {
             mobileMenuOpen ? styles.mobileOpen : ''
           }`}
         >
+          <div className={styles.navSectionTitle}>Обзор</div>
+
+          <NavLink
+            to="/dashboard"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconDashboard size={18} />
+              <span className={styles.navItemText}>Дашборд</span>
+            </div>
+            <span className={styles.badgeGap} title="Ожидает агрегированную статистику">
+              Gap
+            </span>
+          </NavLink>
+
           <div className={styles.navSectionTitle}>Модерация</div>
 
           <NavLink
