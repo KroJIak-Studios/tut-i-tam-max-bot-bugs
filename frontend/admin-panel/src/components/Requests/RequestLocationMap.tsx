@@ -39,6 +39,9 @@ export const RequestLocationMap: React.FC<RequestLocationMapProps> = ({
       scrollWheelZoom: false,
     })
 
+    // Remove Leaflet branding, keep mandatory OpenStreetMap attribution
+    map.attributionControl.setPrefix('')
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution:

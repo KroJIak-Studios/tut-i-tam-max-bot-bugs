@@ -41,9 +41,8 @@ export const AdminLayout: React.FC = () => {
     setMobileMenuOpen(false)
   }
 
-  const displayName = user?.username || 'Администратор'
   const userInitials =
-    displayName
+    (user?.username || 'AD')
       .split(' ')
       .map((w) => w[0])
       .slice(0, 2)
@@ -75,10 +74,7 @@ export const AdminLayout: React.FC = () => {
         <div className={styles.headerRight}>
           <div className={styles.userProfile}>
             <div className={styles.avatar}>{userInitials}</div>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>{displayName}</span>
-              <span className={styles.userRole}>Администратор</span>
-            </div>
+            <span className={styles.userName}>Администратор</span>
           </div>
 
           <button

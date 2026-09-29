@@ -56,10 +56,13 @@ export const CityMapPicker: React.FC<CityMapPickerProps> = ({
       attributionControl: true,
     })
 
+    // Remove Leaflet branding, keep mandatory OpenStreetMap attribution
+    map.attributionControl.setPrefix('')
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
       attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
 
     map.on('click', (e: L.LeafletMouseEvent) => {
