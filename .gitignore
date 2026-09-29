@@ -51,6 +51,7 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+.obsidian/
 *.code-workspace
 
 # Logs and local databases

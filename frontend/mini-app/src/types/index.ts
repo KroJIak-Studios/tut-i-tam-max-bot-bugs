@@ -68,6 +68,7 @@ export interface MapEvent {
   isPast?: boolean
   visitedDate?: string
   aliasIds?: string[]
+  area?: [number, number][]
 }
 
 export interface MapZone {

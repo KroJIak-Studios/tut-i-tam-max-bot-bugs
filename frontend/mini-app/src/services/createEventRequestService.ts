@@ -1,160 +1,62 @@
 import type { CreateEventDraft, CreateEventRequest } from '../components/CreateEvent/types'
 import type { EventCategory } from '../types'
+import { apiRequest } from './api'
 import { calculateDefaultEndDateTime } from '../utils/formatters'
 
-const STORAGE_KEY = 'tut_i_tam_create_event_requests'
 export const REQUESTS_CHANGED_EVENT = 'tut_i_tam_requests_changed'
 
-export function getStoredRequestsSync(): CreateEventRequest[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return (parsed as Array<Record<string, unknown>>)
-      .map((item) => {
-        const rawDate = typeof item.date === 'string' ? item.date : ''
-        const startDate = typeof item.startDate === 'string' && item.startDate ? item.startDate : rawDate
-        const startTime = typeof item.startTime === 'string' ? item.startTime : ''
+export function getStoredRequestsSync(): CreateEventRequest[] { return [] }
 
-        let endDate = typeof item.endDate === 'string' && item.endDate ? item.endDate : startDate
-        let endTime = typeof item.endTime === 'string' ? item.endTime : undefined
+export interface SubmitCreateEventResult { success: boolean; data?: CreateEventRequest; error?: string }
 
-        if (!endTime && startTime) {
-          const defaultEnd = calculateDefaultEndDateTime(startDate, startTime)
-          endTime = defaultEnd.endTime
-          if (!item.endDate) {
-            endDate = defaultEnd.endDate
-          }
-        }
+interface City { id: string | number; name: string }
+interface ApiEvent { id: string | number; title: string; description?: string; category?: EventCategory; address?: string; latitude: number; longitude: number; starts_at: string; ends_at?: string }
 
-        const locationMode = (item.locationMode as 'point' | 'area') || 'point'
-        const locationPoint = (item.locationPoint as CreateEventRequest['locationPoint']) || { lat: 55.7960, lng: 49.1140 }
-        const locationArea = item.locationArea as CreateEventRequest['locationArea']
+function categoryForApi(category: EventCategory): string {
+  return category === 'sports' ? 'sport' : category
+}
 
-        const req: CreateEventRequest = {
-          id: (typeof item.id === 'string' ? item.id : '') || `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          status: (item.status as CreateEventRequest['status']) || 'pending',
-          source: 'user',
-          isFree: true,
-          pushkinCard: false,
-          title: typeof item.title === 'string' ? item.title : '',
-          description: typeof item.description === 'string' ? item.description : '',
-          category: (item.category as EventCategory) || 'events',
-          date: startDate,
-          startDate,
-          startTime,
-          endDate,
-          endTime,
-          address: typeof item.address === 'string' ? item.address : '',
-          locationMode,
-          locationPoint,
-          locationArea,
-          createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
-          locale: (item.locale as 'ru-RU' | 'en-US') || 'ru-RU',
-        }
-        return req
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  } catch {
-    return []
+function eventToRequest(event: ApiEvent, locale: 'ru-RU' | 'en-US'): CreateEventRequest {
+  const start = new Date(event.starts_at)
+  const end = event.ends_at ? new Date(event.ends_at) : undefined
+  return {
+    id: String(event.id), status: 'approved', source: 'user', isFree: true, pushkinCard: false,
+    title: event.title, description: event.description || '', category: event.category || 'events',
+    date: event.starts_at.slice(0, 10), startDate: event.starts_at.slice(0, 10), startTime: start.toTimeString().slice(0, 5),
+    endDate: event.ends_at?.slice(0, 10) || event.starts_at.slice(0, 10), endTime: end?.toTimeString().slice(0, 5),
+    address: event.address || '', locationMode: 'point', locationPoint: { lat: event.latitude, lng: event.longitude }, createdAt: new Date().toISOString(), locale,
   }
 }
 
-function loadStoredRequests(): CreateEventRequest[] {
-  return getStoredRequestsSync()
-}
-
-export interface SubmitCreateEventResult {
-  success: boolean
-  data?: CreateEventRequest
-  error?: string
-}
-
-/**
- * Service boundary for user-created event requests.
- * Currently uses local mock persistence and simulates network delay.
- * Ready for drop-in replacement with real backend API endpoints.
- */
 export async function getCreateEventRequests(): Promise<CreateEventRequest[]> {
-  // Small delay to simulate async network boundary
-  await new Promise((resolve) => setTimeout(resolve, 60))
-  return loadStoredRequests()
+  const events = await apiRequest<ApiEvent[]>('/me/attendances?when=upcoming')
+  return events.map((event) => eventToRequest(event, 'ru-RU'))
 }
 
 export async function getCreateEventRequestById(id: string): Promise<CreateEventRequest | null> {
-  await new Promise((resolve) => setTimeout(resolve, 50))
-  const requests = loadStoredRequests()
-  const found = requests.find((r) => r.id === id)
-  return found || null
+  try { return eventToRequest(await apiRequest<ApiEvent>(`/events/${id}`), 'ru-RU') } catch { return null }
 }
 
-export function clearCreateEventRequests(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-    window.dispatchEvent(new Event(REQUESTS_CHANGED_EVENT))
-  } catch {
-    // ignore
-  }
-}
+export function clearCreateEventRequests(): void { /* API data cannot be cleared locally. */ }
 
-export async function submitCreateEventRequest(
-  draft: CreateEventDraft,
-  locale: 'ru-RU' | 'en-US' = 'ru-RU',
-): Promise<SubmitCreateEventResult> {
-  // Simulate network delay for realistic UI feedback
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
+export async function submitCreateEventRequest(draft: CreateEventDraft, locale: 'ru-RU' | 'en-US' = 'ru-RU'): Promise<SubmitCreateEventResult> {
   try {
-    const category: EventCategory = draft.category || 'events'
     const startDate = draft.startDate || draft.date || ''
-    const startTime = draft.startTime
     let endDate = draft.endDate || startDate
     let endTime = draft.endTime
-
-    if (!endTime && startTime) {
-      const defaultEnd = calculateDefaultEndDateTime(startDate, startTime)
-      endTime = defaultEnd.endTime
-      if (!draft.endDate) {
-        endDate = defaultEnd.endDate
-      }
-    }
-
-    const newRequest: CreateEventRequest = {
-      id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      status: 'pending',
-      source: 'user',
-      isFree: true,
-      pushkinCard: false,
-      title: draft.title.trim(),
-      description: draft.description.trim(),
-      category,
-      date: startDate,
-      startDate,
-      startTime,
-      endDate,
-      endTime,
-      address: draft.address.trim(),
-      locationMode: draft.locationMode || 'point',
-      locationPoint: draft.locationPoint || { lat: 55.7960, lng: 49.1140 },
-      locationArea: draft.locationArea,
-      createdAt: new Date().toISOString(),
-      locale,
-    }
-
-    const existing = loadStoredRequests()
-    existing.unshift(newRequest)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
+    if (!endTime) { const fallback = calculateDefaultEndDateTime(startDate, draft.startTime); endDate = fallback.endDate; endTime = fallback.endTime }
+    const cities = await apiRequest<City[]>('/cities')
+    const city = cities.find((item) => item.name === 'Казань') || cities[0]
+    if (!city) throw new Error('No cities available')
+    const point = draft.locationPoint || { lat: 55.796, lng: 49.114 }
+    const response = await apiRequest<ApiEvent>('/events', { method: 'POST', body: JSON.stringify({
+      title: draft.title.trim(), description: draft.description.trim(), category: categoryForApi(draft.category || 'events'), city_id: city.id,
+      address: draft.address.trim(), latitude: point.lat, longitude: point.lng,
+      starts_at: new Date(`${startDate}T${draft.startTime}`).toISOString(), ends_at: new Date(`${endDate}T${endTime}`).toISOString(),
+      ...(draft.locationArea?.points.length ? { area: draft.locationArea.points.map(({ lat, lng }) => [lat, lng]) } : {}),
+    }) })
+    const data = eventToRequest(response, locale)
     window.dispatchEvent(new Event(REQUESTS_CHANGED_EVENT))
-
-    return {
-      success: true,
-      data: newRequest,
-    }
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Unknown submission error',
-    }
-  }
+    return { success: true, data }
+  } catch (err) { return { success: false, error: err instanceof Error ? err.message : 'Unknown submission error' } }
 }

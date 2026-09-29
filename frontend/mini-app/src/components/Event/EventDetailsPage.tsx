@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { findEventById } from '../../services/eventService'
+import { getEventById, submitEventReview } from '../../services/eventService'
 import { useAttendance } from '../../context/useAttendance'
 import { useReviews } from '../../context/useReviews'
 import { useUserPreferences } from '../../context/useUserPreferences'
@@ -37,6 +37,8 @@ export const EventDetailsPage: React.FC = () => {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [event, setEvent] = useState<Awaited<ReturnType<typeof getEventById>> | null>(null)
+  const [loading, setLoading] = useState(true)
   const galleryRef = useRef<HTMLDivElement>(null)
 
   const showToast = (msg: string) => {
@@ -66,9 +68,12 @@ export const EventDetailsPage: React.FC = () => {
     }
   }
 
-  // Lookup event
-  const event = eventId ? findEventById(eventId) : null
+  useEffect(() => {
+    if (!eventId) { setLoading(false); return }
+    getEventById(eventId).then(setEvent).catch(() => setEvent(null)).finally(() => setLoading(false))
+  }, [eventId])
 
+  if (loading) return <div className={styles.pageContainer} />
   // Fallback / Not found
   if (!event) {
     return (
@@ -162,6 +167,7 @@ export const EventDetailsPage: React.FC = () => {
   }
 
   const handleReviewSubmit = (id: string, rating: number, comment: string) => {
+    void submitEventReview(id, rating, comment)
     submitReview(id, rating, comment)
     setIsReviewModalOpen(false)
     showToast(t('plans.reviewThanksToast'))

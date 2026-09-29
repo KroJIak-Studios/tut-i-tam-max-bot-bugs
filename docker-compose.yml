@@ -1,9 +1,49 @@
 services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  db-init:
+    build:
+      context: ./backend
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      ACCESS_CODE_ENABLED: ${ACCESS_CODE_ENABLED:-false}
+      ACCESS_CODE: ${ACCESS_CODE}
+      FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build:
       context: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      ACCESS_CODE_ENABLED: ${ACCESS_CODE_ENABLED:-false}
+      ACCESS_CODE: ${ACCESS_CODE}
+      BOT_TOKEN: ${BOT_TOKEN}
+      FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
     expose:
       - "8000"
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -17,11 +57,26 @@ services:
       retries: 5
       start_period: 5s
 
+  bot:
+    build:
+      context: ./bot
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      BACKEND_URL: http://api:8000
+      FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
+      BOT_UPDATE_TRANSPORT: ${BOT_UPDATE_TRANSPORT:-long-polling}
+      BOT_WEBHOOK_DOMAIN: ${BOT_WEBHOOK_DOMAIN:-}
+      BOT_WEBHOOK_SECRET: ${BOT_WEBHOOK_SECRET:-}
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
   admin-panel:
     build:
       context: ./frontend/admin-panel
     environment:
-      USE_MOCKS: ${PANEL_USE_MOCKS:-true}
       BACKEND_URL: ${BACKEND_URL:-http://api:8000}
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
@@ -34,7 +89,6 @@ services:
     build:
       context: ./frontend/mini-app
     environment:
-      USE_MOCKS: ${MINIAPP_USE_MOCKS:-true}
       BACKEND_URL: ${BACKEND_URL:-http://api:8000}
       NGINX_ENVSUBST_FILTER: BACKEND_URL
     expose:
@@ -42,3 +96,6 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+volumes:
+  postgres-data:
