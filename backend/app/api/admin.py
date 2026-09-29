@@ -1,23 +1,52 @@
-import hmac
 import secrets
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.settings import get_settings
+from app.core.admin_tokens import bearer, require_admin
+from app.core.settings import Settings, get_settings
 from app.db import get_session
 from app.models.event import City, CityName
 from app.models.profile import Interest, InterestName, Locale
+from app.schemas.admin_auth import AdminLogin, AdminRefresh, AdminSession, AdminStats, AdminTokens
+from app.schemas.events import EventPhotoUpdate
 from app.schemas.profile import CityCreate, InterestCreate, InterestPatch
+from app.services.admin_auth_service import AdminAuthService
+from app.services.admin_stats_service import AdminStatsService
+from app.services.events_service import EventsService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-def require_admin(x_admin_password: str = Header(default="")) -> None:
-    password = get_settings().admin_password
-    if not password or not hmac.compare_digest(x_admin_password, password):
+def auth_service(settings: Settings = Depends(get_settings)) -> AdminAuthService:
+    return AdminAuthService(settings)
+
+
+@router.post("/login", response_model=AdminTokens)
+async def login(data: AdminLogin, service: AdminAuthService = Depends(auth_service)) -> AdminTokens:
+    return service.login(data.password)
+
+
+@router.post("/refresh", response_model=AdminTokens)
+async def refresh(data: AdminRefresh, service: AdminAuthService = Depends(auth_service)) -> AdminTokens:
+    return service.refresh(data.refresh_token)
+
+
+@router.get("/me", response_model=AdminSession)
+async def me(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+    service: AdminAuthService = Depends(auth_service),
+) -> AdminSession:
+    if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="admin_unauthorized")
+    return service.session(credentials.credentials)
+
+
+@router.get("/stats", response_model=AdminStats, dependencies=[Depends(require_admin)])
+async def stats(session: AsyncSession = Depends(get_session)) -> AdminStats:
+    return await AdminStatsService(session).stats()
 
 
 def names_payload(names: list[CityName | InterestName]) -> list[dict[str, str]]:
@@ -42,6 +71,15 @@ async def save_city_names(session: AsyncSession, city: City, values: list[dict[s
 async def save_interest_names(session: AsyncSession, interest: Interest, values: list[dict[str, str]]) -> None:
     await locale_names(session, values)
     interest.names = [InterestName(locale_code=item["locale_code"], text=item["text"]) for item in values]
+
+
+@router.patch("/events/{event_id}/photos", dependencies=[Depends(require_admin)])
+async def update_event_photos(
+    event_id: int,
+    data: EventPhotoUpdate,
+    session: AsyncSession = Depends(get_session),
+):
+    return {"id": event_id, "images": await EventsService(session).replace_photos(event_id, data)}
 
 
 @router.get("/locales", dependencies=[Depends(require_admin)])

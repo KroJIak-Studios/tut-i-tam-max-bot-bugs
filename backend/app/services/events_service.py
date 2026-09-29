@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.max_init_data import MaxInitUser
@@ -10,13 +10,14 @@ from app.models.event import (
     Event,
     EventArea,
     EventAttendance,
+    EventPhoto,
     EventReview,
     OfficialEvent,
     UserEvent,
 )
 from app.models.event_category import EventCategory
 from app.models.user import MaxUser
-from app.schemas.events import EventCreate, ReviewCreate
+from app.schemas.events import EventCreate, EventPhotoUpdate, ReviewCreate
 from app.services.ip_geolocation_service import IpGeolocationService
 
 
@@ -86,6 +87,18 @@ class EventsService:
         await self.session.refresh(event)
         return event
 
+    async def replace_photos(self, event_id: int, data: EventPhotoUpdate) -> list[str]:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        await self.session.execute(delete(EventPhoto).where(EventPhoto.event_id == event_id))
+        self.session.add_all([
+            EventPhoto(event_id=event_id, url=url, position=position)
+            for position, url in enumerate(data.images)
+        ])
+        await self.session.commit()
+        return data.images
+
     async def visible_event(self, event_id: int) -> Event:
         event = await self.session.scalar(
             select(Event).where(Event.id == event_id, Event.visible.is_(True))
@@ -138,6 +151,9 @@ class EventsService:
         )
         reviews = list(await self.session.scalars(select(EventReview).where(EventReview.event_id == event.id)))
         reviews.sort(key=lambda review: (review.user_id is not None, review.created_at))
+        photos = list(await self.session.scalars(
+            select(EventPhoto).where(EventPhoto.event_id == event.id).order_by(EventPhoto.position, EventPhoto.id)
+        ))
         now = datetime.now(timezone.utc)
         if event.starts_at > now:
             phase = "scheduled"
@@ -169,7 +185,7 @@ class EventsService:
             "pushkin_card": official.pushkin_card if official is not None else None,
             "chat_connected": event.chat_max_id is not None,
             "area": area.path if area is not None else None,
-            "images": [],
+            "images": [photo.url for photo in photos],
             "going": going is not None,
             "attendees_count": attendees_count or 0,
             "reviews": [await self._review_payload(review) for review in reviews],
