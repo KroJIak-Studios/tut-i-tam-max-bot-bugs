@@ -13,7 +13,11 @@ interface City { id: string | number; name: string }
 interface ApiEvent { id: string | number; title: string; description?: string; category?: EventCategory; address?: string; latitude: number; longitude: number; starts_at: string; ends_at?: string }
 
 function categoryForApi(category: EventCategory): string {
-  return category === 'sports' ? 'sport' : category
+  if (category === 'sports') return 'sport'
+  if (category === 'events') return 'event'
+  if (category === 'places') return 'place'
+  if (category === 'parks') return 'park'
+  return category
 }
 
 function eventToRequest(event: ApiEvent, locale: 'ru-RU' | 'en-US'): CreateEventRequest {
@@ -29,8 +33,12 @@ function eventToRequest(event: ApiEvent, locale: 'ru-RU' | 'en-US'): CreateEvent
 }
 
 export async function getCreateEventRequests(): Promise<CreateEventRequest[]> {
-  const events = await apiRequest<ApiEvent[]>('/me/attendances?when=upcoming')
-  return events.map((event) => eventToRequest(event, 'ru-RU'))
+  try {
+    const events = await apiRequest<ApiEvent[]>('/me/attendances?when=upcoming')
+    return events.map((event) => eventToRequest(event, 'ru-RU'))
+  } catch {
+    return []
+  }
 }
 
 export async function getCreateEventRequestById(id: string): Promise<CreateEventRequest | null> {

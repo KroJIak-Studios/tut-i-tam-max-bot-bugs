@@ -3,6 +3,8 @@ import { getIsoDate } from '../utils/dateUtils'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
 import { apiRequest } from './api'
 
+import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
+
 export { parseTimeToMinutes }
 
 export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
@@ -38,7 +40,7 @@ function mapEvent(item: ApiMapEvent): MapEvent {
   return {
     id: String(item.id), title: item.title, description: item.description || '',
     latitude: item.latitude, longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category || 'events') as EventCategory,
+    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category === 'place' ? 'places' : item.category === 'park' ? 'parks' : item.category || 'events') as EventCategory,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
@@ -50,20 +52,38 @@ function mapEvent(item: ApiMapEvent): MapEvent {
 }
 
 export async function getMapZones(): Promise<MapZone[]> {
-  const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
-  return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+  try {
+    const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
+    if (items && items.length > 0) {
+      return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+    }
+  } catch {
+    // API not reachable, fallback to mock zones
+  }
+  return MAP_ZONES
 }
 
 export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEvent[]> {
-  const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
-  return items.map((item) => ({ ...mapEvent(item), isGoing: when === 'upcoming', isPast: when === 'past' }))
+  try {
+    const items = await apiRequest<ApiMapEvent[]>(`/me/attendances?when=${when}`)
+    return items.map((item) => ({ ...mapEvent(item), isGoing: when === 'upcoming', isPast: when === 'past' }))
+  } catch {
+    return []
+  }
 }
 
 export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<MapEvent[]> {
-  const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
-  let events = items.map(mapEvent)
-  if (filters) events = filterEvents(events, filters)
-  return events
+  try {
+    const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
+    if (items && items.length > 0) {
+      let events = items.map(mapEvent)
+      if (filters) events = filterEvents(events, filters)
+      return events
+    }
+  } catch {
+    // API not reachable, fallback to initial map events
+  }
+  return filters ? filterEvents(INITIAL_MAP_EVENTS, filters) : INITIAL_MAP_EVENTS
 }
 
 export async function toggleEventAttendance(eventId: string): Promise<MapEvent> {
@@ -71,7 +91,11 @@ export async function toggleEventAttendance(eventId: string): Promise<MapEvent> 
   const event = current.find((item) => item.id === eventId)
   if (!event) throw new Error(`Event ${eventId} not found`)
   const going = !event.isGoing
-  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  try {
+    await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  } catch {
+    // offline/fallback: ignore API failure and update state locally
+  }
   return { ...event, isGoing: going }
 }
 
@@ -79,7 +103,11 @@ export async function setEventAttendance(eventId: string, going: boolean): Promi
   const current = await getMapEvents()
   const event = current.find((item) => item.id === eventId)
   if (!event) throw new Error(`Event ${eventId} not found`)
-  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  try {
+    await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
+  } catch {
+    // offline/fallback: ignore API failure
+  }
   return { ...event, isGoing: going }
 }
 

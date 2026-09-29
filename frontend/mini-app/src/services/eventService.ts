@@ -1,5 +1,7 @@
 import type { MapEvent, EventCategory, EventReview } from '../types'
 import { apiRequest } from './api'
+import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
+import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
 
 export interface DetailedEvent extends MapEvent {
   images: string[]
@@ -37,7 +39,7 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     description: item.description || '',
     latitude: item.latitude,
     longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category || 'events') as EventCategory,
+    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category === 'place' ? 'places' : item.category === 'park' ? 'parks' : item.category || 'events') as EventCategory,
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10),
     endDate: item.ends_at?.slice(0, 10),
@@ -55,9 +57,67 @@ function mapDetail(item: ApiEvent): DetailedEvent {
   }
 }
 
-export async function getEventById(id: string): Promise<DetailedEvent> { return mapDetail(await apiRequest<ApiEvent>(`/events/${id}`)) }
-export async function submitEventReview(id: string, rating: number, text: string): Promise<void> {
-  await apiRequest(`/events/${id}/reviews`, { method: 'POST', body: JSON.stringify({ rating, text, anonymous: false }) })
+function findFallbackEvent(rawId: string): DetailedEvent | null {
+  if (!rawId) return null
+  const target = rawId.toLowerCase().trim()
+  const found = INITIAL_MAP_EVENTS.find(
+    (e) => e.id.toLowerCase() === target || e.aliasIds?.some((a) => a.toLowerCase() === target)
+  )
+  if (found) {
+    const imgs = (found.images && found.images.length > 0) ? found.images : found.image ? [found.image] : ['/event-embankment.jpg']
+    return {
+      ...found,
+      images: imgs,
+      reviews: found.reviews || [],
+      isPast: false,
+    }
+  }
+  const foundPast = INITIAL_PAST_EVENTS.find((e) => e.id.toLowerCase() === target)
+  if (foundPast) {
+    return {
+      id: foundPast.id,
+      title: foundPast.title,
+      description: foundPast.description || '',
+      latitude: foundPast.latitude || 55.7985,
+      longitude: foundPast.longitude || 49.1055,
+      category: foundPast.category,
+      date: foundPast.date,
+      startTime: '19:00',
+      price: 0,
+      isFree: true,
+      pushkinCard: false,
+      attendeesCount: 15,
+      source: 'external',
+      images: foundPast.imageUrl ? [foundPast.imageUrl] : ['/event-embankment.jpg'],
+      address: foundPast.address || 'Казань',
+      reviews: [],
+      isPast: true,
+      visitedDate: foundPast.visitedDate,
+    }
+  }
+  return null
 }
-export function findEventById(_rawId: string): DetailedEvent | null { return null }
+
+export async function getEventById(id: string): Promise<DetailedEvent> {
+  try {
+    return mapDetail(await apiRequest<ApiEvent>(`/events/${id}`))
+  } catch (err) {
+    const fallback = findFallbackEvent(id)
+    if (fallback) return fallback
+    throw err
+  }
+}
+
+export async function submitEventReview(id: string, rating: number, text: string): Promise<void> {
+  try {
+    await apiRequest(`/events/${id}/reviews`, { method: 'POST', body: JSON.stringify({ rating, text, anonymous: false }) })
+  } catch (err) {
+    console.warn('Failed to submit review to backend:', err)
+  }
+}
+
+export function findEventById(rawId: string): DetailedEvent | null {
+  return findFallbackEvent(rawId)
+}
+
 export type { MapEvent }

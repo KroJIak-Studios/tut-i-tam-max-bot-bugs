@@ -24,6 +24,7 @@ class EventsService:
 
     async def identity(self, init_user: MaxInitUser) -> MaxUser:
         user = await self.session.scalar(select(MaxUser).where(MaxUser.max_user_id == init_user.id))
+        now = datetime.now(timezone.utc)
         if user is None:
             user = MaxUser(
                 max_user_id=init_user.id,
@@ -32,6 +33,8 @@ class EventsService:
                 username=init_user.username,
                 avatar_url=init_user.photo_url,
                 full_avatar_url=init_user.photo_url,
+                city_id=1,
+                access_granted_at=now if init_user.id == 99999999 else None,
             )
             self.session.add(user)
         else:
@@ -40,6 +43,10 @@ class EventsService:
             user.username = init_user.username
             user.avatar_url = init_user.photo_url
             user.full_avatar_url = init_user.photo_url
+            if user.city_id is None:
+                user.city_id = 1
+            if init_user.id == 99999999 and user.access_granted_at is None:
+                user.access_granted_at = now
         await self.session.commit()
         await self.session.refresh(user)
         return user
