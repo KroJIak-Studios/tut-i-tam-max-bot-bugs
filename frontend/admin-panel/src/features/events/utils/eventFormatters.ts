@@ -1,5 +1,5 @@
 import { runtimeConfig, DEFAULT_FALLBACK_LOCALE } from '../../../config/runtimeConfig'
-import type { AdminEventItem, AdminEventOrigin, AdminEventPhase } from '../types'
+import type { AdminEventImage, AdminEventItem, AdminEventOrigin, AdminEventPhase } from '../types'
 import type { City } from '../../cities/types/city'
 import type { EventCategory } from '../../categories/types'
 
@@ -88,6 +88,12 @@ export function getOriginBadge(origin: AdminEventOrigin): { label: string; varia
   }
 }
 
+export function getVisibilityBadge(visible: boolean): { label: string; variant: 'visible' | 'hidden' } {
+  return visible
+    ? { label: 'Видно', variant: 'visible' }
+    : { label: 'Скрыто', variant: 'hidden' }
+}
+
 export function formatEventPrice(event: Pick<AdminEventItem, 'origin' | 'price_rub'>): string {
   if (event.origin === 'user') {
     return 'Бесплатно'
@@ -123,4 +129,16 @@ export function resolveCategoryName(
   if (found && found.text) return found.text
 
   return cat.names[0]?.text || `Категория #${categoryId}`
+}
+
+export function getFirstImageUrl(images?: (string | AdminEventImage)[] | null): string | null {
+  if (!images || images.length === 0) return null
+  const first = images[0]
+  if (typeof first === 'string') return first
+  return first.url || null
+}
+
+export function getImageUrls(images?: (string | AdminEventImage)[] | null): string[] {
+  if (!images) return []
+  return images.map((img) => (typeof img === 'string' ? img : img.url)).filter(Boolean)
 }

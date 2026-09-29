@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { IconLogo, IconLock, IconAlertCircle, IconInfo, IconEye, IconEyeOff } from '../Icons'
+import { IconLogo, IconLock, IconAlertCircle, IconEye, IconEyeOff } from '../Icons'
 import styles from './LoginPage.module.css'
 
 export const LoginPage: React.FC = () => {
@@ -105,12 +105,6 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        <div className={styles.infoBox}>
-          <IconInfo size={16} className={styles.infoIcon} />
-          <span>
-            Сессионный доступ управляется токенами без сохранения пароля в браузере.
-          </span>
-        </div>
       </div>
     </div>
   )

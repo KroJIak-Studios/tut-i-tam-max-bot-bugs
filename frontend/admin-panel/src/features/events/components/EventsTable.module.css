@@ -116,6 +116,18 @@
   border: 1px solid var(--color-warning-border);
 }
 
+.badgeVisible {
+  background: var(--color-success-soft);
+  color: #047857;
+  border: 1px solid var(--color-success-border);
+}
+
+.badgeHidden {
+  background: #f1f5f9;
+  color: var(--color-text-muted);
+  border: 1px solid #e2e8f0;
+}
+
 .priceTag {
   font-weight: 500;
   white-space: nowrap;

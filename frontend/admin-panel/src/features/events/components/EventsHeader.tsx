@@ -44,8 +44,8 @@ export const EventsHeader: React.FC<EventsHeaderProps> = ({
             type="button"
             className={`${styles.btn} ${styles.btnPrimary}`}
             disabled
-            title="Форма создания мероприятий подготавливается для следующей итерации (требуется POST /admin/events на сервере)"
-            aria-label="Создать мероприятие (в разработке)"
+            title="Форма создания официального мероприятия будет добавлена следующим этапом"
+            aria-label="Создать мероприятие (форма будет добавлена следующим этапом)"
           >
             <Plus size={16} aria-hidden="true" />
             <span>Создать мероприятие</span>

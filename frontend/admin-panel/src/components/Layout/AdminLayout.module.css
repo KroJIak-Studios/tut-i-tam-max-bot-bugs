@@ -102,22 +102,11 @@
   flex-shrink: 0;
 }
 
-.userInfo {
-  display: flex;
-  flex-direction: column;
-}
-
 .userName {
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-main);
-  line-height: 1.2;
   white-space: nowrap;
-}
-
-.userRole {
-  font-size: 10px;
-  color: var(--color-text-muted);
 }
 
 .logoutBtn {
@@ -290,7 +279,7 @@
     padding: 16px 12px;
   }
 
-  .userInfo {
+  .userName {
     display: none;
   }
 

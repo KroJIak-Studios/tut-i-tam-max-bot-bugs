@@ -1,61 +1,23 @@
 import React from 'react'
-import { RefreshCw, Clock, AlertCircle } from 'lucide-react'
+import { RefreshCw, AlertCircle } from 'lucide-react'
 import { useDashboardData } from './hooks/useDashboardData'
 import { EventsBreakdownCard } from './components/EventsBreakdownCard'
 import { UsersMetricCard } from './components/UsersMetricCard'
+import { DirectoryMetricsBlock } from './components/DirectoryMetricsBlock'
 import styles from './Dashboard.module.css'
 
 export const DashboardView: React.FC = () => {
-  const { data, isLoading, isRefreshing, error, lastUpdated, refresh } =
-    useDashboardData()
-
-  const formattedTime = lastUpdated
-    ? lastUpdated.toLocaleTimeString('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-    : null
+  const { data, isLoading, error, refresh } = useDashboardData()
 
   return (
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerTitleGroup}>
-          <h1 className={styles.title}>Дашборд и сводные метрики</h1>
+          <h1 className={styles.title}>Дашборд</h1>
           <p className={styles.subtitle}>
-            Операционные показатели платформы, статистика мероприятий и пользователей
+            Сводные показатели платформы
           </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          {formattedTime && (
-            <span className={styles.lastUpdatedText}>
-              <Clock
-                size={12}
-                style={{
-                  display: 'inline',
-                  marginRight: 4,
-                  verticalAlign: 'middle',
-                }}
-              />
-              Обновлено: {formattedTime}
-            </span>
-          )}
-
-          <button
-            type="button"
-            className={styles.refreshBtn}
-            onClick={refresh}
-            disabled={isRefreshing || isLoading}
-            aria-label="Обновить метрики дашборда"
-          >
-            <RefreshCw
-              size={16}
-              className={isRefreshing ? styles.refreshIconRotating : undefined}
-            />
-            <span>{isRefreshing ? 'Обновление...' : 'Обновить данные'}</span>
-          </button>
         </div>
       </header>
 
@@ -94,10 +56,15 @@ export const DashboardView: React.FC = () => {
       )}
 
       {data && (
-        <div className={styles.primaryGrid}>
-          <EventsBreakdownCard stats={data.events} />
-          <UsersMetricCard stats={data.users} />
-        </div>
+        <>
+          <div className={styles.primaryGrid}>
+            <EventsBreakdownCard stats={data.events} />
+            <UsersMetricCard stats={data.users} />
+          </div>
+          <div className={styles.secondaryGrid}>
+            <DirectoryMetricsBlock />
+          </div>
+        </>
       )}
     </div>
   )

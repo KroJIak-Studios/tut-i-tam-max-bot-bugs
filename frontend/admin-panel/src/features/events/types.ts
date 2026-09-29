@@ -1,35 +1,37 @@
 /**
  * Domain types and contracts for Admin Panel Events Feature.
- * Aligned with current backend models (Event, OfficialEvent, UserEvent, EventPhoto, EventArea).
+ * Strictly aligned with current backend models:
+ * - backend/app/schemas/admin_events.py
+ * - backend/app/models/event.py
+ * - backend/app/services/events_service.py
+ *
+ * NOTE: No moderation state machine (no pending / approved / rejected).
+ * Events strictly use `visible: boolean` and date-based `phase`.
  */
 
 export type AdminEventOrigin = 'official' | 'user'
 
 export type AdminEventPhase = 'scheduled' | 'ongoing' | 'finished'
 
-export interface AdminEventAuthor {
+export interface AdminEventImage {
   id: number
-  first_name: string | null
+  url: string
+  position: number
 }
 
-export interface AdminEventReview {
+export interface AdminEventAuthor {
   id: number
-  rating: number
-  text: string | null
-  anonymous: boolean
-  author_name: string | null
-  is_bot: boolean
-  created_at: string
+  first_name: string
+  last_name: string | null
 }
 
 export interface AdminEventItem {
   id: number
   title: string
   description: string
-  category_id: number | null
-  category_name?: string
   city_id: number
-  city_name?: string
+  category_id: number | null
+  visible: boolean
   address: string
   latitude: number
   longitude: number
@@ -37,51 +39,113 @@ export interface AdminEventItem {
   ends_at: string | null
   phase: AdminEventPhase
   origin: AdminEventOrigin
-  visible?: boolean
-  author?: AdminEventAuthor | null
   price_rub: number | null
   pushkin_card: boolean | null
+  chat_invite_url: string | null
   chat_connected: boolean
-  chat_invite_url?: string | null
-  area?: number[][] | null
-  images: string[]
-  going?: boolean
-  attendees_count?: number
-  reviews?: AdminEventReview[]
+  chat_id: number | null
+  area: number[][] | null
+  images: AdminEventImage[]
+  attendees_count: number
+  author: AdminEventAuthor | null
+}
+
+export interface AdminEventsListResponse {
+  total: number
+  limit: number
+  offset: number
+  items: AdminEventItem[]
 }
 
 export interface EventFiltersState {
   search: string
   cityId: number | 'all'
   categoryId: number | 'all'
-  origin: 'all' | 'official' | 'user'
+  source: 'all' | 'official' | 'user'
+  visible: 'all' | 'visible' | 'hidden'
   freeOnly: boolean
+  pushkinOnly: boolean
 }
 
-export interface EventPhotoUpdatePayload {
-  images: string[]
+export interface EventPaginationState {
+  page: number
+  limit: number
+  total: number
 }
 
 /**
- * Architecture type definition for future Create / Edit forms.
- * Captures all product requirements from lead for subsequent iterations.
+ * Payload for POST /api/admin/events.
+ * Creates an official event (admin cannot create user-created events).
  */
-export interface AdminEventFormDraft {
-  city_id: number | null
+export interface AdminEventWritePayload {
   title: string
   description: string
-  category_id: number | null
-  starts_at: string
-  ends_at: string
+  city_id: number
+  category_id?: number | null
   address: string
-  latitude: number | null
-  longitude: number | null
-  is_free: boolean
-  price_rub: number | null
-  pushkin_card: boolean
-  area: number[][] | null
+  latitude: number
+  longitude: number
+  starts_at: string
+  ends_at?: string | null
+  price_rub?: number
+  pushkin_card?: boolean
+  visible?: boolean
+  chat_invite_url?: string | null
+  area?: number[][] | null
+}
+
+/**
+ * Payload for PATCH /api/admin/events/{id}.
+ * DOMAIN RULE: If event.origin === 'user', price_rub and pushkin_card MUST NOT be included;
+ * server will raise 422 user_event_has_no_price.
+ */
+export interface AdminEventPatchPayload {
+  title?: string
+  description?: string
+  city_id?: number
+  category_id?: number | null
+  address?: string
+  latitude?: number
+  longitude?: number
+  starts_at?: string
+  ends_at?: string | null
+  price_rub?: number | null
+  pushkin_card?: boolean | null
+  visible?: boolean
+  chat_invite_url?: string | null
+  area?: number[][] | null
+}
+
+/**
+ * Payload for POST /api/admin/events/{id}/chat
+ */
+export interface AdminChatCheckPayload {
   chat_invite_url: string
-  images: string[]
+}
+
+export interface AdminChatCheckResult {
+  chat_found: boolean
+  bot_in_chat: boolean
+  bot_ready: boolean
+  status:
+    | 'ready'
+    | 'bot_not_in_chat'
+    | 'missing_permissions'
+    | 'chat_not_found'
+    | 'chat_unavailable'
+    | 'membership_unavailable'
+    | string
+  chat_id: number | null
+  permissions: string[]
+}
+
+/**
+ * Response for POST /api/admin/events/{id}/photos
+ */
+export interface AdminPhotoUploadResponse {
+  id: number
+  url: string
+  position: number
 }
 
 export interface EventsStatsSummary {

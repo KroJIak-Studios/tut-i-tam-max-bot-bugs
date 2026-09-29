@@ -10,27 +10,19 @@ interface UsersMetricCardProps {
 export const UsersMetricCard: React.FC<UsersMetricCardProps> = ({ stats }) => {
   return (
     <article className={styles.card}>
-      <div>
-        <header className={styles.cardHeader}>
-          <div className={styles.iconWrapper} aria-hidden="true">
-            <Users size={18} />
-          </div>
-          <h3 className={styles.cardTitle}>Пользователи платформы</h3>
-        </header>
-
-        <div className={styles.totalSection} style={{ marginTop: '16px' }}>
-          <span className={styles.totalValue}>
-            {stats.total.toLocaleString('ru-RU')}
-          </span>
-          <span className={styles.totalLabel}>
-            Всего зарегистрированных пользователей
-          </span>
+      <header className={styles.cardHeader}>
+        <div className={styles.iconWrapper} aria-hidden="true">
+          <Users size={18} />
         </div>
-      </div>
+        <h3 className={styles.cardTitle}>Пользователи</h3>
+      </header>
 
-      <div className={styles.descriptionBox}>
-        <span>
-          Аудитория сервиса, взаимодействующая с каталогом событий через Telegram Mini App и бота.
+      <div className={styles.totalSection} style={{ marginTop: '16px' }}>
+        <span className={styles.totalValue}>
+          {stats.total.toLocaleString('ru-RU')}
+        </span>
+        <span className={styles.totalLabel}>
+          Зарегистрировано в платформе
         </span>
       </div>
     </article>

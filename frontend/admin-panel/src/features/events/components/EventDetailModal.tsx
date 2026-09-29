@@ -20,6 +20,7 @@ import styles from './EventDetailModal.module.css'
 interface EventDetailModalProps {
   event: AdminEventItem | null
   isOpen: boolean
+  isLoading?: boolean
   cities: City[]
   categories: EventCategory[]
   onClose: () => void
@@ -29,6 +30,7 @@ interface EventDetailModalProps {
 export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   event,
   isOpen,
+  isLoading,
   cities,
   categories,
   onClose,
@@ -100,6 +102,19 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                   fontWeight: 600,
                   padding: '2px 8px',
                   borderRadius: 4,
+                  background: event.visible ? '#ecfdf5' : '#f1f5f9',
+                  color: event.visible ? '#047857' : '#475569',
+                  border: `1px solid ${event.visible ? '#a7f3d0' : '#e2e8f0'}`,
+                }}
+              >
+                {event.visible ? 'Видно в каталоге' : 'Скрыто в каталоге'}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: 4,
                   background: '#f1f5f9',
                   color: '#475569',
                   border: '1px solid #e2e8f0',
@@ -119,6 +134,17 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               >
                 ID: #{event.id}
               </span>
+              {isLoading && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: '#64748b',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Обновление данных...
+                </span>
+              )}
             </div>
             <h2 id="event-detail-title" className={styles.title}>
               {event.title}
@@ -171,18 +197,22 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
             {hasPhotos ? (
               <div className={styles.photoGrid}>
-                {event.images.map((url, idx) => (
-                  <img
-                    key={idx}
-                    src={url}
-                    alt={`Фото ${idx + 1}`}
-                    className={styles.photoThumb}
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                ))}
+                {event.images.map((img, idx) => {
+                  const url = typeof img === 'string' ? img : img.url
+                  const key = typeof img === 'string' ? idx : img.id || idx
+                  return (
+                    <img
+                      key={key}
+                      src={url}
+                      alt={`Фото ${idx + 1}`}
+                      className={styles.photoThumb}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <div className={styles.noPhotosNotice}>
@@ -269,13 +299,22 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               </span>
             </div>
 
-            {event.author && (
+            <div className={styles.gridItem}>
+              <span className={styles.fieldLabel}>Участники</span>
+              <span className={styles.fieldValue}>{event.attendees_count ?? 0}</span>
+            </div>
+
+            {event.author ? (
               <div className={styles.gridItemFull}>
                 <span className={styles.fieldLabel}>Автор (пользователь)</span>
                 <span className={styles.fieldValue}>
-                  {event.author.first_name || 'Пользователь'} (ID: #
-                  {event.author.id})
+                  {event.author.first_name} {event.author.last_name || ''} (ID: #{event.author.id})
                 </span>
+              </div>
+            ) : (
+              <div className={styles.gridItemFull}>
+                <span className={styles.fieldLabel}>Источник</span>
+                <span className={styles.fieldValue}>Официальное мероприятие</span>
               </div>
             )}
           </div>

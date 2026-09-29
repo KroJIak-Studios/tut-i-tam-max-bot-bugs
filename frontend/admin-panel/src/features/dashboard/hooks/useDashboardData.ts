@@ -6,9 +6,7 @@ export function useDashboardData() {
   const [state, setState] = useState<DashboardState>({
     data: null,
     isLoading: true,
-    isRefreshing: false,
     error: null,
-    lastUpdated: null,
   })
   const [refreshIndex, setRefreshIndex] = useState<number>(0)
 
@@ -22,9 +20,7 @@ export function useDashboardData() {
           setState({
             data,
             isLoading: false,
-            isRefreshing: false,
             error: null,
-            lastUpdated: new Date(),
           })
         }
       })
@@ -33,7 +29,6 @@ export function useDashboardData() {
           setState((prev) => ({
             ...prev,
             isLoading: false,
-            isRefreshing: false,
             error: err instanceof Error ? err.message : 'Не удалось загрузить статистику',
           }))
         }
@@ -45,7 +40,6 @@ export function useDashboardData() {
   }, [refreshIndex])
 
   const refresh = useCallback(() => {
-    setState((prev) => ({ ...prev, isRefreshing: true, error: null }))
     setRefreshIndex((prev) => prev + 1)
   }, [])
 

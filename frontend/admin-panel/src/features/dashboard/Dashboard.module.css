@@ -58,54 +58,11 @@
   line-height: 1.4;
 }
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.refreshBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 16px;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-main);
-  transition: all 0.15s ease;
-  box-shadow: var(--shadow-sm);
-  touch-action: manipulation;
-}
-
-.refreshBtn:hover:not(:disabled) {
-  background-color: var(--color-border-subtle);
-  border-color: var(--color-text-muted);
-}
-
-.refreshBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.refreshIconRotating {
-  animation: spin 0.8s linear infinite;
-}
-
+/* Spin animation used by retry buttons */
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-.lastUpdatedText {
-  font-size: 12px;
-  color: var(--color-text-muted);
 }
 
 /* Error Banner */
@@ -160,6 +117,13 @@
   .primaryGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* Secondary Grid (directory block, etc.) */
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 /* Loading & Error States */
