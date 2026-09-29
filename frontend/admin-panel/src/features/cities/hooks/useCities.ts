@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { citiesApi } from '../api/citiesApi'
 import {
-  DEFAULT_FALLBACK_LOCALE_CODE,
   getFallbackLocale,
 } from '../constants/locales'
 import type { City, CityCreatePayload, Locale } from '../types/city'
@@ -21,7 +20,7 @@ export function useCities() {
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const fallbackLocale = useMemo(
-    () => getFallbackLocale(locales, DEFAULT_FALLBACK_LOCALE_CODE),
+    () => getFallbackLocale(locales),
     [locales],
   )
 

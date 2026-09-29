@@ -3,12 +3,24 @@ import type { City, CityName, Locale } from '../types/city'
 export const DEFAULT_FALLBACK_LOCALE_CODE = 'ru-ru'
 
 /**
- * Returns the Locale matching the fallback code, or the first available locale,
- * or a synthetic Russian locale if the list is empty.
+ * Resolves the fallback locale code from frontend runtime environment configuration.
+ * Supported: VITE_FALLBACK_LOCALE / FALLBACK_LOCALE. Defaults to 'ru-ru' if unset.
+ */
+export function getConfiguredFallbackLocaleCode(): string {
+  const envVal =
+    (typeof import.meta !== 'undefined' &&
+      (import.meta.env?.VITE_FALLBACK_LOCALE || import.meta.env?.FALLBACK_LOCALE)) ||
+    DEFAULT_FALLBACK_LOCALE_CODE
+  return String(envVal).trim().toLowerCase()
+}
+
+/**
+ * Returns the Locale matching the configured code from the API locales list,
+ * resolving the native_name dynamically.
  */
 export function getFallbackLocale(
   locales: Locale[],
-  configuredCode = DEFAULT_FALLBACK_LOCALE_CODE,
+  configuredCode = getConfiguredFallbackLocaleCode(),
 ): Locale {
   const normalizedConfigured = configuredCode.toLowerCase()
   const found = locales.find((l) => l.code.toLowerCase() === normalizedConfigured)
@@ -19,8 +31,8 @@ export function getFallbackLocale(
     return locales[0]
   }
   return {
-    code: DEFAULT_FALLBACK_LOCALE_CODE,
-    native_name: 'Русский',
+    code: normalizedConfigured,
+    native_name: normalizedConfigured,
   }
 }
 
@@ -42,7 +54,7 @@ export function getLocaleDisplayName(code: string, locales: Locale[]): string {
  */
 export function getCityMainName(
   city: City,
-  fallbackCode = DEFAULT_FALLBACK_LOCALE_CODE,
+  fallbackCode = getConfiguredFallbackLocaleCode(),
 ): string {
   const normalizedFallback = fallbackCode.toLowerCase()
   const primaryName = city.names.find(
@@ -62,7 +74,7 @@ export function getCityMainName(
  */
 export function getCityAdditionalNames(
   city: City,
-  fallbackCode = DEFAULT_FALLBACK_LOCALE_CODE,
+  fallbackCode = getConfiguredFallbackLocaleCode(),
 ): CityName[] {
   const normalizedFallback = fallbackCode.toLowerCase()
   return city.names.filter(

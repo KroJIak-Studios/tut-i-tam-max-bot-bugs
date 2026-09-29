@@ -59,10 +59,10 @@ export const CityCard: React.FC<CityCardProps> = ({
           ) : (
             <div
               className={`${styles.coordsBadge} ${styles.coordsMissing}`}
-              title="Координаты не возвращаются сервером при текущей версии API"
+              title="Координаты центра города не указаны"
             >
               <MapPin size={12} />
-              <span>Координаты: N/A</span>
+              <span>Координаты не указаны</span>
             </div>
           )}
         </div>

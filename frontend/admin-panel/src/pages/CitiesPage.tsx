@@ -10,7 +10,6 @@ import {
 import { useCities } from '../features/cities/hooks/useCities'
 import { CityCard } from '../features/cities/components/CityCard'
 import { CityFormModal } from '../features/cities/components/CityFormModal'
-import { CityStatusBanner } from '../features/cities/components/CityStatusBanner'
 import styles from './CitiesPage.module.css'
 
 export const CitiesPage: React.FC = () => {
@@ -59,9 +58,6 @@ export const CitiesPage: React.FC = () => {
             <span>Добавить город</span>
           </button>
         </div>
-
-        {/* Integration notice banner */}
-        <CityStatusBanner />
 
         {/* Search & Refresh Toolbar */}
         <div className={styles.toolbar}>

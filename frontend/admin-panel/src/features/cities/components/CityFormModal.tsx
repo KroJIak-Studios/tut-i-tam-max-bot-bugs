@@ -5,7 +5,6 @@ import {
   Trash2,
   Building2,
   AlertCircle,
-  AlertTriangle,
   Languages,
 } from 'lucide-react'
 import type {
@@ -237,17 +236,6 @@ export const CityFormModal: React.FC<CityFormModalProps> = ({
               <div>
                 <strong>Ошибка сохранения:</strong>
                 <div>{serverError}</div>
-              </div>
-            </div>
-          )}
-
-          {mode === 'edit' && (
-            <div className={`${styles.alertBox} ${styles.alertWarning}`}>
-              <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
-              <div>
-                <strong>Ограничение бэкенда:</strong> текущий эндпоинт{' '}
-                <code>PATCH /api/admin/cities</code> обновляет переводы названий, но не
-                сохраняет изменённые координаты.
               </div>
             </div>
           )}
