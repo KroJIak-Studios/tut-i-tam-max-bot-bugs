@@ -7,8 +7,6 @@ export const translation: TranslationSchema = {
     retryButton: 'Enable',
     permissionDenied: 'Location access is blocked in your browser. Allow it in this site’s settings.',
     recenter: 'Return to my location',
-    errorDescription: 'Could not determine your position. Tap to try again.',
-    unavailableDescription: 'This browser does not support geolocation.',
     retry: 'Try again',
   },
   app: { name: 'Tut & Tam' },

@@ -287,3 +287,14 @@ export const IconUndo: React.FC<IconProps> = ({ size = 16, color = 'currentColor
     <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
   </svg>
 )
+
+export const IconCrosshair: React.FC<IconProps> = ({ size = 22, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 2v3" />
+    <path d="M12 19v3" />
+    <path d="M2 12h3" />
+    <path d="M19 12h3" />
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+)

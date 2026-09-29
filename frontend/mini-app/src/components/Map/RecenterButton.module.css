@@ -1,8 +1,8 @@
 .button {
-  position: absolute;
+  position: fixed;
   z-index: 900;
   right: 18px;
-  bottom: calc(var(--bottom-nav-height, 68px) + var(--bottom-nav-overhang, 0px) + 194px);
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 72px + 112px);
   display: grid;
   width: 44px;
   height: 44px;
@@ -14,5 +14,4 @@
   color: #2563EB;
   cursor: pointer;
 }
-.button span { font-size: 28px; line-height: 1; }
 .button:disabled { opacity: .45; cursor: not-allowed; }

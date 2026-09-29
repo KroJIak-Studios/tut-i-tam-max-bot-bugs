@@ -25,11 +25,10 @@ class AccessService:
 
     async def status(self, request: MaxIdentityRequest) -> AccessStatusResponse:
         user = await self._ensure_identity(request)
-        return AccessStatusResponse(
-            access_required=self._settings.access_code_enabled,
-            access_granted=self._has_access(user),
-            locale=user.locale,
-        )
+        return self._status_response(user)
+
+    async def ensure_user(self, request: MaxIdentityRequest) -> MaxUser:
+        return await self._ensure_identity(request)
 
     async def verify(self, request: VerifyAccessCodeRequest) -> UserAccessResponse:
         user = await self._ensure_identity(request)
@@ -53,6 +52,13 @@ class AccessService:
     async def save_primary_message(self, request: MaxIdentityRequest, message_id: str | None) -> None:
         await self._ensure_identity(request)
         await self._chats.update_primary_message(request.max_chat_id, message_id)
+
+    def _status_response(self, user: MaxUser) -> AccessStatusResponse:
+        return AccessStatusResponse(
+            access_required=self._settings.access_code_enabled,
+            access_granted=self._has_access(user),
+            locale=user.locale,
+        )
 
     def _has_access(self, user: MaxUser) -> bool:
         return (

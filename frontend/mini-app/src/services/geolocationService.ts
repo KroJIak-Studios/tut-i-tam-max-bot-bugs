@@ -4,6 +4,15 @@ export interface GeoPoint {
   accuracy: number
 }
 
+const MOBILE_USER_AGENT = /Android|iPhone|iPad|iPod|Mobile/i
+
+export function supportsPreciseGeolocation(): boolean {
+  if (!navigator.geolocation) return false
+  const narrowScreen = window.matchMedia('(max-width: 768px)').matches
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches
+  return narrowScreen && (coarsePointer || MOBILE_USER_AGENT.test(navigator.userAgent))
+}
+
 export function watchUserLocation(onUpdate: (point: GeoPoint) => void, onError: (error: GeolocationPositionError) => void): () => void {
   if (!navigator.geolocation) {
     onError({ code: 2, message: 'geolocation_unavailable' } as GeolocationPositionError)

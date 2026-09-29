@@ -31,12 +31,8 @@ export class StartService {
     return false
   }
 
-  async handleBotStarted(ctx: Context, locale: string | null | undefined): Promise<void> {
-    await this.backend.getAccessStatus(await this.loadProfile(ctx, locale))
-  }
-
-  async handleStart(ctx: Context, forceNewPrimary = false): Promise<void> {
-    const profile = await this.loadProfile(ctx)
+  async handleStart(ctx: Context, forceNewPrimary = false, locale?: string | null): Promise<void> {
+    const profile = await this.loadProfile(ctx, locale)
     const status = await this.backend.getAccessStatus(profile)
     const i18n = new I18n(status.locale, this.fallbackLocale)
 
@@ -45,9 +41,11 @@ export class StartService {
       return
     }
 
+    const meetingCount = await this.meetingCount(profile)
+
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(i18n, profile.user.first_name),
+      this.createPrimary(i18n, profile.user.first_name, meetingCount),
       forceNewPrimary,
     )
     await this.clearPending(ctx)
@@ -69,7 +67,7 @@ export class StartService {
 
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name),
+      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name, (await this.backend.listMeetings(profile)).total),
     )
     await this.clearPending(ctx)
   }
@@ -101,7 +99,7 @@ export class StartService {
     }
   }
 
-  private createPrimary(i18n: I18n, firstName: string): PrimaryMessage {
+  private createPrimary(i18n: I18n, firstName: string, meetingCount: number): PrimaryMessage {
     const text = [
       i18n.translate('start.title'),
       '',
@@ -113,7 +111,7 @@ export class StartService {
     const buttons = [
       [
         Keyboard.button.callback(`📍 ${i18n.translate('start.nearby_events')}`, MenuAction.NearbyEvents),
-        Keyboard.button.callback(`🗓️ ${i18n.translate('start.my_meetings')}`, MenuAction.MyMeetings),
+        Keyboard.button.callback(`🗓️ ${i18n.translate('start.my_meetings')}${this.meetingBadge(meetingCount)}`, MenuAction.MyMeetings),
       ],
       [Keyboard.button.callback(`🤖 ${i18n.translate('start.ai_assistant')}`, MenuAction.AiAssistant)],
       [Keyboard.button.callback(`⚙️ ${i18n.translate('start.settings')}`, MenuAction.Settings)],
@@ -123,6 +121,17 @@ export class StartService {
       attachments: [Keyboard.inlineKeyboard(buttons)],
     })
 
+  }
+
+  private async meetingCount(profile: UserProfileInput): Promise<number> {
+    return (await this.backend.listMeetings(profile)).total
+  }
+
+  private meetingBadge(count: number): string {
+    if (count <= 0) return ''
+    const shown = count > 9 ? '9+' : String(count)
+    const digits = [...shown].map((character) => character === '+' ? '➕' : `${character}\uFE0F\u20E3`).join('')
+    return ` (${digits})`
   }
 
   private requireIdentity(ctx: Context): { chatId: number; user: NonNullable<Context['user']> } {

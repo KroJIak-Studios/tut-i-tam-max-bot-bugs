@@ -4,8 +4,6 @@ export interface TranslationSchema {
     retryButton: string
     permissionDenied: string
     recenter: string
-    errorDescription: string
-    unavailableDescription: string
     retry: string
   }
   app: {
@@ -489,8 +487,6 @@ export const translation: TranslationSchema = {
     retryButton: 'Включить',
     permissionDenied: 'Доступ запрещён браузером. Разрешите геолокацию в настройках сайта.',
     recenter: 'Вернуться к моему местоположению',
-    errorDescription: 'Не удалось определить позицию. Нажмите, чтобы повторить.',
-    unavailableDescription: 'Браузер не поддерживает геолокацию.',
     retry: 'Повторить',
   },
   app: { name: 'Тут и Там' },

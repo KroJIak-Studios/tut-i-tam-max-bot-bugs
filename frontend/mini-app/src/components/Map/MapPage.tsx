@@ -124,6 +124,7 @@ export const MapPage: React.FC = () => {
   // Load Events when filters change
   useEffect(() => {
     let active = true
+    setLoading(true)
 
     getMapEvents(filters, currentCity?.id)
       .then((data) => {
@@ -327,6 +328,8 @@ export const MapPage: React.FC = () => {
           currentCity={currentCity}
           userLocation={userLocation}
           locationStatus={locationStatus}
+          locationHintOffset={hasError || (!loading && events.length === 0 && hasActiveEventFilters)}
+          hideLocationHint={loading}
           onRequestLocation={requestLocation}
           onRetryLocation={retryLocation}
           events={displayedEvents}

@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { watchUserLocation, type GeoPoint } from '../services/geolocationService'
+import { supportsPreciseGeolocation, watchUserLocation, type GeoPoint } from '../services/geolocationService'
 
 export type GeolocationStatus = 'idle' | 'requesting' | 'watching' | 'denied' | 'unavailable' | 'error'
 interface GeolocationValue {
@@ -50,6 +50,10 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const enterMap = useCallback(() => {
     mapIsActiveRef.current = true
+    if (!supportsPreciseGeolocation()) {
+      setStatus('unavailable')
+      return
+    }
     if (navigator.permissions?.query) {
       void navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
         if (!mapIsActiveRef.current) return

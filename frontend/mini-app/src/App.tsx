@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AttendanceProvider } from './context/AttendanceContext'
 import { UserPreferencesProvider } from './context/UserPreferencesContext'
+import { useUserPreferences } from './context/useUserPreferences'
 import { ReviewsProvider } from './context/ReviewsContext'
-import { apiRequest, ApiError, loadLocalDevAuth, localDevUser } from './services/api'
+import { ApiError, loadLocalDevAuth, localDevUser } from './services/api'
+import { loadProfileBundle, readProfileBundle } from './services/profileService'
+import { normalizeLocale } from './i18n/normalize'
 import { GeolocationProvider } from './context/GeolocationContext'
 import { HomePage } from './components/HomePage'
 import { MapPage } from './components/Map/MapPage'
@@ -19,6 +22,15 @@ import { RequestDetailPage } from './components/Profile/Requests/RequestDetailPa
 import { LocalDevLogin } from './components/LocalDevLogin'
 
 const LOCAL_DEV_USER_KEY = 'tut_i_tam_dev_user'
+
+function ApplyProfileLocale() {
+  const { preferences, setLocale } = useUserPreferences()
+  useEffect(() => {
+    const locale = normalizeLocale(readProfileBundle()?.me.locale)
+    if (locale !== preferences.locale) setLocale(locale)
+  }, [preferences.locale, setLocale])
+  return null
+}
 
 function AccessGate({ accessCode }: { accessCode: boolean }) {
   const { i18n } = useTranslation()
@@ -37,15 +49,11 @@ function AppContent() {
       setLocalDev(enabled)
       const savedUser = enabled ? localDevUser() : undefined
       setDevUser(savedUser)
-      if (enabled && savedUser?.id) {
-        setGate('allowed')
-        return
-      }
-      if (enabled) {
+      if (enabled && !savedUser?.id) {
         setGate('auth')
         return
       }
-      return apiRequest('/me').then(() => {
+      return loadProfileBundle().then(() => {
         if (!cancelled) setGate('allowed')
       }).catch((error) => {
         if (!cancelled) setGate(error instanceof ApiError && error.status === 403 && error.detail === 'access_code_required' ? 'access' : 'auth')
@@ -53,10 +61,10 @@ function AppContent() {
     }).catch(() => { if (!cancelled) setGate('auth') })
     return () => { cancelled = true }
   }, [])
-  if (localDev && !devUser?.id) return <LocalDevLogin onLogin={(user) => { localStorage.setItem(LOCAL_DEV_USER_KEY, JSON.stringify(user)); setDevUser(user); setGate('allowed') }} />
+  if (localDev && !devUser?.id) return <LocalDevLogin onLogin={(user) => { localStorage.setItem(LOCAL_DEV_USER_KEY, JSON.stringify(user)); setDevUser(user); setGate('checking'); void loadProfileBundle().then(() => setGate('allowed')).catch(() => setGate('auth')) }} />
   if (gate === 'checking') return null
   if (gate !== 'allowed') return <AccessGate accessCode={gate === 'access'} />
-  return <BrowserRouter><AttendanceProvider><UserPreferencesProvider><GeolocationProvider><ReviewsProvider><Routes>
+  return <BrowserRouter><AttendanceProvider><UserPreferencesProvider><ApplyProfileLocale /><GeolocationProvider><ReviewsProvider><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/catalog" element={<CatalogPage />} /><Route path="/map" element={<MapPage />} /><Route path="/chat" element={<ChatPage />} /><Route path="/plans" element={<PlansPage />} /><Route path="/profile" element={<ProfilePage />} /><Route path="/profile/requests" element={<UserRequestsPage />} /><Route path="/profile/requests/:requestId" element={<RequestDetailPage />} /><Route path="/events/create" element={<CreateEventPage />} /><Route path="/events/:eventId" element={<EventDetailsPage />} /><Route path="*" element={<Navigate to="/" replace />} />
   </Routes></ReviewsProvider></GeolocationProvider></UserPreferencesProvider></AttendanceProvider></BrowserRouter>
 }

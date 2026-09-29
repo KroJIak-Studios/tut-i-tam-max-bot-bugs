@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NavTabId } from '../../types'
 import { apiRequest, closeMaxMiniApp } from '../../services/api'
-import { localizedName, type CatalogInterest, type CatalogItem } from '../../catalogNames'
+import { localizedName } from '../../catalogNames'
+import { readProfileBundle, saveProfile, type ProfileRecord } from '../../services/profileService'
 import { useUserPreferences } from '../../context/useUserPreferences'
 import { ProfileTopBar } from './ProfileTopBar'
 import { ProfileHero } from './ProfileHero'
@@ -17,35 +18,22 @@ import { DeleteDataModal } from './DeleteDataModal'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './ProfilePage.module.css'
 
-type Me = { first_name: string; last_name?: string | null; avatar_url: string | null; locale: string; city: CatalogItem | null; interests: CatalogInterest[]; smart_interest_rotation: boolean; notifications_enabled: boolean; notifications_silent: boolean; notify_event_reminders: boolean; notify_schedule_changes: boolean }
 type Modal = 'interests' | 'notifications' | 'language' | 'map' | 'delete' | null
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
   const { preferences, setAppMapProvider, setLocale, resetPreferences } = useUserPreferences()
-  const [me, setMe] = useState<Me | null>(null)
-  const [cities, setCities] = useState<CatalogItem[]>([])
-  const [interests, setInterests] = useState<CatalogInterest[]>([])
+  const loaded = readProfileBundle()
+  const [me, setMe] = useState<ProfileRecord | null>(loaded?.me ?? null)
   const [modal, setModal] = useState<Modal>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState(false)
+  if (!loaded || !me) throw new Error('profile bundle is not loaded')
+  const { cities, interests } = loaded
 
-  useEffect(() => {
-    Promise.all([apiRequest<Me>('/me'), apiRequest<CatalogItem[]>('/cities'), apiRequest<CatalogInterest[]>('/interests')]).then(([profile, cityList, interestList]) => {
-      setMe(profile)
-      setCities(cityList)
-      setInterests(interestList)
-      setLocale(profile.locale)
-    })
-  }, [setLocale])
-  if (!me) return null
-
-  const city = me.city ? { id: String(me.city.id), name: localizedName(me.city.names, me.locale) } : null
-  const displayCities: ProfileCity[] = cities.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale) }))
-  const displayInterests = me.interests.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale), color: item.color }))
-  const modalInterests = interests.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale), color: item.color }))
   const patch = async (body: Record<string, unknown>) => {
-    const updated = await apiRequest<Me>('/me', { method: 'PATCH', body: JSON.stringify(body) })
+    const updated = await apiRequest<ProfileRecord>('/me', { method: 'PATCH', body: JSON.stringify(body) })
+    saveProfile(updated)
     setMe(updated)
     return updated
   }
@@ -63,6 +51,10 @@ export const ProfilePage: React.FC = () => {
   }
   const interestIds = me.interests.map((item) => String(item.id))
   const notifications = { notificationsEnabled: me.notifications_enabled, notificationsSilent: me.notifications_silent, eventReminders: me.notify_event_reminders, scheduleChanges: me.notify_schedule_changes }
+  const city = me.city ? { id: String(me.city.id), name: localizedName(me.city.names, me.locale) } : null
+  const displayCities: ProfileCity[] = cities.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale) }))
+  const displayInterests = me.interests.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale), color: item.color }))
+  const modalInterests = interests.map((item) => ({ id: String(item.id), name: localizedName(item.names, me.locale), color: item.color }))
   const tab = (id: NavTabId) => id === 'home' ? navigate('/') : id === 'chat' ? navigate('/chat') : id === 'map' ? navigate('/map') : id === 'plans' ? navigate('/plans') : undefined
   return <div className={styles.pageWrapper}><ProfileTopBar /><main className={styles.scrollArea}><ProfileHero firstName={me.first_name} lastName={me.last_name} avatarUrl={me.avatar_url} />
     <ProfileCitySelect currentCity={city} cities={displayCities} onSelectCity={(item) => void patch({ city_id: Number(item.id) })} />

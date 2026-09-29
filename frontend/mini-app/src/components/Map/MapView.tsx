@@ -12,9 +12,13 @@ import { RecenterButton } from './RecenterButton'
 import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
 
+let lastMapPoint: { latitude: number; longitude: number } | null = null
+
 interface MapViewProps {
   userLocation: GeoPoint | null
   locationStatus: import('../../context/GeolocationContext').GeolocationStatus
+  locationHintOffset: boolean
+  hideLocationHint: boolean
   currentCity: CityRecord | null
   onRequestLocation: () => void
   onRetryLocation: () => void
@@ -74,6 +78,8 @@ function createUserLocationIcon(): L.DivIcon {
 export const MapView: React.FC<MapViewProps> = ({
   userLocation,
   locationStatus,
+  locationHintOffset,
+  hideLocationHint,
   currentCity,
   onRequestLocation,
   onRetryLocation,
@@ -94,11 +100,20 @@ export const MapView: React.FC<MapViewProps> = ({
   const markersLayerRef = useRef<L.LayerGroup | null>(null)
   const zonesLayerRef = useRef<L.LayerGroup | null>(null)
   const userMarkerRef = useRef<L.Marker | null>(null)
-  const userLocationRequestedRef = useRef(false)
   const [mapReady, setMapReady] = useState(false)
+  const cityPoint = currentCity?.latitude != null && currentCity.longitude != null
+    ? { latitude: currentCity.latitude, longitude: currentCity.longitude, accuracy: 0 }
+    : null
+  const shownLocation = userLocation ?? cityPoint
+  if (shownLocation) lastMapPoint = { latitude: shownLocation.latitude, longitude: shownLocation.longitude }
+  const startPoint = shownLocation ?? lastMapPoint
+  const startPointRef = useRef(startPoint)
+  startPointRef.current = startPoint
+  const [canCreateMap, setCanCreateMap] = useState(startPoint != null)
+  const preciseLocationAvailable = locationStatus !== 'unavailable'
   const recenter = () => {
-    if (userLocation && mapInstanceRef.current) mapInstanceRef.current.setView([userLocation.latitude, userLocation.longitude], 15, { animate: true })
-    else onRequestLocation()
+    if (shownLocation && mapInstanceRef.current) mapInstanceRef.current.setView([shownLocation.latitude, shownLocation.longitude], 15, { animate: true })
+    else if (preciseLocationAvailable) onRequestLocation()
   }
 
   const [popupContainer] = useState<HTMLDivElement>(() => document.createElement('div'))
@@ -114,13 +129,19 @@ export const MapView: React.FC<MapViewProps> = ({
     L.DomEvent.disableScrollPropagation(popupContainer)
   }, [popupContainer])
 
+  useEffect(() => {
+    if (startPointRef.current) setCanCreateMap(true)
+  }, [startPoint?.latitude, startPoint?.longitude])
+
   // Initialize Map
   useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return
+    if (!canCreateMap || !mapContainerRef.current || mapInstanceRef.current) return
+    const start = startPointRef.current
+    if (!start) return
 
     const map = L.map(mapContainerRef.current, {
-      center: [currentCity?.latitude ?? 0, currentCity?.longitude ?? 0],
-      zoom: currentCity?.latitude == null || currentCity?.longitude == null ? 2 : 14,
+      center: [start.latitude, start.longitude],
+      zoom: 15,
       zoomControl: false,
       attributionControl: false,
     })
@@ -152,30 +173,23 @@ export const MapView: React.FC<MapViewProps> = ({
       map.remove()
       mapInstanceRef.current = null
       userMarkerRef.current = null
-      userLocationRequestedRef.current = false
       tileLayerRef.current = null
+      setMapReady(false)
     }
-  }, [currentCity?.id, currentCity?.latitude, currentCity?.longitude])
+  }, [canCreateMap])
 
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (currentCity?.latitude != null && currentCity.longitude != null) map?.setView([currentCity.latitude, currentCity.longitude], map.getZoom(), { animate: true })
-  }, [currentCity])
-
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map || !userLocation) return
-    const position: L.LatLngExpression = [userLocation.latitude, userLocation.longitude]
+    if (!map || !shownLocation) return
+    const position: L.LatLngExpression = [shownLocation.latitude, shownLocation.longitude]
     if (!userMarkerRef.current) {
       userMarkerRef.current = L.marker(position, { icon: createUserLocationIcon(), zIndexOffset: 500 }).addTo(map)
-      if (!userLocationRequestedRef.current) {
-        userLocationRequestedRef.current = true
-        map.setView(position, 15, { animate: true })
-      }
+      const target = L.latLng(shownLocation.latitude, shownLocation.longitude)
+      if (map.getCenter().distanceTo(target) > 300) map.setView(target, 15, { animate: true })
     } else {
       userMarkerRef.current.setLatLng(position)
     }
-  }, [userLocation, mapReady])
+  }, [shownLocation?.latitude, shownLocation?.longitude, mapReady])
 
   // Dynamic Basemap switching without disturbing markers or zones
   useEffect(() => {
@@ -302,8 +316,8 @@ export const MapView: React.FC<MapViewProps> = ({
           popupContainer
         )}
     </div>
-    {!userLocation && <LocationHint status={locationStatus} onRequest={onRequestLocation} onRetry={onRetryLocation} />}
-    <RecenterButton disabled={locationStatus === 'unavailable'} onClick={recenter} />
+    {preciseLocationAvailable && !userLocation && !hideLocationHint && <LocationHint status={locationStatus} offset={locationHintOffset} onRequest={onRequestLocation} onRetry={onRetryLocation} />}
+    <RecenterButton disabled={!shownLocation} onClick={recenter} />
     </>
   )
 }

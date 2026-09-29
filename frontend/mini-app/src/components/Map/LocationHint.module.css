@@ -1,11 +1,12 @@
 .hint {
   position: absolute;
   z-index: 900;
-  top: 154px;
+  top: 108px;
   left: 50%;
   display: flex;
   align-items: center;
   gap: 8px;
+  width: max-content;
   max-width: calc(100% - 32px);
   padding: 9px 12px;
   transform: translateX(-50%);
@@ -17,8 +18,8 @@
   font-size: 12px;
 }
 
-.marker { flex: 0 0 auto; color: #2563EB; font-size: 18px; }
-.message { min-width: 0; }
+.offset { top: 164px; }
+.marker { flex: 0 0 auto; display: inline-flex; color: #2563EB; }
 .action {
   flex: 0 0 auto;
   padding: 2px 0 2px 4px;
