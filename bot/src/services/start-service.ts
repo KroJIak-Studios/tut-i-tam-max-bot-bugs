@@ -45,7 +45,7 @@ export class StartService {
 
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(i18n, profile.user.first_name, meetingCount),
+      this.createPrimary(i18n, profile.user.first_name, meetingCount, status.assistant_available),
       forceNewPrimary,
     )
     await this.clearPending(ctx)
@@ -67,7 +67,7 @@ export class StartService {
 
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name, (await this.backend.listMeetings(profile)).total),
+      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name, (await this.backend.listMeetings(profile)).total, result.assistant_available),
     )
     await this.clearPending(ctx)
   }
@@ -99,7 +99,7 @@ export class StartService {
     }
   }
 
-  private createPrimary(i18n: I18n, firstName: string, meetingCount: number): PrimaryMessage {
+  private createPrimary(i18n: I18n, firstName: string, meetingCount: number, assistantAvailable: boolean): PrimaryMessage {
     const text = [
       i18n.translate('start.title'),
       '',
@@ -113,7 +113,7 @@ export class StartService {
         Keyboard.button.callback(`📍 ${i18n.translate('start.nearby_events')}`, MenuAction.NearbyEvents),
         Keyboard.button.callback(`🗓️ ${i18n.translate('start.my_meetings')}${this.meetingBadge(meetingCount)}`, MenuAction.MyMeetings),
       ],
-      [Keyboard.button.callback(`🤖 ${i18n.translate('start.ai_assistant')}`, MenuAction.AiAssistant)],
+      ...(assistantAvailable ? [[Keyboard.button.callback(`🤖 ${i18n.translate('start.ai_assistant')}`, MenuAction.AiAssistant)]] : []),
       [Keyboard.button.callback(`⚙️ ${i18n.translate('start.settings')}`, MenuAction.Settings)],
     ]
     return new PrimaryMessage(text, {

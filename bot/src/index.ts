@@ -1,11 +1,13 @@
 import { Bot, Webhook } from '@maxhub/max-bot-api'
 import { PendingMessageRegistry } from './domain/pending-message-registry.js'
+import { AssistantAction } from './domain/assistant-action.js'
 import { MenuAction } from './domain/menu-action.js'
 import { MeetingsAction } from './domain/meetings-action.js'
 import { SettingsAction } from './domain/settings-action.js'
 import { MeetingsService } from './services/meetings-service.js'
 import { SettingsService } from './services/settings-service.js'
 import { config, webhook } from './config.js'
+import { AssistantChatService } from './services/assistant-service.js'
 import { BackendClient } from './services/backend-client.js'
 import { StartService } from './services/start-service.js'
 
@@ -15,6 +17,7 @@ const pending = new PendingMessageRegistry(backend)
 const startService = new StartService(backend, config.fallbackLocale, pending)
 const settings = new SettingsService(backend, pending, config.fallbackLocale)
 const meetings = new MeetingsService(backend, pending, config.fallbackLocale, config.backendUrl)
+const assistant = new AssistantChatService(backend, config.fallbackLocale, startService)
 
 bot.on('message_callback', async (ctx, next) => {
   console.info('BOT_CALLBACK_RECEIVED', {
@@ -24,7 +27,8 @@ bot.on('message_callback', async (ctx, next) => {
     at: new Date().toISOString(),
   })
 
-  if (ctx.chatId !== undefined && ctx.chatId !== null) {
+  const assistantMenu = ctx.callback?.payload === AssistantAction.Menu
+  if (!assistantMenu && ctx.chatId !== undefined && ctx.chatId !== null) {
     await pending.deleteSnapshot(bot.api, ctx.chatId, ctx.messageId)
   }
 
@@ -33,19 +37,42 @@ bot.on('message_callback', async (ctx, next) => {
 })
 
 bot.on('bot_started', async (ctx) => {
+  await assistant.leaveForStart(ctx)
   const locale = ctx.update.user_locale
   await startService.handleStart(ctx, true, locale ? String(locale) : undefined)
 })
 
 bot.command('start', async (ctx) => {
+  await assistant.leaveForStart(ctx)
   await startService.handleStart(ctx, true)
 })
 
 bot.on('message_created', async (ctx) => {
-  const text = ctx.message?.body.text
-  if (text && !text.startsWith('/')) {
-    await startService.handleText(ctx, text)
+  const location = ctx.message?.body.attachments?.find((attachment) => attachment.type === 'location')
+  if (assistant.isActive(ctx.chatId ?? undefined) && location && 'latitude' in location) {
+    await assistant.handleLocation(ctx, location.latitude, location.longitude)
+    return
   }
+  const text = ctx.message?.body.text
+  if (!text || text.startsWith('/')) return
+  if (assistant.isActive(ctx.chatId ?? undefined)) {
+    await assistant.handleText(ctx, text)
+    return
+  }
+  await startService.handleText(ctx, text)
+})
+
+bot.action(MenuAction.AiAssistant, async (ctx) => {
+  await assistant.open(ctx)
+})
+
+bot.action(new RegExp(`^${AssistantAction.SuggestPrefix}(.+)$`), async (ctx) => {
+  const phrase = ctx.callback?.payload?.slice(AssistantAction.SuggestPrefix.length)
+  if (phrase) await assistant.handleSuggestion(ctx, phrase)
+})
+
+bot.action(AssistantAction.Menu, async (ctx) => {
+  await assistant.close(ctx)
 })
 
 bot.action(MenuAction.MyMeetings, async (ctx) => {
@@ -136,7 +163,6 @@ bot.action(new RegExp(`^${SettingsAction.LanguagePrefix}`), async (ctx) => {
 
 for (const action of [
   MenuAction.NearbyEvents,
-  MenuAction.AiAssistant,
 ]) {
   bot.action(action, async (ctx) => {
     await startService.handleNotReady(ctx)

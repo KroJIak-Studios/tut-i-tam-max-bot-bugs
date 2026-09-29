@@ -51,6 +51,11 @@ class UserEvent(Base):
     __tablename__ = "user_events"
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
     author_user_id: Mapped[int] = mapped_column(ForeignKey("max_users.id"))
+    moderation_status: Mapped[str] = mapped_column(String(32), default="pending", server_default="approved")
+    moderation_comment: Mapped[str | None] = mapped_column(Text)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    moderated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    moderated_by: Mapped[str | None] = mapped_column(String(64))
 
 class MapArea(Base):
     __tablename__ = "map_areas"

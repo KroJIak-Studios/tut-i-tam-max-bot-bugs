@@ -52,6 +52,16 @@
     "gis": "2GIS",
     "back": "Back"
   },
+  "assistant": {
+    "greetings": {
+      "one": "Hi, I’m here. Ask where to go and I’ll suggest something.",
+      "two": "Hi! Tell me what you’re in the mood for, and I’ll look nearby.",
+      "three": "Hi, I can help you pick a place. Just say what you want.",
+      "four": "Hi! If you want to get out, ask me.",
+      "five": "Hi, I’m here. Tell me the mood and I’ll suggest an event."
+    },
+    "menu": "Main menu"
+  },
   "common": {
     "not_ready": "This section will be available later.",
     "back": "Back"

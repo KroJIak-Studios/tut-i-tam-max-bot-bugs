@@ -18,7 +18,7 @@ from app.models.event import (
 from app.models.event_category import EventCategory
 from app.models.user import MaxUser
 from app.schemas.admin_events import AdminEventPatch, AdminEventWrite
-from app.schemas.events import EventCreate, ReviewCreate
+from app.schemas.events import EventCreate, ReviewCreate, UserEventUpdate
 from app.services.ip_geolocation_service import IpGeolocationService
 from app.services.media_storage import MediaStorage
 
@@ -78,10 +78,15 @@ class EventsService:
             raise HTTPException(status_code=422, detail="invalid_city")
         if data.category_id is not None and await self.session.get(EventCategory, data.category_id) is None:
             raise HTTPException(status_code=422, detail="invalid_category")
-        event = Event(**data.model_dump(exclude={"area"}))
+        event = Event(**data.model_dump(exclude={"area"}), visible=False)
         self.session.add(event)
         await self.session.flush()
-        self.session.add(UserEvent(event_id=event.id, author_user_id=user.id))
+        self.session.add(UserEvent(
+            event_id=event.id,
+            author_user_id=user.id,
+            moderation_status="pending",
+            submitted_at=datetime.now(timezone.utc),
+        ))
         self.session.add(EventAttendance(user_id=user.id, event_id=event.id))
         if data.area is not None:
             self.session.add(EventArea(event_id=event.id, path=data.area))
@@ -189,6 +194,7 @@ class EventsService:
             ],
             "attendees_count": attendees_count or 0,
             "author": author,
+            "moderation": self._moderation(user_event),
         }
 
     async def create_official_event(self, data: AdminEventWrite) -> dict:
@@ -259,6 +265,119 @@ class EventsService:
             raise HTTPException(status_code=422, detail="invalid_city")
         if category_id is not None and await self.session.get(EventCategory, category_id) is None:
             raise HTTPException(status_code=422, detail="invalid_category")
+
+    def _moderation(self, user_event: UserEvent | None) -> dict | None:
+        if user_event is None:
+            return None
+        return {
+            "status": user_event.moderation_status,
+            "comment": user_event.moderation_comment,
+            "submitted_at": user_event.submitted_at,
+            "moderated_at": user_event.moderated_at,
+            "moderated_by": user_event.moderated_by,
+        }
+
+    async def readable_event(self, user: MaxUser, event_id: int) -> Event:
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        if event.visible:
+            return event
+        owned = await self.session.scalar(
+            select(UserEvent.event_id).where(UserEvent.event_id == event_id, UserEvent.author_user_id == user.id)
+        )
+        if owned is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        return event
+
+    async def my_events(self, user: MaxUser) -> list[dict]:
+        rows = (await self.session.scalars(
+            select(Event).join(UserEvent, UserEvent.event_id == Event.id)
+            .where(UserEvent.author_user_id == user.id)
+            .order_by(UserEvent.submitted_at.desc())
+        )).all()
+        return [await self.card(user, event) for event in rows]
+
+    async def update_own_event(self, user: MaxUser, event_id: int, data: UserEventUpdate) -> dict:
+        record = await self.session.scalar(
+            select(UserEvent).where(UserEvent.event_id == event_id, UserEvent.author_user_id == user.id)
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        event = await self.session.get(Event, event_id)
+        changes = data.model_dump(exclude_unset=True)
+        if "city_id" in changes or "category_id" in changes:
+            await self._require_place(changes.get("city_id", event.city_id), changes.get("category_id", event.category_id))
+        for field in ("title", "description", "category_id", "city_id", "address", "latitude", "longitude", "starts_at", "ends_at", "chat_invite_url"):
+            if field in changes:
+                setattr(event, field, changes[field])
+        if "area" in changes:
+            area = await self.session.scalar(select(EventArea).where(EventArea.event_id == event.id))
+            if changes["area"] is None and area is not None:
+                await self.session.delete(area)
+            elif changes["area"] is not None and area is None:
+                self.session.add(EventArea(event_id=event.id, path=changes["area"]))
+            elif area is not None:
+                area.path = changes["area"]
+        substantial = bool(changes)
+        if record.moderation_status in {"rejected", "changes_requested"} or (record.moderation_status == "approved" and substantial):
+            record.moderation_status = "pending"
+            record.submitted_at = datetime.now(timezone.utc)
+            event.visible = False
+        await self.session.commit()
+        return await self.card(user, event)
+
+    async def moderation_queue(
+        self,
+        *,
+        status: str | None,
+        city_id: int | None,
+        category_id: int | None,
+        query: str | None,
+        limit: int,
+        offset: int,
+    ) -> dict:
+        counts = {name: 0 for name in ("pending", "changes_requested", "approved", "rejected")}
+        grouped = await self.session.execute(select(UserEvent.moderation_status, func.count()).group_by(UserEvent.moderation_status))
+        for name, count in grouped:
+            if name in counts:
+                counts[name] = count
+        statement = select(Event).join(UserEvent, UserEvent.event_id == Event.id)
+        count_statement = select(func.count()).select_from(Event).join(UserEvent, UserEvent.event_id == Event.id)
+        if status is not None:
+            statement = statement.where(UserEvent.moderation_status == status)
+            count_statement = count_statement.where(UserEvent.moderation_status == status)
+        if city_id is not None:
+            statement = statement.where(Event.city_id == city_id)
+            count_statement = count_statement.where(Event.city_id == city_id)
+        if category_id is not None:
+            statement = statement.where(Event.category_id == category_id)
+            count_statement = count_statement.where(Event.category_id == category_id)
+        if query:
+            pattern = f"%{query}%"
+            condition = or_(Event.title.ilike(pattern), Event.description.ilike(pattern), Event.address.ilike(pattern))
+            statement = statement.where(condition)
+            count_statement = count_statement.where(condition)
+        total = await self.session.scalar(count_statement) or 0
+        rows = (await self.session.scalars(
+            statement.order_by(UserEvent.submitted_at.desc(), Event.id.desc()).limit(limit).offset(offset)
+        )).all()
+        return {"total": total, "counts": counts, "limit": limit, "offset": offset, "items": [await self.admin_card(event) for event in rows]}
+
+    async def moderate(self, event_id: int, status: str, comment: str | None) -> dict:
+        record = await self.session.scalar(select(UserEvent).where(UserEvent.event_id == event_id))
+        if record is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        if record.moderation_status not in {"pending", "changes_requested"}:
+            raise HTTPException(status_code=409, detail="moderation_conflict")
+        event = await self.session.get(Event, event_id)
+        record.moderation_status = status
+        record.moderation_comment = comment
+        record.moderated_at = datetime.now(timezone.utc)
+        record.moderated_by = "admin"
+        event.visible = status == "approved"
+        await self.session.commit()
+        return await self.admin_card(event)
 
     async def add_photo(self, event_id: int, upload) -> dict:
         event = await self.session.get(Event, event_id)
@@ -382,6 +501,7 @@ class EventsService:
             "going": going is not None,
             "attendees_count": attendees_count or 0,
             "reviews": [await self._review_payload(review) for review in reviews],
+            "moderation": self._moderation(user_event) if user_event is not None and user_event.author_user_id == user.id else None,
         }
 
     async def _review_payload(self, review: EventReview) -> dict:

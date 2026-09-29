@@ -5,6 +5,7 @@ export interface AccessStatusResponse {
   access_required: boolean
   access_granted: boolean
   locale: string
+  assistant_available: boolean
 }
 
 export type NotificationPreference = 'enabled' | 'silent' | 'disabled'
@@ -21,6 +22,12 @@ export interface BotMeeting {
   starts_at: string
   ends_at: string | null
   chat_invite_url: string | null
+}
+
+export interface AssistantTurn {
+  status: 'answer' | 'location_required'
+  text: string
+  suggestions: string[]
 }
 
 export interface BotMeetingPhoto {
@@ -181,6 +188,19 @@ export class BackendClient {
     if (!response.ok) throw new Error(`Backend request failed: ${response.status}`)
     const body = await response.json() as { token?: string }
     return body.token ?? null
+  }
+
+  async assistantTurn(
+    input: UserProfileInput,
+    text: string,
+    location: { latitude: number; longitude: number } | null,
+  ): Promise<AssistantTurn> {
+    return this.request<AssistantTurn>('/api/assistant/turns', {
+      ...this.identity(input),
+      channel: 'bot',
+      text,
+      location,
+    })
   }
 
   async getPrimaryMessageId(input: UserProfileInput): Promise<string | null> {

@@ -14,7 +14,7 @@ from app.models.event import City, CityName, Event, EventAttendance, EventView, 
 from app.models.event_category import EventCategory, EventCategoryName
 from app.models.profile import Interest, InterestName, Locale, UserInterest
 from app.models.user import MaxUser
-from app.schemas.events import EventCreate, ReviewCreate
+from app.schemas.events import EventCreate, ReviewCreate, UserEventUpdate
 from app.schemas.profile import MePatch
 from app.services.catalog_service import CatalogService
 from app.services.events_service import EventsService
@@ -173,11 +173,23 @@ async def create_event(data: EventCreate, context: tuple[AsyncSession, MaxUser] 
     return await service.card(user, event)
 
 
+@router.get("/me/events")
+async def my_events(context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    return await EventsService(session).my_events(user)
+
+
+@router.patch("/events/{event_id}")
+async def update_own_event(event_id: int, data: UserEventUpdate, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    return await EventsService(session).update_own_event(user, event_id, data)
+
+
 @router.get("/events/{event_id}")
 async def get_event(event_id: int, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
     session, user = context
     service = EventsService(session)
-    event = await service.visible_event(event_id)
+    event = await service.readable_event(user, event_id)
     viewed = await session.scalar(select(EventView).where(EventView.user_id == user.id, EventView.event_id == event_id))
     if viewed is None:
         session.add(EventView(user_id=user.id, event_id=event_id))
