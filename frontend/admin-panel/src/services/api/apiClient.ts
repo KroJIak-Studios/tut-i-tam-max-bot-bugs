@@ -54,7 +54,7 @@ async function tryRefreshToken(): Promise<string | null> {
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/admin/auth/refresh`, {
+    const response = await fetch(`${BASE_URL}/admin/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,12 +67,18 @@ async function tryRefreshToken(): Promise<string | null> {
       return null
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as {
+      access_token: string
+      refresh_token?: string
+      expires_in?: number
+      refresh_expires_in?: number
+    }
+
     const tokens: AuthTokens = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token || refreshToken,
-      tokenType: data.token_type,
       expiresIn: data.expires_in,
+      refreshExpiresIn: data.refresh_expires_in,
     }
     tokenStorage.setTokens(tokens)
     return tokens.accessToken
@@ -92,7 +98,7 @@ export async function apiRequest<T>(
 
   if (!options.skipAuth) {
     const token = tokenStorage.getAccessToken()
-    if (token && !headers.has('Authorization')) {
+    if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
   }
@@ -111,36 +117,38 @@ export async function apiRequest<T>(
     throw new ApiError(0, 'Ошибка сети: сервер недоступен', error)
   }
 
-  if (response.status === 401 && !options.skipAuth && !options.skipRefresh) {
-    const refreshToken = tokenStorage.getRefreshToken()
-    if (refreshToken) {
-      if (!isRefreshing) {
-        isRefreshing = true
-        const newToken = await tryRefreshToken()
-        isRefreshing = false
-        onRefreshed(newToken)
+  if (response.status === 401 && !options.skipAuth) {
+    if (!options.skipRefresh) {
+      const refreshToken = tokenStorage.getRefreshToken()
+      if (refreshToken) {
+        if (!isRefreshing) {
+          isRefreshing = true
+          const newToken = await tryRefreshToken()
+          isRefreshing = false
+          onRefreshed(newToken)
 
-        if (newToken) {
-          return apiRequest<T>(endpoint, {
-            ...options,
-            skipRefresh: true,
+          if (newToken) {
+            return apiRequest<T>(endpoint, {
+              ...options,
+              skipRefresh: true,
+            })
+          }
+        } else {
+          return new Promise<T>((resolve, reject) => {
+            addRefreshSubscriber((newToken) => {
+              if (newToken) {
+                resolve(
+                  apiRequest<T>(endpoint, {
+                    ...options,
+                    skipRefresh: true,
+                  }),
+                )
+              } else {
+                reject(new ApiError(401, 'Сессия истекла'))
+              }
+            })
           })
         }
-      } else {
-        return new Promise<T>((resolve, reject) => {
-          addRefreshSubscriber((newToken) => {
-            if (newToken) {
-              resolve(
-                apiRequest<T>(endpoint, {
-                  ...options,
-                  skipRefresh: true,
-                }),
-              )
-            } else {
-              reject(new ApiError(401, 'Сессия истекла'))
-            }
-          })
-        })
       }
     }
 
@@ -168,6 +176,7 @@ export async function apiRequest<T>(
 }
 
 export const apiClient = {
+  refreshToken: tryRefreshToken,
   get: <T>(endpoint: string, options?: RequestOptions) =>
     apiRequest<T>(endpoint, { ...options, method: 'GET' }),
 

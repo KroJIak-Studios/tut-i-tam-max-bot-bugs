@@ -20,10 +20,27 @@ export interface AuthTokens {
   refreshToken?: string
   tokenType?: string
   expiresIn?: number
+  refreshExpiresIn?: number
 }
 
 export interface AdminUser {
   role: 'admin'
   authenticated: boolean
   username?: string
+  expiresIn?: number
+}
+
+export interface AdminTokensResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  refresh_expires_in: number
+}
+
+export type AdminLoginResponse = AdminTokensResponse
+export type AdminRefreshResponse = AdminTokensResponse
+
+export interface AdminSessionResponse {
+  authenticated: boolean
+  expires_in: number
 }

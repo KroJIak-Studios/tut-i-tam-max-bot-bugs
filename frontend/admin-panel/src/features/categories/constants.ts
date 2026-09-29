@@ -1,26 +1,13 @@
+import { DEFAULT_FALLBACK_LOCALE as GLOBAL_DEFAULT_LOCALE, runtimeConfig } from '../../config/runtimeConfig'
 import type { CategoryName, LocaleItem } from './types'
 
-/**
- * Резервный FALLBACK_LOCALE на случай отсутствия локальной или docker конфигурации.
- * Продуктовое значение настраивается через конфигурацию запуска (VITE_FALLBACK_LOCALE в .env.local
- * или переменные окружения контейнера в docker-compose.yml).
- */
-export const DEFAULT_BACKUP_LOCALE = 'ru-ru'
+export const DEFAULT_BACKUP_LOCALE = GLOBAL_DEFAULT_LOCALE
 
-/**
- * Получить сконфигурированный FALLBACK_LOCALE из окружения Vite:
- * 1) VITE_FALLBACK_LOCALE из .env.local / compose
- * 2) FALLBACK_LOCALE (если передана в окружение)
- * 3) Резервный DEFAULT_BACKUP_LOCALE ('ru-ru')
- */
 export function getConfiguredFallbackLocale(): string {
-  const envVal =
-    import.meta.env.VITE_FALLBACK_LOCALE ||
-    (import.meta.env as Record<string, string | undefined>).FALLBACK_LOCALE
-  return (envVal && envVal.trim()) || DEFAULT_BACKUP_LOCALE
+  return runtimeConfig.fallbackLocale
 }
 
-export const DEFAULT_FALLBACK_LOCALE = getConfiguredFallbackLocale()
+export const DEFAULT_FALLBACK_LOCALE = runtimeConfig.fallbackLocale
 
 /**
  * Получить отображаемое название локали по её коду:

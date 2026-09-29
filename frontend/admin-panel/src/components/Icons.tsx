@@ -7,6 +7,8 @@ import {
   Calendar,
   Check,
   Clock,
+  Eye,
+  EyeOff,
   FileText,
   Heart,
   Info,
@@ -90,3 +92,5 @@ export const IconBuilding: React.FC<IconProps> = (props) => <Building2 {...props
 export const IconHeart: React.FC<IconProps> = (props) => <Heart {...props} />
 export const IconMenu: React.FC<IconProps> = (props) => <Menu {...props} />
 export const IconInfo: React.FC<IconProps> = (props) => <Info {...props} />
+export const IconEye: React.FC<IconProps> = (props) => <Eye {...props} />
+export const IconEyeOff: React.FC<IconProps> = (props) => <EyeOff {...props} />

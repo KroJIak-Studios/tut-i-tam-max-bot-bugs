@@ -120,9 +120,6 @@ export const AdminLayout: React.FC = () => {
               <IconDashboard size={18} />
               <span className={styles.navItemText}>Дашборд</span>
             </div>
-            <span className={styles.badgeGap} title="Ожидает агрегированную статистику">
-              Gap
-            </span>
           </NavLink>
 
           <div className={styles.navSectionTitle}>Модерация</div>
@@ -161,9 +158,6 @@ export const AdminLayout: React.FC = () => {
               <IconLayers size={18} />
               <span className={styles.navItemText}>Категории</span>
             </div>
-            <span className={styles.badgeReady} title="CRUD готов на бэкенде">
-              API
-            </span>
           </NavLink>
 
           <NavLink
@@ -177,9 +171,6 @@ export const AdminLayout: React.FC = () => {
               <IconBuilding size={18} />
               <span className={styles.navItemText}>Города</span>
             </div>
-            <span className={styles.badgeGap} title="Требуются координаты в ответе API">
-              Gap
-            </span>
           </NavLink>
 
           <NavLink
@@ -193,9 +184,6 @@ export const AdminLayout: React.FC = () => {
               <IconHeart size={18} />
               <span className={styles.navItemText}>Интересы</span>
             </div>
-            <span className={styles.badgeGap} title="Требуется поле color в схеме API">
-              Gap
-            </span>
           </NavLink>
 
           <div className={styles.navSectionTitle}>События</div>
@@ -211,9 +199,6 @@ export const AdminLayout: React.FC = () => {
               <IconEvents size={18} />
               <span className={styles.navItemText}>Мероприятия</span>
             </div>
-            <span className={styles.badgeGap} title="Ожидает админский CRUD API">
-              Gap
-            </span>
           </NavLink>
         </aside>
 

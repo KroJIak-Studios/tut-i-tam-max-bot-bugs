@@ -1,17 +1,13 @@
+import { DEFAULT_FALLBACK_LOCALE, runtimeConfig } from '../../../config/runtimeConfig'
 import type { City, CityName, Locale } from '../types/city'
 
-export const DEFAULT_FALLBACK_LOCALE_CODE = 'ru-ru'
+export const DEFAULT_FALLBACK_LOCALE_CODE = DEFAULT_FALLBACK_LOCALE
 
 /**
- * Resolves the fallback locale code from frontend runtime environment configuration.
- * Supported: VITE_FALLBACK_LOCALE / FALLBACK_LOCALE. Defaults to 'ru-ru' if unset.
+ * Resolves the fallback locale code from shared runtime configuration.
  */
 export function getConfiguredFallbackLocaleCode(): string {
-  const envVal =
-    (typeof import.meta !== 'undefined' &&
-      (import.meta.env?.VITE_FALLBACK_LOCALE || import.meta.env?.FALLBACK_LOCALE)) ||
-    DEFAULT_FALLBACK_LOCALE_CODE
-  return String(envVal).trim().toLowerCase()
+  return runtimeConfig.fallbackLocale
 }
 
 /**

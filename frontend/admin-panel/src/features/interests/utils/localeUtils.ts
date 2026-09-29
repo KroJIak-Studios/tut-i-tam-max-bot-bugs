@@ -1,3 +1,4 @@
+import { DEFAULT_FALLBACK_LOCALE, runtimeConfig } from '../../../config/runtimeConfig'
 import type {
   InterestFormData,
   InterestItem,
@@ -7,17 +8,17 @@ import type {
 } from '../types'
 
 export function getFallbackLocaleCode(locales: Locale[]): string {
-  const configured = (import.meta.env.VITE_FALLBACK_LOCALE as string | undefined)?.trim()
+  const configured = runtimeConfig.fallbackLocale
   if (configured) {
     if (locales.length === 0 || locales.some((l) => l.code === configured)) {
       return configured
     }
   }
-  const ru = locales.find((l) => l.code === 'ru-ru')
+  const ru = locales.find((l) => l.code === DEFAULT_FALLBACK_LOCALE)
   if (ru) {
     return ru.code
   }
-  return locales[0]?.code || 'ru-ru'
+  return locales[0]?.code || DEFAULT_FALLBACK_LOCALE
 }
 
 export function getLocaleNativeName(locales: Locale[], code: string): string {

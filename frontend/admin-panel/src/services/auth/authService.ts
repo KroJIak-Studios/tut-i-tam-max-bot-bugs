@@ -1,24 +1,12 @@
 import { apiClient } from '../api/apiClient'
 import { ApiError } from '../api/types'
-import type { AdminUser, AuthTokens } from '../api/types'
+import type {
+  AdminLoginResponse,
+  AdminSessionResponse,
+  AdminUser,
+  AuthTokens,
+} from '../api/types'
 import { tokenStorage } from './tokenStorage'
-
-interface LoginApiResponse {
-  access_token: string
-  refresh_token?: string
-  token_type?: string
-  expires_in?: number
-  user?: {
-    username?: string
-    role?: string
-  }
-}
-
-interface MeApiResponse {
-  role?: string
-  authenticated?: boolean
-  username?: string
-}
 
 export const authService = {
   async login(password: string): Promise<AdminUser> {
@@ -27,17 +15,17 @@ export const authService = {
     }
 
     try {
-      const response = await apiClient.post<LoginApiResponse>(
-        '/admin/auth/login',
+      const response = await apiClient.post<AdminLoginResponse>(
+        '/admin/login',
         { password },
-        { skipAuth: true },
+        { skipAuth: true, skipRefresh: true },
       )
 
       const tokens: AuthTokens = {
         accessToken: response.access_token,
         refreshToken: response.refresh_token,
-        tokenType: response.token_type || 'bearer',
         expiresIn: response.expires_in,
+        refreshExpiresIn: response.refresh_expires_in,
       }
 
       tokenStorage.setTokens(tokens)
@@ -45,15 +33,11 @@ export const authService = {
       return {
         role: 'admin',
         authenticated: true,
-        username: response.user?.username || 'Администратор',
+        username: 'Администратор',
+        expiresIn: response.expires_in,
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 404) {
-          throw new Error(
-            'Серверный эндпоинт авторизации (POST /api/admin/auth/login) пока не реализован на бэкенде. См. testing/admin-panel-api-gaps.md',
-          )
-        }
         if (err.status === 401) {
           throw new Error('Неверный пароль администратора')
         }
@@ -64,45 +48,34 @@ export const authService = {
   },
 
   async checkSession(): Promise<AdminUser | null> {
-    const token = tokenStorage.getAccessToken()
-    if (!token) {
+    const accessToken = tokenStorage.getAccessToken()
+    const refreshToken = tokenStorage.getRefreshToken()
+    if (!accessToken && !refreshToken) {
       return null
     }
 
     try {
-      const me = await apiClient.get<MeApiResponse>('/admin/auth/me')
-      return {
-        role: 'admin',
-        authenticated: Boolean(me.authenticated ?? true),
-        username: me.username || 'Администратор',
-      }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401) {
-          tokenStorage.clearTokens()
+      if (!accessToken && refreshToken) {
+        const newAccessToken = await apiClient.refreshToken()
+        if (!newAccessToken) {
           return null
         }
-        if (err.status === 404) {
-          // Endpoint /admin/auth/me is missing on backend (API gap)
-          // Maintain active session if token exists
-          return {
-            role: 'admin',
-            authenticated: true,
-            username: 'Администратор',
-          }
-        }
       }
+
+      const me = await apiClient.get<AdminSessionResponse>('/admin/me')
+      return {
+        role: 'admin',
+        authenticated: Boolean(me.authenticated),
+        username: 'Администратор',
+        expiresIn: me.expires_in,
+      }
+    } catch {
+      tokenStorage.clearTokens()
       return null
     }
   },
 
   async logout(): Promise<void> {
-    try {
-      await apiClient.post('/admin/auth/logout', undefined, { skipRefresh: true })
-    } catch {
-      // ignore logout network errors
-    } finally {
-      tokenStorage.clearTokens()
-    }
+    tokenStorage.clearTokens()
   },
 }

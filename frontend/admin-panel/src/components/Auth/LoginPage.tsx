@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { IconLogo, IconLock, IconAlertCircle, IconInfo } from '../Icons'
+import { IconLogo, IconLock, IconAlertCircle, IconInfo, IconEye, IconEyeOff } from '../Icons'
 import styles from './LoginPage.module.css'
 
 export const LoginPage: React.FC = () => {
   const { isAuthenticated, login } = useAuth()
   const location = useLocation()
   const [password, setPassword] = useState<string>('')
+  const [showPassword, setShowPassword] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -67,15 +68,24 @@ export const LoginPage: React.FC = () => {
               <IconLock size={16} className={styles.inputIcon} />
               <input
                 id="admin-password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 className={styles.input}
-                placeholder="Введите ADMIN_PASSWORD"
+                placeholder="Введите пароль администратора"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isSubmitting}
                 autoFocus
                 autoComplete="current-password"
               />
+              <button
+                type="button"
+                className={styles.togglePasswordBtn}
+                onClick={() => setShowPassword((prev) => !prev)}
+                tabIndex={-1}
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              >
+                {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+              </button>
             </div>
           </div>
 
@@ -98,8 +108,7 @@ export const LoginPage: React.FC = () => {
         <div className={styles.infoBox}>
           <IconInfo size={16} className={styles.infoIcon} />
           <span>
-            Пароль хранится в переменных окружения сервера (ADMIN_PASSWORD).
-            Сессионный доступ управляется токенами без хранения пароля в коде.
+            Сессионный доступ управляется токенами без сохранения пароля в браузере.
           </span>
         </div>
       </div>
