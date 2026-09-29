@@ -1,0 +1,354 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Loading state */
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  gap: 14px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.stateTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.stateText {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.retryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  transition: all 0.15s ease;
+}
+
+.retryBtn:hover {
+  background-color: rgba(37, 99, 235, 0.15);
+}
+
+.createFirstBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.createFirstBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.errorIcon {
+  color: var(--color-danger);
+}
+
+.emptyIcon {
+  color: var(--color-text-muted);
+}
+
+/* Desktop table styles */
+.tableWrap {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.th {
+  background-color: var(--color-bg);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.thId {
+  width: 70px;
+}
+
+.thPrimary {
+  min-width: 200px;
+}
+
+.thTranslations {
+  min-width: 250px;
+}
+
+.thActions {
+  width: 110px;
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color 0.15s ease;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background-color: #fafbfc;
+}
+
+.td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  color: var(--color-text-main);
+}
+
+.idBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.primaryText {
+  font-weight: 600;
+  color: var(--color-text-main);
+  font-size: 14px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.translationsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.transChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.localeCode {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+.transText {
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+
+.noTransHint {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.actionsCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.actionBtn:hover {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  border-color: var(--color-border);
+}
+
+.actionBtnDanger:hover {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+}
+
+/* Mobile cards view */
+.cardsList {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s ease;
+}
+
+.card:active {
+  border-color: var(--color-primary);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardIdCol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobileActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  transition: all 0.15s ease;
+}
+
+.mobileActionBtn:active {
+  background-color: var(--color-border);
+}
+
+.mobileActionBtnDanger {
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+  background-color: var(--color-danger-soft);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardPrimaryName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.cardTranslationsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardTranslationsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Switch between desktop table and mobile cards */
+@media (max-width: 768px) {
+  .tableWrap {
+    display: none;
+  }
+
+  .cardsList {
+    display: flex;
+  }
+}
