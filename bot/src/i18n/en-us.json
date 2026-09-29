@@ -5,6 +5,7 @@
     "greeting": "Hello, {name}!",
     "quote": "I help you find events, places, and leisure opportunities, suggest where to go nearby, and save your plans. Open the mini app for more details and convenience.",
     "nearby_events": "Nearby events",
+    "open_mini_app": "Open the mini app",
     "my_meetings": "My meetings",
     "ai_assistant": "AI assistant chat",
     "settings": "Settings"

@@ -26,7 +26,11 @@ async def list_categories(category_service: EventCategoryService = Depends(servi
 
 @admin_router.get("", dependencies=[Depends(require_admin)])
 async def list_admin_categories(category_service: EventCategoryService = Depends(service)):
-    return [category_payload(category) for category in await category_service.list()]
+    counts = await category_service.event_counts()
+    return [
+        {**category_payload(category), "events_count": counts.get(category.id, 0)}
+        for category in await category_service.list()
+    ]
 
 
 @admin_router.post("", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])

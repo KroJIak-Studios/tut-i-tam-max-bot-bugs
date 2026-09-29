@@ -10,6 +10,7 @@ import { PrimaryMessageService } from './primary-message-service.js'
 export class StartService {
   private readonly primaryMessages: PrimaryMessageService
   private readonly temporaryMessages = new TemporaryMessageRegistry()
+  private botUsername: string | null = null
 
   constructor(
     private readonly backend: BackendClient,
@@ -42,10 +43,11 @@ export class StartService {
     }
 
     const meetingCount = await this.meetingCount(profile)
+    const botName = await this.botName(ctx)
 
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(i18n, profile.user.first_name, meetingCount, status.assistant_available),
+      this.createPrimary(i18n, profile.user.first_name, meetingCount, status.assistant_available, botName),
       forceNewPrimary,
     )
     await this.clearPending(ctx)
@@ -67,7 +69,7 @@ export class StartService {
 
     await this.primaryMessages.sendOrReplace(
       ctx,
-      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name, (await this.backend.listMeetings(profile)).total, result.assistant_available),
+      this.createPrimary(new I18n(result.locale, this.fallbackLocale), profile.user.first_name, (await this.backend.listMeetings(profile)).total, result.assistant_available, await this.botName(ctx)),
     )
     await this.clearPending(ctx)
   }
@@ -99,7 +101,7 @@ export class StartService {
     }
   }
 
-  private createPrimary(i18n: I18n, firstName: string, meetingCount: number, assistantAvailable: boolean): PrimaryMessage {
+  private createPrimary(i18n: I18n, firstName: string, meetingCount: number, assistantAvailable: boolean, botName: string): PrimaryMessage {
     const text = [
       i18n.translate('start.title'),
       '',
@@ -109,6 +111,7 @@ export class StartService {
     ].join('\n')
 
     const buttons = [
+      [Keyboard.button.openApp(`📱 ${i18n.translate('start.open_mini_app')}`, botName)],
       [
         Keyboard.button.callback(`📍 ${i18n.translate('start.nearby_events')}`, MenuAction.NearbyEvents),
         Keyboard.button.callback(`🗓️ ${i18n.translate('start.my_meetings')}${this.meetingBadge(meetingCount)}`, MenuAction.MyMeetings),
@@ -121,6 +124,13 @@ export class StartService {
       attachments: [Keyboard.inlineKeyboard(buttons)],
     })
 
+  }
+
+  private async botName(ctx: Context): Promise<string> {
+    if (this.botUsername !== null) return this.botUsername
+    const info = await ctx.api.getMyInfo()
+    this.botUsername = info.username || ''
+    return this.botUsername
   }
 
   private async meetingCount(profile: UserProfileInput): Promise<number> {
