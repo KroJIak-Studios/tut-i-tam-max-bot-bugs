@@ -1,20 +1,18 @@
 import React from 'react'
-import { AlertCircle, Layers, Plus, RefreshCw, Search } from 'lucide-react'
+import { AlertCircle, Layers, RefreshCw } from 'lucide-react'
+import { LocalizedEntityList } from '../components/LocalizedEntity/LocalizedEntityList'
 import {
-  CategoriesHeader,
-  CategoryCardList,
   CategoryDeleteModal,
   CategoryFormModal,
-  CategoryTable,
   CategoryToast,
   useCategories,
 } from '../features/categories'
+import type { EventCategory } from '../features/categories/types'
 import styles from '../features/categories/components/CategoriesView.module.css'
 
 export const CategoriesPage: React.FC = () => {
   const {
     categories,
-    filteredCategories,
     locales,
     fallbackLocale,
     isLoading,
@@ -22,7 +20,6 @@ export const CategoriesPage: React.FC = () => {
     searchQuery,
     setSearchQuery,
     loadData,
-    // Modals
     isFormOpen,
     isDeleteOpen,
     activeCategory,
@@ -31,30 +28,47 @@ export const CategoriesPage: React.FC = () => {
     closeFormModal,
     openDeleteModal,
     closeDeleteModal,
-    // CRUD operations
     handleCreateCategory,
     handleUpdateCategory,
     handleDeleteCategory,
-    // Feedback
     toast,
     dismissToast,
   } = useCategories()
 
   return (
     <div className={styles.container}>
-      <CategoriesHeader
-        totalCount={categories.length}
-        filteredCount={filteredCategories.length}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCreateClick={openCreateModal}
-      />
+      {/* Page header */}
+      <header className={styles.pageHeader}>
+        <div className={styles.pageTitleGroup}>
+          <h1 className={styles.pageTitle}>
+            <Layers size={22} className={styles.titleIcon} />
+            <span>Категории мероприятий</span>
+          </h1>
+          <p className={styles.pageDescription}>
+            Справочник категорий с мультиязычными названиями
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className={styles.refreshBtn}
+          onClick={loadData}
+          disabled={isLoading}
+          title="Обновить список"
+          aria-label="Обновить список категорий"
+        >
+          <RefreshCw
+            size={16}
+            className={isLoading ? styles.spinning : undefined}
+          />
+        </button>
+      </header>
 
       {/* Loading state */}
       {isLoading && (
         <div className={styles.stateBox} role="status">
           <div className={styles.spinner} />
-          <p className={styles.stateTitle}>Загрузка категорий мероприятий...</p>
+          <p className={styles.stateTitle}>Загрузка категорий...</p>
         </div>
       )}
 
@@ -64,75 +78,33 @@ export const CategoriesPage: React.FC = () => {
           <AlertCircle size={36} className={styles.errorIcon} />
           <h2 className={styles.stateTitle}>Не удалось загрузить категории</h2>
           <p className={styles.stateText}>{error}</p>
-          <button
-            type="button"
-            className={styles.retryBtn}
-            onClick={loadData}
-          >
+          <button type="button" className={styles.retryBtn} onClick={loadData}>
             <RefreshCw size={16} />
             <span>Повторить попытку</span>
           </button>
         </div>
       )}
 
-      {/* Empty state (No categories at all) */}
-      {!isLoading && !error && categories.length === 0 && (
-        <div className={styles.stateBox}>
-          <Layers size={40} className={styles.emptyIcon} />
-          <h2 className={styles.stateTitle}>Категории ещё не созданы</h2>
-          <p className={styles.stateText}>
-            В справочнике пока нет категорий мероприятий. Добавьте первую категорию с названиями на нужных языках.
-          </p>
-          <button
-            type="button"
-            className={styles.createFirstBtn}
-            onClick={openCreateModal}
-          >
-            <Plus size={18} />
-            <span>Создать первую категорию</span>
-          </button>
-        </div>
+      {/* Content */}
+      {!isLoading && !error && (
+        <LocalizedEntityList<EventCategory>
+          items={categories}
+          locales={locales}
+          fallbackLocaleCode={fallbackLocale}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onEdit={openEditModal}
+          onDelete={openDeleteModal}
+          onCreateClick={openCreateModal}
+          entityLabel="Категория"
+          createButtonLabel="Добавить категорию"
+          emptyTitle="Категории ещё не созданы"
+          emptyText="В справочнике пока нет категорий мероприятий. Добавьте первую категорию с названиями на нужных языках."
+          /* events_count not yet available in backend — omit countLabel */
+        />
       )}
 
-      {/* Empty search results */}
-      {!isLoading && !error && categories.length > 0 && filteredCategories.length === 0 && (
-        <div className={styles.stateBox}>
-          <Search size={36} className={styles.emptyIcon} />
-          <h2 className={styles.stateTitle}>Ничего не найдено</h2>
-          <p className={styles.stateText}>
-            По запросу «{searchQuery}» не найдено ни одной категории. Попробуйте изменить формулировку или сбросить фильтр.
-          </p>
-          <button
-            type="button"
-            className={styles.retryBtn}
-            onClick={() => setSearchQuery('')}
-          >
-            Сбросить поиск
-          </button>
-        </div>
-      )}
-
-      {/* Categories Content (Desktop Table + Mobile Cards) */}
-      {!isLoading && !error && filteredCategories.length > 0 && (
-        <>
-          <CategoryTable
-            categories={filteredCategories}
-            locales={locales}
-            fallbackLocale={fallbackLocale}
-            onEdit={openEditModal}
-            onDelete={openDeleteModal}
-          />
-          <CategoryCardList
-            categories={filteredCategories}
-            locales={locales}
-            fallbackLocale={fallbackLocale}
-            onEdit={openEditModal}
-            onDelete={openDeleteModal}
-          />
-        </>
-      )}
-
-      {/* Create / Edit Modal */}
+      {/* Modals */}
       <CategoryFormModal
         isOpen={isFormOpen}
         onClose={closeFormModal}
@@ -142,7 +114,6 @@ export const CategoriesPage: React.FC = () => {
         fallbackLocale={fallbackLocale}
       />
 
-      {/* Delete Confirmation Modal */}
       <CategoryDeleteModal
         isOpen={isDeleteOpen}
         onClose={closeDeleteModal}
@@ -151,7 +122,6 @@ export const CategoriesPage: React.FC = () => {
         fallbackLocale={fallbackLocale}
       />
 
-      {/* Toast feedback */}
       <CategoryToast toast={toast} onDismiss={dismissToast} />
     </div>
   )

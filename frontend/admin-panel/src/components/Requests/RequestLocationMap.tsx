@@ -1,8 +1,18 @@
 import React, { useEffect, useRef } from 'react'
 import L from 'leaflet'
-import type { GeoPoint, GeoArea, LocationMode } from '../../types/request'
 import { IconMapPin, IconPolygon } from '../Icons'
 import styles from './RequestLocationMap.module.css'
+
+export interface GeoPoint {
+  lat: number
+  lng: number
+}
+
+export interface GeoArea {
+  points: GeoPoint[]
+}
+
+export type LocationMode = 'point' | 'area'
 
 interface RequestLocationMapProps {
   locationMode: LocationMode
