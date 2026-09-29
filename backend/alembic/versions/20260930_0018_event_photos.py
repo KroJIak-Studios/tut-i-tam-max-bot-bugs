@@ -1,15 +1,15 @@
 """store event photos
 
-Revision ID: 20260929_0018
-Revises: 20260929_0017
+Revision ID: 20260930_0018
+Revises: 20260929_0018
 """
 from typing import Sequence
 
 from alembic import op
 import sqlalchemy as sa
 
-revision = "20260929_0018"
-down_revision = "20260929_0017"
+revision = "20260930_0018"
+down_revision = "20260929_0018"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | None = None
 
