@@ -5,6 +5,7 @@ import {
   X,
   Plus,
   FolderOpen,
+  Trash2,
 } from 'lucide-react'
 import type {
   InterestItem,
@@ -22,6 +23,7 @@ interface InterestsListProps {
   locales: Locale[]
   fallbackLocaleCode: string
   onEdit: (interest: InterestItem) => void
+  onDelete: (interest: InterestItem) => void
   onCreateClick: () => void
 }
 
@@ -30,6 +32,7 @@ export const InterestsList: React.FC<InterestsListProps> = ({
   locales,
   fallbackLocaleCode,
   onEdit,
+  onDelete,
   onCreateClick,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -194,15 +197,26 @@ export const InterestsList: React.FC<InterestsListProps> = ({
                         )}
                       </td>
                       <td className={styles.actionsCell}>
-                        <button
-                          type="button"
-                          className={styles.editBtn}
-                          onClick={() => onEdit(item)}
-                          aria-label={`Редактировать интерес ${primaryText}`}
-                        >
-                          <Pencil size={14} />
-                          <span>Изменить</span>
-                        </button>
+                        <div className={styles.actionGroup}>
+                          <button
+                            type="button"
+                            className={styles.editBtn}
+                            onClick={() => onEdit(item)}
+                            aria-label={`Редактировать интерес ${primaryText}`}
+                          >
+                            <Pencil size={14} />
+                            <span>Изменить</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.deleteBtn}
+                            onClick={() => onDelete(item)}
+                            aria-label={`Удалить интерес ${primaryText}`}
+                            title="Удалить интерес"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -264,6 +278,15 @@ export const InterestsList: React.FC<InterestsListProps> = ({
                     >
                       <Pencil size={15} />
                       <span>Редактировать интерес</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cardDeleteBtn}
+                      onClick={() => onDelete(item)}
+                      aria-label={`Удалить интерес ${primaryText}`}
+                      title="Удалить интерес"
+                    >
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>

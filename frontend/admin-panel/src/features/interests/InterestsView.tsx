@@ -12,6 +12,7 @@ import { interestsApi } from './api/interestsApi'
 import { getFallbackLocaleCode } from './utils/localeUtils'
 import { InterestsList } from './components/InterestsList'
 import { InterestModal } from './components/InterestModal'
+import { InterestDeleteModal } from './components/InterestDeleteModal'
 import styles from './InterestsView.module.css'
 
 export const InterestsView: React.FC = () => {
@@ -23,6 +24,8 @@ export const InterestsView: React.FC = () => {
 
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [editingInterest, setEditingInterest] = useState<InterestItem | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
+  const [interestToDelete, setInterestToDelete] = useState<InterestItem | null>(null)
   const [successToast, setSuccessToast] = useState<string | null>(null)
 
   const fallbackLocaleCode = getFallbackLocaleCode(locales)
@@ -94,6 +97,23 @@ export const InterestsView: React.FC = () => {
   const handleCloseModal = () => {
     setModalOpen(false)
     setEditingInterest(null)
+  }
+
+  const handleOpenDelete = (item: InterestItem) => {
+    setInterestToDelete(item)
+    setDeleteModalOpen(true)
+  }
+
+  const handleCloseDelete = () => {
+    setDeleteModalOpen(false)
+    setInterestToDelete(null)
+  }
+
+  const handleConfirmDelete = async (interestId: number) => {
+    await interestsApi.deleteInterest(interestId)
+    setInterests((prev) => prev.filter((i) => i.id !== interestId))
+    setSuccessToast(`Интерес #${interestId} успешно удалён`)
+    refreshData()
   }
 
   const handleRetry = () => {
@@ -209,6 +229,7 @@ export const InterestsView: React.FC = () => {
           locales={locales}
           fallbackLocaleCode={fallbackLocaleCode}
           onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
           onCreateClick={handleOpenCreate}
         />
       )}
@@ -224,6 +245,14 @@ export const InterestsView: React.FC = () => {
           onSuccess={handleSaveSuccess}
         />
       )}
+
+      <InterestDeleteModal
+        isOpen={deleteModalOpen}
+        interest={interestToDelete}
+        fallbackLocaleCode={fallbackLocaleCode}
+        onClose={handleCloseDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }

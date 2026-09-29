@@ -29,4 +29,11 @@ export const citiesApi = {
   async updateCity(cityId: number, payload: CityCreatePayload): Promise<City> {
     return apiClient.patch<City>(`/admin/cities/${cityId}`, payload)
   },
+
+  /**
+   * Deletes a city by ID.
+   */
+  async deleteCity(cityId: number): Promise<void> {
+    return apiClient.delete<void>(`/admin/cities/${cityId}`)
+  },
 }

@@ -10,6 +10,7 @@ import {
 import { useCities } from '../features/cities/hooks/useCities'
 import { CityCard } from '../features/cities/components/CityCard'
 import { CityFormModal } from '../features/cities/components/CityFormModal'
+import { CityDeleteModal } from '../features/cities/components/CityDeleteModal'
 import styles from './CitiesPage.module.css'
 
 export const CitiesPage: React.FC = () => {
@@ -22,14 +23,19 @@ export const CitiesPage: React.FC = () => {
     error,
     isSaving,
     activeModal,
+    isDeleteOpen,
+    cityToDelete,
     searchQuery,
     setSearchQuery,
     loadData,
     openCreateModal,
     openEditModal,
     closeModal,
+    openDeleteModal,
+    closeDeleteModal,
     handleCreateCity,
     handleUpdateCity,
+    handleDeleteCity,
   } = useCities()
 
   return (
@@ -157,6 +163,7 @@ export const CitiesPage: React.FC = () => {
               locales={locales}
               fallbackLocale={fallbackLocale}
               onEdit={openEditModal}
+              onDelete={openDeleteModal}
             />
           ))}
         </div>
@@ -182,6 +189,15 @@ export const CitiesPage: React.FC = () => {
           isSubmitting={isSaving}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <CityDeleteModal
+        isOpen={isDeleteOpen}
+        city={cityToDelete}
+        fallbackLocale={fallbackLocale}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteCity}
+      />
     </div>
   )
 }

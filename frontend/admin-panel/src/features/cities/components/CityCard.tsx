@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pencil, MapPin } from 'lucide-react'
+import { Pencil, MapPin, Trash2 } from 'lucide-react'
 import type { City, Locale } from '../types/city'
 import {
   getCityAdditionalNames,
@@ -12,12 +12,14 @@ interface CityCardProps {
   locales: Locale[]
   fallbackLocale: Locale
   onEdit: (city: City) => void
+  onDelete: (city: City) => void
 }
 
 export const CityCard: React.FC<CityCardProps> = ({
   city,
   fallbackLocale,
   onEdit,
+  onDelete,
 }) => {
   const mainName = getCityMainName(city, fallbackLocale.code)
   const additionalNames = getCityAdditionalNames(city, fallbackLocale.code)
@@ -78,6 +80,16 @@ export const CityCard: React.FC<CityCardProps> = ({
         >
           <Pencil size={15} />
           <span>Редактировать</span>
+        </button>
+        <button
+          type="button"
+          className={styles.deleteBtn}
+          onClick={() => onDelete(city)}
+          title="Удалить город"
+          aria-label={`Удалить город ${mainName}`}
+        >
+          <Trash2 size={15} />
+          <span>Удалить</span>
         </button>
       </div>
     </div>

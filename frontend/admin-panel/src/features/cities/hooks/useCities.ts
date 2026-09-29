@@ -68,6 +68,9 @@ export function useCities() {
     }
   }, [])
 
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false)
+  const [cityToDelete, setCityToDelete] = useState<City | null>(null)
+
   const openCreateModal = useCallback(() => {
     setActiveModal({ mode: 'create' })
   }, [])
@@ -82,15 +85,58 @@ export function useCities() {
     }
   }, [isSaving])
 
+  const openDeleteModal = useCallback((city: City) => {
+    setCityToDelete(city)
+    setIsDeleteOpen(true)
+  }, [])
+
+  const closeDeleteModal = useCallback(() => {
+    setCityToDelete(null)
+    setIsDeleteOpen(false)
+  }, [])
+
+  const handleDeleteCity = useCallback(
+    async (cityId: number) => {
+      try {
+        await citiesApi.deleteCity(cityId)
+        setCities((prev) => prev.filter((c) => c.id !== cityId))
+        setCityToDelete(null)
+        setIsDeleteOpen(false)
+        loadData()
+      } catch (err: unknown) {
+        if (
+          err &&
+          typeof err === 'object' &&
+          'message' in err &&
+          (err as { message: string }).message === 'city_in_use'
+        ) {
+          throw new Error(
+            'Невозможно удалить город: к нему привязаны мероприятия, пользователи или зоны карты.',
+          )
+        }
+        if (
+          err &&
+          typeof err === 'object' &&
+          'status' in err &&
+          (err as { status: number }).status === 409
+        ) {
+          throw new Error(
+            'Невозможно удалить город: к нему привязаны мероприятия, пользователи или зоны карты.',
+          )
+        }
+        throw err
+      }
+    },
+    [loadData],
+  )
+
   const handleCreateCity = useCallback(
     async (payload: CityCreatePayload) => {
       setIsSaving(true)
       try {
         const newCity = await citiesApi.createCity(payload)
-        // Refresh full list from server or add to state
         setCities((prev) => [...prev, newCity])
         setActiveModal(null)
-        // Also reload from server to stay in sync
         loadData()
       } finally {
         setIsSaving(false)
@@ -135,13 +181,18 @@ export function useCities() {
     error,
     isSaving,
     activeModal,
+    isDeleteOpen,
+    cityToDelete,
     searchQuery,
     setSearchQuery,
     loadData,
     openCreateModal,
     openEditModal,
     closeModal,
+    openDeleteModal,
+    closeDeleteModal,
     handleCreateCity,
     handleUpdateCity,
+    handleDeleteCity,
   }
 }

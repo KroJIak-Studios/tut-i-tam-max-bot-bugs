@@ -25,4 +25,8 @@ export const interestsApi = {
   ): Promise<InterestItem> {
     return apiClient.patch<InterestItem>(`/admin/interests/${id}`, payload)
   },
+
+  async deleteInterest(id: number): Promise<void> {
+    return apiClient.delete<void>(`/admin/interests/${id}`)
+  },
 }
