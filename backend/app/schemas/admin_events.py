@@ -45,3 +45,15 @@ class AdminChatCheck(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     chat_invite_url: str = Field(min_length=1, max_length=2048)
+
+
+class AdminModerationReason(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+class AdminModerationComment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    comment: str = Field(min_length=1, max_length=2000)

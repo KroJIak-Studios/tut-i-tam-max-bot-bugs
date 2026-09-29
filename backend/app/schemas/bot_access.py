@@ -18,6 +18,7 @@ class AccessStatusResponse(BaseModel):
     access_required: bool
     access_granted: bool
     locale: str
+    assistant_available: bool = False
 
 
 class VerifyAccessCodeRequest(MaxIdentityRequest):

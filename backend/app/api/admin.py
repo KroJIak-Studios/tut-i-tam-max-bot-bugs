@@ -9,11 +9,17 @@ from sqlalchemy.orm import selectinload
 from app.core.admin_tokens import bearer, require_admin
 from app.core.settings import Settings, get_settings
 from app.db import get_session
-from app.models.event import City, CityName, Event, MapArea
+from app.models.event import City, CityName, Event, MapArea, UserEvent
 from app.models.profile import Interest, InterestName, Locale
 from app.models.user import MaxUser
 from app.schemas.admin_auth import AdminLogin, AdminRefresh, AdminSession, AdminStats, AdminTokens
-from app.schemas.admin_events import AdminChatCheck, AdminEventPatch, AdminEventWrite
+from app.schemas.admin_events import (
+    AdminChatCheck,
+    AdminEventPatch,
+    AdminEventWrite,
+    AdminModerationComment,
+    AdminModerationReason,
+)
 from app.schemas.profile import CityCreate, InterestCreate, InterestPatch
 from app.services.admin_auth_service import AdminAuthService
 from app.services.admin_stats_service import AdminStatsService
@@ -85,6 +91,45 @@ async def save_interest_names(session: AsyncSession, interest: Interest, values:
     await locale_names(session, values)
     interest.names.clear()
     interest.names.extend(InterestName(locale_code=item["locale_code"], text=item["text"]) for item in values)
+
+
+@router.get("/moderation/events", dependencies=[Depends(require_admin)])
+async def moderation_events(
+    status: str | None = Query(default=None, pattern="^(pending|changes_requested|approved|rejected)$"),
+    city_id: int | None = None,
+    category_id: int | None = None,
+    q: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    session: AsyncSession = Depends(get_session),
+):
+    return await EventsService(session).moderation_queue(
+        status=status, city_id=city_id, category_id=category_id, query=q, limit=limit, offset=offset,
+    )
+
+
+@router.get("/moderation/events/{event_id}", dependencies=[Depends(require_admin)])
+async def moderation_event(event_id: int, session: AsyncSession = Depends(get_session)):
+    record = await session.scalar(select(UserEvent).where(UserEvent.event_id == event_id))
+    if record is None:
+        raise HTTPException(status_code=404, detail="event_not_found")
+    event = await session.get(Event, event_id)
+    return await EventsService(session).admin_card(event)
+
+
+@router.post("/moderation/events/{event_id}/approve", dependencies=[Depends(require_admin)])
+async def approve_event(event_id: int, session: AsyncSession = Depends(get_session)):
+    return await EventsService(session).moderate(event_id, "approved", None)
+
+
+@router.post("/moderation/events/{event_id}/reject", dependencies=[Depends(require_admin)])
+async def reject_event(event_id: int, data: AdminModerationReason, session: AsyncSession = Depends(get_session)):
+    return await EventsService(session).moderate(event_id, "rejected", data.reason)
+
+
+@router.post("/moderation/events/{event_id}/request-changes", dependencies=[Depends(require_admin)])
+async def request_event_changes(event_id: int, data: AdminModerationComment, session: AsyncSession = Depends(get_session)):
+    return await EventsService(session).moderate(event_id, "changes_requested", data.comment)
 
 
 @router.get("/events", dependencies=[Depends(require_admin)])

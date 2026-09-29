@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 from hmac import compare_digest
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.settings import Settings
 from app.core.locales import canonicalize_locale, normalize_locale
+from app.models.ai import AiProvider
 from app.models.user import MaxUser
 from app.repositories.chat_repository import ChatRepository
 from app.repositories.user_repository import UserRepository
@@ -25,7 +27,7 @@ class AccessService:
 
     async def status(self, request: MaxIdentityRequest) -> AccessStatusResponse:
         user = await self._ensure_identity(request)
-        return self._status_response(user)
+        return await self._status_response(user)
 
     async def ensure_user(self, request: MaxIdentityRequest) -> MaxUser:
         return await self._ensure_identity(request)
@@ -35,14 +37,14 @@ class AccessService:
         if self._settings.access_code_enabled and not compare_digest(
             request.code, self._settings.access_code
         ): 
-            return self._access_response(user)
+            return await self._access_response(user)
 
         if user.access_code_fingerprint != self._settings.access_code_fingerprint:
             user.access_granted_at = datetime.now(timezone.utc)
             user.access_code_fingerprint = self._settings.access_code_fingerprint
             await self._session.commit()
 
-        return self._access_response(user)
+        return await self._access_response(user)
 
     async def get_primary_message(self, request: MaxIdentityRequest) -> str | None:
         await self._ensure_identity(request)
@@ -53,11 +55,18 @@ class AccessService:
         await self._ensure_identity(request)
         await self._chats.update_primary_message(request.max_chat_id, message_id)
 
-    def _status_response(self, user: MaxUser) -> AccessStatusResponse:
+    async def _assistant_available(self) -> bool:
+        provider = await self._session.scalar(
+            select(AiProvider.id).where(AiProvider.purpose == "chat", AiProvider.enabled.is_(True))
+        )
+        return provider is not None
+
+    async def _status_response(self, user: MaxUser) -> AccessStatusResponse:
         return AccessStatusResponse(
             access_required=self._settings.access_code_enabled,
             access_granted=self._has_access(user),
             locale=user.locale,
+            assistant_available=await self._assistant_available(),
         )
 
     def _has_access(self, user: MaxUser) -> bool:
@@ -66,11 +75,12 @@ class AccessService:
             or user.access_code_fingerprint == self._settings.access_code_fingerprint
         )
 
-    def _access_response(self, user: MaxUser) -> UserAccessResponse:
+    async def _access_response(self, user: MaxUser) -> UserAccessResponse:
         return UserAccessResponse(
             access_required=self._settings.access_code_enabled,
             access_granted=self._has_access(user),
             locale=user.locale,
+            assistant_available=await self._assistant_available(),
             max_user_id=user.max_user_id,
             access_granted_at=user.access_granted_at,
         )
