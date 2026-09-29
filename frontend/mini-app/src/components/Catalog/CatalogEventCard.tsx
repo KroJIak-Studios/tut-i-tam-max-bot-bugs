@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent } from '../../types'
 import { IconClock, IconLocationPin, IconUsers } from '../Icons'
+import { EventPhoto } from '../EventPhoto'
 import { formatEventDateTimeRange, isEventActiveAt } from '../../utils/eventTime'
 import { formatDistance } from '../../utils/geoUtils'
 import styles from './CatalogEventCard.module.css'
@@ -20,7 +21,7 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
   onMapClick,
 }) => {
   const { t, i18n } = useTranslation()
-  const imgSrc = event.image || event.images?.[0] || '/event-embankment.jpg'
+  const imgSrc = event.image || event.images?.[0]
   const dateTimeText = formatEventDateTimeRange(event, i18n.language)
   const isActiveNow = isEventActiveAt(event, new Date())
   const distanceText = formatDistance(distanceMeters, i18n.language)
@@ -54,12 +55,7 @@ export const CatalogEventCard: React.FC<CatalogEventCardProps> = ({
       <div className={styles.mainRow}>
         {/* Фото события */}
         <div className={styles.imageContainer}>
-          <img
-            src={imgSrc}
-            alt={event.title}
-            className={styles.image}
-            loading="lazy"
-          />
+          <EventPhoto src={imgSrc} />
         </div>
 
         {/* Текстовая информация */}

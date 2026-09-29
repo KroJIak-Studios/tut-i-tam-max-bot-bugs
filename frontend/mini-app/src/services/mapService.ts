@@ -54,7 +54,7 @@ export function mapApiEvent(item: ApiMapEvent): MapEvent {
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
     price, isFree: source === 'user' || price === 0,
     pushkinCard: source === 'user' ? false : Boolean(item.pushkin_card),
-    attendeesCount: item.attendees_count ?? 0, source, image: item.image,
+    attendeesCount: item.attendees_count ?? 0, source, image: item.image || item.images?.[0],
     images: item.images, address: item.address, area: item.area, isGoing: item.going,
   }
 }

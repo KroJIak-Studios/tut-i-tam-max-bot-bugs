@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.bot_access import MaxIdentityRequest
 
@@ -24,16 +24,26 @@ class BotMeetingsRequest(MaxIdentityRequest):
     pass
 
 
+class BotMeetingPhoto(BaseModel):
+    id: int
+    url: str
+    max_image_token: str | None
+
+
 class BotMeetingCard(BotMeetingItem):
     latitude: float
     longitude: float
     price_rub: int | None
     pushkin_card: bool
-    images: list[str]
+    images: list[BotMeetingPhoto]
     attendees_count: int
     going: bool
 
 
 class BotMeetingAttendanceRequest(BotMeetingsRequest):
     going: bool
+
+
+class BotPhotoTokenRequest(BotMeetingsRequest):
+    token: str = Field(min_length=1, max_length=1024)
 

@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { EventItem } from '../types'
 import { IconChevronRight, IconCalendar, IconSparkles } from './Icons'
+import { EventPhoto } from './EventPhoto'
 import { formatEventDateTime } from '../utils/formatters'
 import styles from './FeaturedEventCard.module.css'
 
@@ -36,12 +37,7 @@ export const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onC
       aria-label={`${tagText}, ${event.title}, ${displayDate}, ${displayPrice}`}
     >
       <div className={styles.imageWrapper}>
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className={styles.eventImage}
-          loading="lazy"
-        />
+        <EventPhoto src={event.imageUrl} />
       </div>
 
       <div className={styles.contentWrapper}>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { PastEvent } from '../../mocks/plansData'
 import { formatEventDateTime } from '../../utils/formatters'
 import { IconCalendar, IconStar, IconLocationPin, IconCheck } from '../Icons'
+import { EventPhoto } from '../EventPhoto'
 import styles from './PastEventCard.module.css'
 
 interface PastEventCardProps {
@@ -38,12 +39,7 @@ export const PastEventCard: React.FC<PastEventCardProps> = ({
       <div className={styles.mainRow}>
         <div className={styles.imageWrapper}>
           {event.imageUrl ? (
-            <img
-              src={event.imageUrl}
-              alt={event.title}
-              className={styles.image}
-              loading="lazy"
-            />
+            <EventPhoto src={event.imageUrl} />
           ) : (
             <div className={`${styles.imagePlaceholder} ${styles.events}`}>
               <IconCalendar size={28} color="#FFFFFF" />

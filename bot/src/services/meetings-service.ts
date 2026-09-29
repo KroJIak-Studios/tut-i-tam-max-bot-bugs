@@ -1,8 +1,11 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { extname, join } from 'node:path'
 import { Keyboard, type Context } from '@maxhub/max-bot-api'
 import { MeetingsAction } from '../domain/meetings-action.js'
 import { PendingMessageRegistry } from '../domain/pending-message-registry.js'
 import { escapeHtml, I18n } from '../i18n/i18n.js'
-import { BackendClient, type BotMeeting, type BotMeetingCard, type UserProfileInput } from './backend-client.js'
+import { BackendClient, type BotMeeting, type BotMeetingCard, type BotMeetingPhoto, type UserProfileInput } from './backend-client.js'
 
 const PAGE_SIZE = 4
 
@@ -13,6 +16,7 @@ export class MeetingsService {
     private readonly backend: BackendClient,
     private readonly pending: PendingMessageRegistry,
     private readonly fallbackLocale: string,
+    private readonly apiBaseUrl: string,
   ) {}
 
   async open(ctx: Context, page = 1): Promise<void> {
@@ -74,7 +78,7 @@ export class MeetingsService {
       ],
       [Keyboard.button.callback(`↩️ ${i18n.translate('meetings.back')}`, MeetingsAction.BackToList)],
     ]
-    const images = meeting.images.slice(0, 3).map((url) => ({ type: 'image' as const, payload: { url } }))
+    const images = (await this.photoTokens(ctx, profile, meeting.images)).map((token) => ({ type: 'image' as const, payload: { token } }))
     await this.pending.sendOrUpdatePending(ctx, blocks.join('\n\n'), {
       format: 'html',
       attachments: [...images, Keyboard.inlineKeyboard(rows)],
@@ -122,6 +126,66 @@ export class MeetingsService {
     const info = await ctx.api.getMyInfo()
     this.botUsername = info.username || ''
     return this.botUsername || null
+  }
+
+  private async photoTokens(ctx: Context, profile: UserProfileInput, photos: BotMeetingPhoto[]): Promise<string[]> {
+    const tokens: string[] = []
+    for (const photo of photos.slice(0, 3)) {
+      if (photo.max_image_token) {
+        tokens.push(photo.max_image_token)
+        continue
+      }
+      const token = await this.uploadPhoto(ctx, profile, photo)
+      if (token) tokens.push(token)
+    }
+    return tokens
+  }
+
+  private async uploadPhoto(ctx: Context, profile: UserProfileInput, photo: BotMeetingPhoto): Promise<string | null> {
+    const fileUrl = this.photoFileUrl(photo.url)
+    if (!fileUrl) return null
+    const response = await fetch(fileUrl)
+    if (!response.ok || !(response.headers.get('content-type') ?? '').startsWith('image/')) return null
+    const extension = this.imageExtension(photo.url, response.headers.get('content-type'))
+    const directory = await mkdtemp(join(tmpdir(), 'meeting-photo-'))
+    const filePath = join(directory, `photo${extension}`)
+    try {
+      await writeFile(filePath, Buffer.from(await response.arrayBuffer()))
+      const uploaded = await ctx.api.uploadImage({ source: filePath })
+      const token = this.imageToken(uploaded)
+      if (!token) return null
+      return await this.backend.savePhotoToken(profile, photo.id, token)
+    } catch (error) {
+      console.info('MEETING_PHOTO_UPLOAD_FAILED', { photoId: photo.id, message: error instanceof Error ? error.message : 'upload failed' })
+      return null
+    } finally {
+      await rm(directory, { recursive: true, force: true })
+    }
+  }
+
+  private photoFileUrl(path: string): string | null {
+    if (path.startsWith('https://') || path.startsWith('http://')) return path
+    if (!path.startsWith('/')) return null
+    return `${this.apiBaseUrl.replace(/\/$/, '')}${path}`
+  }
+
+  private imageExtension(path: string, contentType: string | null): string {
+    const fromPath = extname(path.split('?')[0] ?? '').toLowerCase()
+    if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(fromPath)) return fromPath
+    if (contentType?.includes('png')) return '.png'
+    if (contentType?.includes('gif')) return '.gif'
+    if (contentType?.includes('webp')) return '.webp'
+    return '.jpg'
+  }
+
+  private imageToken(result: unknown): string | null {
+    if (!result || typeof result !== 'object' || !('photos' in result)) return null
+    const photos = (result as { photos?: Record<string, { token?: string }> }).photos
+    if (!photos) return null
+    for (const photo of Object.values(photos)) {
+      if (photo?.token) return photo.token
+    }
+    return null
   }
 
   private buttonLabel(meeting: BotMeeting, locale: string): string {

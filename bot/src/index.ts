@@ -14,7 +14,7 @@ const backend = new BackendClient(config.backendUrl, config.fallbackLocale)
 const pending = new PendingMessageRegistry(backend)
 const startService = new StartService(backend, config.fallbackLocale, pending)
 const settings = new SettingsService(backend, pending, config.fallbackLocale)
-const meetings = new MeetingsService(backend, pending, config.fallbackLocale)
+const meetings = new MeetingsService(backend, pending, config.fallbackLocale, config.backendUrl)
 
 bot.on('message_callback', async (ctx, next) => {
   console.info('BOT_CALLBACK_RECEIVED', {

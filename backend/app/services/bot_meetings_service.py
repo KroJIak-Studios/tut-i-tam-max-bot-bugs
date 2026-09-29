@@ -6,14 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.settings import Settings
 from app.models.event import Event, EventAttendance, EventPhoto, OfficialEvent, UserEvent
 from app.schemas.bot_access import MaxIdentityRequest
-from app.schemas.bot_meetings import BotMeetingCard, BotMeetingItem, BotMeetingsResponse
+from app.schemas.bot_meetings import BotMeetingCard, BotMeetingItem, BotMeetingPhoto, BotMeetingsResponse
 from app.services.access_service import AccessService
+from app.services.media_storage import MediaStorage
 
 
 class BotMeetingsService:
     def __init__(self, session: AsyncSession, settings: Settings) -> None:
         self._session = session
-        self._settings = settings
         self._access = AccessService(session, settings)
 
     async def list_meetings(self, request: MaxIdentityRequest) -> BotMeetingsResponse:
@@ -56,6 +56,16 @@ class BotMeetingsService:
         await self._session.commit()
         return await self._card(user.id, event)
 
+    async def save_image_token(self, request: MaxIdentityRequest, photo_id: int, token: str) -> str | None:
+        await self._access.ensure_user(request)
+        photo = await self._session.get(EventPhoto, photo_id)
+        if photo is None:
+            return None
+        if not photo.max_image_token:
+            photo.max_image_token = token
+            await self._session.commit()
+        return photo.max_image_token
+
     async def _visible_event(self, event_id: int) -> Event | None:
         event = await self._session.get(Event, event_id)
         if event is None or not event.visible:
@@ -69,7 +79,7 @@ class BotMeetingsService:
             select(EventAttendance.user_id).where(EventAttendance.event_id == event.id)
         ))
         photos = list(await self._session.scalars(
-            select(EventPhoto.url)
+            select(EventPhoto)
             .where(EventPhoto.event_id == event.id)
             .order_by(EventPhoto.position, EventPhoto.id)
             .limit(3)
@@ -86,21 +96,17 @@ class BotMeetingsService:
             chat_invite_url=event.chat_invite_url if event.chat_max_id is not None else None,
             price_rub=official.price_rub if official is not None else None,
             pushkin_card=official.pushkin_card if official is not None else False,
-            images=self._image_urls(photos),
+            images=[
+                BotMeetingPhoto(
+                    id=photo.id,
+                    url=MediaStorage().public_url(photo.storage_key),
+                    max_image_token=photo.max_image_token,
+                )
+                for photo in photos
+            ],
             attendees_count=sum(attendee_id != author_id for attendee_id in attendee_ids),
             going=user_id in attendee_ids,
         )
-
-    def _image_urls(self, urls: list[str]) -> list[str]:
-        public = []
-        origin = self._settings.mini_app_public_url.rstrip("/")
-        for url in urls:
-            cleaned = url.strip()
-            if cleaned.startswith("https://"):
-                public.append(cleaned)
-            elif cleaned.startswith("/") and origin.startswith("https://"):
-                public.append(f"{origin}{cleaned}")
-        return public[:3]
 
     def _item(self, event: Event) -> BotMeetingItem:
         return BotMeetingItem(

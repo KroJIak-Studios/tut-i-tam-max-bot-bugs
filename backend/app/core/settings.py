@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     mini_app_public_url: str = Field(default="", validation_alias="MINI_APP_PUBLIC_URL")
     local_dev_auth_enabled: bool = Field(default=False, validation_alias="LOCAL_DEV_AUTH_ENABLED")
     local_dev_auth_hosts: str = Field(default="", validation_alias="LOCAL_DEV_AUTH_HOSTS")
+    media_root: str = Field(default="/var/lib/tut-i-tam/media", validation_alias="MEDIA_ROOT")
 
     @field_validator("admin_access_ttl", "admin_refresh_ttl")
     @classmethod
