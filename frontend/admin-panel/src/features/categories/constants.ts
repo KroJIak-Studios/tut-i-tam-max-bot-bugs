@@ -1,16 +1,30 @@
 import type { CategoryName, LocaleItem } from './types'
 
 /**
- * Временный дефолтный FALLBACK_LOCALE для Admin Panel,
- * пока бэкенд не предоставляет эндпоинт настроек FALLBACK_LOCALE.
- * Архитектура построена так, что значение передаётся через пропсы/параметры,
- * поэтому при появлении серверного эндпоинта форма не потребует переписывания.
+ * Резервный FALLBACK_LOCALE на случай отсутствия локальной или docker конфигурации.
+ * Продуктовое значение настраивается через конфигурацию запуска (VITE_FALLBACK_LOCALE в .env.local
+ * или переменные окружения контейнера в docker-compose.yml).
  */
-export const DEFAULT_FALLBACK_LOCALE = 'ru-ru'
+export const DEFAULT_BACKUP_LOCALE = 'ru-ru'
+
+/**
+ * Получить сконфигурированный FALLBACK_LOCALE из окружения Vite:
+ * 1) VITE_FALLBACK_LOCALE из .env.local / compose
+ * 2) FALLBACK_LOCALE (если передана в окружение)
+ * 3) Резервный DEFAULT_BACKUP_LOCALE ('ru-ru')
+ */
+export function getConfiguredFallbackLocale(): string {
+  const envVal =
+    import.meta.env.VITE_FALLBACK_LOCALE ||
+    (import.meta.env as Record<string, string | undefined>).FALLBACK_LOCALE
+  return (envVal && envVal.trim()) || DEFAULT_BACKUP_LOCALE
+}
+
+export const DEFAULT_FALLBACK_LOCALE = getConfiguredFallbackLocale()
 
 /**
  * Получить отображаемое название локали по её коду:
- * FALLBACK_LOCALE -> locales -> native_name
+ * configured FALLBACK_LOCALE -> locales -> native_name
  * Слово "Русский" или любое другое никогда не хардкодится.
  */
 export function getLocaleNativeName(

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { categoriesApi, formatCategoryApiError } from '../api/categoriesApi'
-import { DEFAULT_FALLBACK_LOCALE } from '../constants'
+import { DEFAULT_FALLBACK_LOCALE, getConfiguredFallbackLocale } from '../constants'
 import type {
   CategoryToastState,
   EventCategory,
@@ -13,7 +13,7 @@ export interface UseCategoriesOptions {
 }
 
 export function useCategories(options: UseCategoriesOptions = {}) {
-  const fallbackLocale = options.fallbackLocale || DEFAULT_FALLBACK_LOCALE
+  const fallbackLocale = options.fallbackLocale || getConfiguredFallbackLocale() || DEFAULT_FALLBACK_LOCALE
 
   const [categories, setCategories] = useState<EventCategory[]>([])
   const [locales, setLocales] = useState<LocaleItem[]>([])

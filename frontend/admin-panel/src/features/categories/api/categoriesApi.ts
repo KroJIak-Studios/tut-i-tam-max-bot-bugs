@@ -1,20 +1,6 @@
 import { apiClient } from '../../../services/api/apiClient'
 import { ApiError } from '../../../services/api/types'
-import { tokenStorage } from '../../../services/auth/tokenStorage'
 import type { EventCategory, EventCategoryInput, LocaleItem } from '../types'
-
-/**
- * Получить заголовки с паролем администратора для бэкенда FastAPI,
- * который требует X-Admin-Password в require_admin dependency.
- */
-function getAdminHeaders(): Record<string, string> {
-  const token = tokenStorage.getAccessToken()
-  const headers: Record<string, string> = {}
-  if (token) {
-    headers['X-Admin-Password'] = token
-  }
-  return headers
-}
 
 /**
  * Преобразовать техническую ошибку бэкенда в понятный пользователю текст.
@@ -34,7 +20,7 @@ export function formatCategoryApiError(err: unknown, defaultMessage: string): st
       return 'Категория не найдена или уже была удалена.'
     }
     if (err.status === 401 || err.message === 'admin_unauthorized') {
-      return 'Ошибка авторизации. Неверный пароль администратора или сессия истекла.'
+      return 'Ошибка авторизации. Сессия истекла или отсутствуют права доступа.'
     }
     if (err.status === 0) {
       return 'Сервер недоступен. Проверьте подключение к сети.'
@@ -57,9 +43,7 @@ export const categoriesApi = {
    * GET /api/admin/event-categories
    */
   async getCategories(): Promise<EventCategory[]> {
-    return apiClient.get<EventCategory[]>('/admin/event-categories', {
-      headers: getAdminHeaders(),
-    })
+    return apiClient.get<EventCategory[]>('/admin/event-categories')
   },
 
   /**
@@ -67,9 +51,7 @@ export const categoriesApi = {
    * POST /api/admin/event-categories
    */
   async createCategory(payload: EventCategoryInput): Promise<EventCategory> {
-    return apiClient.post<EventCategory>('/admin/event-categories', payload, {
-      headers: getAdminHeaders(),
-    })
+    return apiClient.post<EventCategory>('/admin/event-categories', payload)
   },
 
   /**
@@ -77,9 +59,7 @@ export const categoriesApi = {
    * PATCH /api/admin/event-categories/{category_id}
    */
   async updateCategory(categoryId: number, payload: EventCategoryInput): Promise<EventCategory> {
-    return apiClient.patch<EventCategory>(`/admin/event-categories/${categoryId}`, payload, {
-      headers: getAdminHeaders(),
-    })
+    return apiClient.patch<EventCategory>(`/admin/event-categories/${categoryId}`, payload)
   },
 
   /**
@@ -87,9 +67,7 @@ export const categoriesApi = {
    * DELETE /api/admin/event-categories/{category_id}
    */
   async deleteCategory(categoryId: number): Promise<void> {
-    return apiClient.delete<void>(`/admin/event-categories/${categoryId}`, {
-      headers: getAdminHeaders(),
-    })
+    return apiClient.delete<void>(`/admin/event-categories/${categoryId}`)
   },
 
   /**
@@ -97,8 +75,6 @@ export const categoriesApi = {
    * GET /api/admin/locales
    */
   async getLocales(): Promise<LocaleItem[]> {
-    return apiClient.get<LocaleItem[]>('/admin/locales', {
-      headers: getAdminHeaders(),
-    })
+    return apiClient.get<LocaleItem[]>('/admin/locales')
   },
 }
