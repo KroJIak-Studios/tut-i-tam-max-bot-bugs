@@ -1,11 +1,33 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { getIsoDate } from '../utils/dateUtils'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
-import { apiRequest } from './api'
+import { apiRequest, ApiError } from './api'
 
 import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 
 export { parseTimeToMinutes }
+
+function shouldFallbackToMocks(err: unknown): boolean {
+  if (import.meta.env.VITE_ALLOW_MOCK_FALLBACK !== 'true') return false
+  return err instanceof ApiError && err.status === 0
+}
+
+function categoryFromApi(cat?: string): EventCategory {
+  switch (cat) {
+    case 'event':
+      return 'events'
+    case 'place':
+      return 'places'
+    case 'sport':
+      return 'sports'
+    case 'park':
+      return 'parks'
+    case 'volunteer':
+      return 'volunteer'
+    default:
+      return 'events'
+  }
+}
 
 export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
 export function loadAttendanceMap(): Record<string, boolean> { return {} }
@@ -40,7 +62,7 @@ function mapEvent(item: ApiMapEvent): MapEvent {
   return {
     id: String(item.id), title: item.title, description: item.description || '',
     latitude: item.latitude, longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category === 'place' ? 'places' : item.category === 'park' ? 'parks' : item.category || 'events') as EventCategory,
+    category: categoryFromApi(item.category),
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
@@ -54,13 +76,14 @@ function mapEvent(item: ApiMapEvent): MapEvent {
 export async function getMapZones(): Promise<MapZone[]> {
   try {
     const items = await apiRequest<Array<{ id: string | number; kind: string; path: [number, number][] }>>('/map/areas?city_id=1')
-    if (items && items.length > 0) {
-      return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+    return items.map((item) => ({ id: String(item.id), name: '', type: item.kind === 'sport_ground' ? 'sports' : 'park', coordinates: item.path }))
+  } catch (err) {
+    if (shouldFallbackToMocks(err)) {
+      console.warn('Backend unavailable and mock fallback enabled, using local zones.')
+      return MAP_ZONES
     }
-  } catch {
-    // API not reachable, fallback to mock zones
+    throw err
   }
-  return MAP_ZONES
 }
 
 export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEvent[]> {
@@ -75,15 +98,16 @@ export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEv
 export async function getMapEvents(filters?: Partial<MapFilterState>): Promise<MapEvent[]> {
   try {
     const items = await apiRequest<ApiMapEvent[]>('/map/events?min_lat=55.65&min_lng=48.85&max_lat=55.90&max_lng=49.30')
-    if (items && items.length > 0) {
-      let events = items.map(mapEvent)
-      if (filters) events = filterEvents(events, filters)
-      return events
+    let events = items.map(mapEvent)
+    if (filters) events = filterEvents(events, filters)
+    return events
+  } catch (err) {
+    if (shouldFallbackToMocks(err)) {
+      console.warn('Backend unavailable and mock fallback enabled, using local events.')
+      return filters ? filterEvents(INITIAL_MAP_EVENTS, filters) : INITIAL_MAP_EVENTS
     }
-  } catch {
-    // API not reachable, fallback to initial map events
+    throw err
   }
-  return filters ? filterEvents(INITIAL_MAP_EVENTS, filters) : INITIAL_MAP_EVENTS
 }
 
 export async function toggleEventAttendance(eventId: string): Promise<MapEvent> {
@@ -91,11 +115,7 @@ export async function toggleEventAttendance(eventId: string): Promise<MapEvent> 
   const event = current.find((item) => item.id === eventId)
   if (!event) throw new Error(`Event ${eventId} not found`)
   const going = !event.isGoing
-  try {
-    await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
-  } catch {
-    // offline/fallback: ignore API failure and update state locally
-  }
+  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
   return { ...event, isGoing: going }
 }
 
@@ -103,11 +123,7 @@ export async function setEventAttendance(eventId: string, going: boolean): Promi
   const current = await getMapEvents()
   const event = current.find((item) => item.id === eventId)
   if (!event) throw new Error(`Event ${eventId} not found`)
-  try {
-    await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
-  } catch {
-    // offline/fallback: ignore API failure
-  }
+  await apiRequest(`/events/${eventId}/attendance`, { method: going ? 'POST' : 'DELETE' })
   return { ...event, isGoing: going }
 }
 

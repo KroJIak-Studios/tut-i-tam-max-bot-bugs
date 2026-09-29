@@ -13,11 +13,39 @@ interface City { id: string | number; name: string }
 interface ApiEvent { id: string | number; title: string; description?: string; category?: EventCategory; address?: string; latitude: number; longitude: number; starts_at: string; ends_at?: string }
 
 function categoryForApi(category: EventCategory): string {
-  if (category === 'sports') return 'sport'
-  if (category === 'events') return 'event'
-  if (category === 'places') return 'place'
-  if (category === 'parks') return 'park'
-  return category
+  switch (category) {
+    case 'events':
+      return 'event'
+    case 'places':
+      return 'place'
+    case 'sports':
+      return 'sport'
+    case 'parks':
+      return 'park'
+    case 'volunteer':
+      return 'volunteer'
+    case 'user':
+      return 'event'
+    default:
+      return 'event'
+  }
+}
+
+function categoryFromApi(cat?: string): EventCategory {
+  switch (cat) {
+    case 'event':
+      return 'events'
+    case 'place':
+      return 'places'
+    case 'sport':
+      return 'sports'
+    case 'park':
+      return 'parks'
+    case 'volunteer':
+      return 'volunteer'
+    default:
+      return 'events'
+  }
 }
 
 function eventToRequest(event: ApiEvent, locale: 'ru-RU' | 'en-US'): CreateEventRequest {
@@ -25,7 +53,7 @@ function eventToRequest(event: ApiEvent, locale: 'ru-RU' | 'en-US'): CreateEvent
   const end = event.ends_at ? new Date(event.ends_at) : undefined
   return {
     id: String(event.id), status: 'approved', source: 'user', isFree: true, pushkinCard: false,
-    title: event.title, description: event.description || '', category: event.category || 'events',
+    title: event.title, description: event.description || '', category: categoryFromApi(event.category),
     date: event.starts_at.slice(0, 10), startDate: event.starts_at.slice(0, 10), startTime: start.toTimeString().slice(0, 5),
     endDate: event.ends_at?.slice(0, 10) || event.starts_at.slice(0, 10), endTime: end?.toTimeString().slice(0, 5),
     address: event.address || '', locationMode: 'point', locationPoint: { lat: event.latitude, lng: event.longitude }, createdAt: new Date().toISOString(), locale,

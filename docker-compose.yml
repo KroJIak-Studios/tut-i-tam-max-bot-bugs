@@ -39,6 +39,7 @@ services:
       ACCESS_CODE: ${ACCESS_CODE}
       BOT_TOKEN: ${BOT_TOKEN}
       FALLBACK_LOCALE: ${FALLBACK_LOCALE:-ru-ru}
+      ALLOW_DEV_AUTH: ${ALLOW_DEV_AUTH:-false}
     expose:
       - "8000"
     depends_on:

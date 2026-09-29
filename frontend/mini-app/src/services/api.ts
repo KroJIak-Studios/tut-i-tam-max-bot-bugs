@@ -7,7 +7,14 @@ type MaxWebApp = {
 function maxInitData(): string {
   const webApp = (window as Window & { WebApp?: MaxWebApp }).WebApp
   if (webApp?.initData) return webApp.initData
-  return 'dev'
+
+  const isDevAuthEnabled =
+    import.meta.env.VITE_ALLOW_DEV_AUTH === 'true' ||
+    (import.meta.env.DEV && import.meta.env.VITE_ALLOW_DEV_AUTH !== 'false')
+  if (isDevAuthEnabled) {
+    return 'dev'
+  }
+  return ''
 }
 
 export class ApiError extends Error {

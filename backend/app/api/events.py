@@ -22,13 +22,14 @@ async def current_user(
     scheme, _, init_data = authorization.partition(" ")
     if scheme != "tma" or not init_data:
         raise HTTPException(status_code=401, detail="init_data_required")
+    settings = get_settings()
     try:
-        init_user = validate_init_data(init_data, get_settings().bot_token)
+        init_user = validate_init_data(init_data, settings.bot_token, settings.allow_dev_auth)
     except ValueError:
         raise HTTPException(status_code=401, detail="init_data_invalid") from None
     service = EventsService(session)
     user = await service.identity(init_user)
-    if get_settings().access_code_enabled and user.access_granted_at is None:
+    if settings.access_code_enabled and user.access_granted_at is None:
         raise HTTPException(status_code=403, detail="access_code_required")
     return session, user
 

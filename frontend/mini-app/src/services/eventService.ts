@@ -1,7 +1,24 @@
 import type { MapEvent, EventCategory, EventReview } from '../types'
-import { apiRequest } from './api'
+import { apiRequest, ApiError } from './api'
 import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
 import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
+
+function categoryFromApi(cat?: string): EventCategory {
+  switch (cat) {
+    case 'event':
+      return 'events'
+    case 'place':
+      return 'places'
+    case 'sport':
+      return 'sports'
+    case 'park':
+      return 'parks'
+    case 'volunteer':
+      return 'volunteer'
+    default:
+      return 'events'
+  }
+}
 
 export interface DetailedEvent extends MapEvent {
   images: string[]
@@ -39,7 +56,7 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     description: item.description || '',
     latitude: item.latitude,
     longitude: item.longitude,
-    category: (item.category === 'sport' ? 'sports' : item.category === 'event' ? 'events' : item.category === 'place' ? 'places' : item.category === 'park' ? 'parks' : item.category || 'events') as EventCategory,
+    category: categoryFromApi(item.category),
     date: item.starts_at.slice(0, 10),
     startDate: item.starts_at.slice(0, 10),
     endDate: item.ends_at?.slice(0, 10),
@@ -102,21 +119,20 @@ export async function getEventById(id: string): Promise<DetailedEvent> {
   try {
     return mapDetail(await apiRequest<ApiEvent>(`/events/${id}`))
   } catch (err) {
-    const fallback = findFallbackEvent(id)
-    if (fallback) return fallback
+    if (import.meta.env.VITE_ALLOW_MOCK_FALLBACK === 'true' && err instanceof ApiError && err.status === 0) {
+      const fallback = findFallbackEvent(id)
+      if (fallback) return fallback
+    }
     throw err
   }
 }
 
 export async function submitEventReview(id: string, rating: number, text: string): Promise<void> {
-  try {
-    await apiRequest(`/events/${id}/reviews`, { method: 'POST', body: JSON.stringify({ rating, text, anonymous: false }) })
-  } catch (err) {
-    console.warn('Failed to submit review to backend:', err)
-  }
+  await apiRequest(`/events/${id}/reviews`, { method: 'POST', body: JSON.stringify({ rating, text, anonymous: false }) })
 }
 
 export function findEventById(rawId: string): DetailedEvent | null {
+  if (import.meta.env.VITE_ALLOW_MOCK_FALLBACK !== 'true') return null
   return findFallbackEvent(rawId)
 }
 
