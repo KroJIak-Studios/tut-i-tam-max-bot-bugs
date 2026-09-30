@@ -1,9 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import {
-  X,
-  Image as ImageIcon,
-  ExternalLink,
-} from 'lucide-react'
+import { ExternalLink, Plus, X } from 'lucide-react'
 import {
   formatEventDateTime,
   formatEventPrice,
@@ -24,7 +20,10 @@ interface EventDetailModalProps {
   cities: City[]
   categories: EventCategory[]
   onClose: () => void
-  onOpenPhotos: (event: AdminEventItem) => void
+  onUploadPhoto: (eventId: number, file: File) => Promise<void>
+  onDeletePhoto: (eventId: number, photoId: number) => Promise<void>
+  isMutatingPhoto?: boolean
+  photosError?: string | null
 }
 
 export const EventDetailModal: React.FC<EventDetailModalProps> = ({
@@ -34,9 +33,13 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   cities,
   categories,
   onClose,
-  onOpenPhotos,
+  onUploadPhoto,
+  onDeletePhoto,
+  isMutatingPhoto,
+  photosError,
 }) => {
   const closeBtnRef = useRef<HTMLButtonElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -64,6 +67,16 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   const priceDisplay = formatEventPrice(event)
   const hasPhotos = event.images && event.images.length > 0
   const hasArea = Boolean(event.area && event.area.length > 0)
+
+  const handleFileChange = async (change: React.ChangeEvent<HTMLInputElement>) => {
+    const file = change.target.files?.[0]
+    if (!file) return
+    try {
+      await onUploadPhoto(event.id, file)
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   return (
     <div
@@ -165,60 +178,51 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         <div className={styles.body}>
           {/* Photo gallery preview */}
           <section className={styles.gallerySection}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <h3 className={styles.sectionHeading}>
-                Фотографии ({event.images?.length || 0}/3)
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose()
-                  onOpenPhotos(event)
-                }}
-                style={{
-                  fontSize: 12,
-                  color: '#2563eb',
-                  fontWeight: 500,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <ImageIcon size={14} />
-                <span>Изменить фото</span>
-              </button>
+            <h3 className={styles.sectionHeading}>
+              Фотографии ({event.images?.length || 0}/3)
+            </h3>
+            <div className={styles.photoGrid}>
+              {hasPhotos && event.images.map((img, idx) => {
+                const url = typeof img === 'string' ? img : img.url
+                const photoId = typeof img === 'string' ? null : img.id
+                const key = photoId || idx
+                return (
+                  <div key={key} className={styles.photoItem}>
+                    <img src={url} alt="" className={styles.photoThumb} />
+                    {photoId != null && (
+                      <button
+                        type="button"
+                        className={styles.photoDelete}
+                        disabled={isMutatingPhoto}
+                        aria-label="Удалить фотографию"
+                        onClick={() => onDeletePhoto(event.id, photoId)}
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+              {(event.images?.length || 0) < 3 && (
+                <button
+                  type="button"
+                  className={styles.photoAdd}
+                  disabled={isMutatingPhoto}
+                  aria-label="Добавить фотографию"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Plus size={28} />
+                </button>
+              )}
             </div>
-
-            {hasPhotos ? (
-              <div className={styles.photoGrid}>
-                {event.images.map((img, idx) => {
-                  const url = typeof img === 'string' ? img : img.url
-                  const key = typeof img === 'string' ? idx : img.id || idx
-                  return (
-                    <img
-                      key={key}
-                      src={url}
-                      alt={`Фото ${idx + 1}`}
-                      className={styles.photoThumb}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                  )
-                })}
-              </div>
-            ) : (
-              <div className={styles.noPhotosNotice}>
-                Фотографии к мероприятию пока не прикреплены.
-              </div>
-            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onChange={handleFileChange}
+            />
+            {photosError && <p className={styles.photoError}>{photosError}</p>}
           </section>
 
           {/* Key metadata grid */}
@@ -329,18 +333,6 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         </div>
 
         <div className={styles.footer}>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={() => {
-              onClose()
-              onOpenPhotos(event)
-            }}
-          >
-            <ImageIcon size={16} aria-hidden="true" />
-            <span>Управление фотографиями</span>
-          </button>
-
           <button
             type="button"
             className={`${styles.btn} ${styles.btnSecondary}`}

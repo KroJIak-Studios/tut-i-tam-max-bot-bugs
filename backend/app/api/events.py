@@ -313,7 +313,7 @@ async def map_events(
     if not await catalog.category_exists(category_id):
         raise HTTPException(status_code=422, detail="invalid_category")
     rows = await catalog.list_events(
-        city_id=city_id, category_id=category_id, starts_after=starts_after, starts_before=starts_before,
+        city_id=city_id, category_id=category_id, category_code=None, starts_after=starts_after, starts_before=starts_before,
         free=free, pushkin=pushkin, query=q, source=source, limit=limit, offset=offset,
     )
     if None not in (min_lat, min_lng, max_lat, max_lng):

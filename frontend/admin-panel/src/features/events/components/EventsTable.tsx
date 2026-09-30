@@ -1,5 +1,5 @@
 import React from 'react'
-import { Eye, Image as ImageIcon, CheckCircle2, XCircle } from 'lucide-react'
+import { Eye, Image as ImageIcon, Pencil, CheckCircle2, XCircle } from 'lucide-react'
 import {
   formatEventDateTime,
   formatEventPrice,
@@ -20,6 +20,7 @@ interface EventsTableProps {
   categories: EventCategory[]
   onOpenDetail: (event: AdminEventItem) => void
   onOpenPhotos: (event: AdminEventItem) => void
+  onEdit: (event: AdminEventItem) => void
 }
 
 export const EventsTable: React.FC<EventsTableProps> = ({
@@ -28,6 +29,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
   categories,
   onOpenDetail,
   onOpenPhotos,
+  onEdit,
 }) => {
   return (
     <div className={styles.tableWrapper}>
@@ -158,6 +160,15 @@ export const EventsTable: React.FC<EventsTableProps> = ({
                       aria-label={`Фото: ${event.title}`}
                     >
                       <ImageIcon size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.iconBtn}
+                      onClick={() => onEdit(event)}
+                      title="Редактировать"
+                      aria-label={`Редактировать: ${event.title}`}
+                    >
+                      <Pencil size={16} />
                     </button>
                   </div>
                 </td>

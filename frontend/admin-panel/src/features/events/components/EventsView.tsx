@@ -8,12 +8,14 @@ import {
   ChevronRight,
   RotateCcw,
 } from 'lucide-react'
+import type { AdminEventItem } from '../types'
 import { useEvents } from '../hooks/useEvents'
 import { EventsHeader } from './EventsHeader'
 import { EventsFilters } from './EventsFilters'
 import { EventsCard } from './EventsCard'
 import { EventsTable } from './EventsTable'
 import { EventDetailModal } from './EventDetailModal'
+import { EventFormModal } from './EventFormModal'
 import { EventPhotosModal } from './EventPhotosModal'
 import styles from './EventsView.module.css'
 
@@ -49,6 +51,8 @@ export const EventsView: React.FC = () => {
 
   // Default to cards on small screens, table on larger screens
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [editedEvent, setEditedEvent] = useState<AdminEventItem | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
 
   const filtersActive =
     Boolean(filters.search) ||
@@ -61,7 +65,7 @@ export const EventsView: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <EventsHeader stats={stats} isLoading={isLoading} onRefresh={refresh} />
+      <EventsHeader stats={stats} isLoading={isLoading} onRefresh={refresh} onCreate={() => { setEditedEvent(null); setIsFormOpen(true) }} />
 
       <EventsFilters
         filters={filters}
@@ -152,6 +156,7 @@ export const EventsView: React.FC = () => {
               categories={categories}
               onOpenDetail={openDetail}
               onOpenPhotos={openPhotosModal}
+              onEdit={(event) => { setEditedEvent(event); setIsFormOpen(true) }}
             />
           ) : (
             <div className={styles.cardsGrid}>
@@ -163,6 +168,7 @@ export const EventsView: React.FC = () => {
                   categories={categories}
                   onOpenDetail={openDetail}
                   onOpenPhotos={openPhotosModal}
+                  onEdit={(event) => { setEditedEvent(event); setIsFormOpen(true) }}
                 />
               ))}
             </div>
@@ -213,10 +219,22 @@ export const EventsView: React.FC = () => {
         cities={cities}
         categories={categories}
         onClose={closeDetail}
-        onOpenPhotos={openPhotosModal}
+        onUploadPhoto={uploadPhoto}
+        onDeletePhoto={deletePhoto}
+        isMutatingPhoto={isMutatingPhoto}
+        photosError={photosError}
       />
 
       {/* Event Photos Modal */}
+      <EventFormModal
+        event={editedEvent}
+        isOpen={isFormOpen}
+        cities={cities}
+        categories={categories}
+        onClose={() => setIsFormOpen(false)}
+        onSaved={refresh}
+      />
+
       <EventPhotosModal
         key={selectedEvent ? `photos-${selectedEvent.id}-${isPhotosModalOpen}` : 'photos-none'}
         event={selectedEvent}

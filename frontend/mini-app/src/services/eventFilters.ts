@@ -3,7 +3,6 @@ import { getIsoDate } from '../utils/dateUtils'
 import {
   isEventVisibleForDay,
   isEventVisibleForRange,
-  isEventActiveAt,
   isEventFinishedAt,
 } from '../utils/eventTime'
 import { buildLocalDateTime } from '../utils/formatters'
@@ -70,7 +69,7 @@ export function filterEvents(
     const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
     const targetDateTime = buildLocalDateTime(targetDate, timeStr)
     if (targetDateTime) {
-      filtered = filtered.filter((e) => isEventActiveAt(e, targetDateTime))
+      filtered = filtered.filter((event) => !isEventFinishedAt(event, targetDateTime))
     }
   } else if (filters.selectedDate === todayIso) {
     // In default "today" mode without explicit scrubber time: hide already finished events

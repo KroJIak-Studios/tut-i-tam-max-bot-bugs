@@ -1,5 +1,6 @@
 import React from 'react'
 import { Search, X } from 'lucide-react'
+import { AdminSelect } from '../../../components/AdminSelect'
 import { resolveCityName, resolveCategoryName } from '../utils/eventFormatters'
 import type { City } from '../../cities/types/city'
 import type { EventCategory } from '../../categories/types'
@@ -48,86 +49,44 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
           <label htmlFor="filter-city" className={styles.filterLabel}>
             Город
           </label>
-          <select
-            id="filter-city"
-            className={styles.selectInput}
-            value={filters.cityId}
-            onChange={(e) =>
-              onUpdateFilters({
-                cityId: e.target.value === 'all' ? 'all' : Number(e.target.value),
-              })
-            }
-          >
-            <option value="all">Все города</option>
-            {cities.map((city) => (
-              <option key={city.id} value={city.id}>
-                {resolveCityName(city.id, cities)}
-              </option>
-            ))}
-          </select>
+          <AdminSelect
+            value={String(filters.cityId)}
+            onChange={(value) => onUpdateFilters({ cityId: value === 'all' ? 'all' : Number(value) })}
+            options={[{ value: 'all', label: 'Все города' }, ...cities.map((city) => ({ value: String(city.id), label: resolveCityName(city.id, cities) }))]}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label htmlFor="filter-category" className={styles.filterLabel}>
             Категория
           </label>
-          <select
-            id="filter-category"
-            className={styles.selectInput}
-            value={filters.categoryId}
-            onChange={(e) =>
-              onUpdateFilters({
-                categoryId: e.target.value === 'all' ? 'all' : Number(e.target.value),
-              })
-            }
-          >
-            <option value="all">Все категории</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {resolveCategoryName(cat.id, categories)}
-              </option>
-            ))}
-          </select>
+          <AdminSelect
+            value={String(filters.categoryId)}
+            onChange={(value) => onUpdateFilters({ categoryId: value === 'all' ? 'all' : Number(value) })}
+            options={[{ value: 'all', label: 'Все категории' }, ...categories.map((category) => ({ value: String(category.id), label: resolveCategoryName(category.id, categories) }))]}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label htmlFor="filter-source" className={styles.filterLabel}>
             Происхождение
           </label>
-          <select
-            id="filter-source"
-            className={styles.selectInput}
+          <AdminSelect
             value={filters.source}
-            onChange={(e) =>
-              onUpdateFilters({
-                source: e.target.value as 'all' | 'official' | 'user',
-              })
-            }
-          >
-            <option value="all">Все типы</option>
-            <option value="official">Официальные события</option>
-            <option value="user">Пользовательские события</option>
-          </select>
+            onChange={(value) => onUpdateFilters({ source: value as EventFiltersState['source'] })}
+            options={[{ value: 'all', label: 'Все типы' }, { value: 'official', label: 'Официальные события' }, { value: 'user', label: 'Пользовательские события' }]}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label htmlFor="filter-visible" className={styles.filterLabel}>
             Видимость в каталоге
           </label>
-          <select
-            id="filter-visible"
-            className={styles.selectInput}
+          <AdminSelect
             value={filters.visible}
-            onChange={(e) =>
-              onUpdateFilters({
-                visible: e.target.value as 'all' | 'visible' | 'hidden',
-              })
-            }
-          >
-            <option value="all">Все</option>
-            <option value="visible">Только видимые</option>
-            <option value="hidden">Только скрытые</option>
-          </select>
+            onChange={(value) => onUpdateFilters({ visible: value as EventFiltersState['visible'] })}
+            options={[{ value: 'all', label: 'Все' }, { value: 'visible', label: 'Только видимые' }, { value: 'hidden', label: 'Только скрытые' }]}
+          />
         </div>
 
         <div className={styles.toggleGroup} role="group" aria-label="Особенности">

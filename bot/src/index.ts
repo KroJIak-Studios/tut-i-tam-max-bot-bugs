@@ -5,6 +5,7 @@ import { MenuAction } from './domain/menu-action.js'
 import { MeetingsAction } from './domain/meetings-action.js'
 import { SettingsAction } from './domain/settings-action.js'
 import { MeetingsService } from './services/meetings-service.js'
+import { NearbyService } from './services/nearby-service.js'
 import { SettingsService } from './services/settings-service.js'
 import { config, webhook } from './config.js'
 import { AssistantChatService } from './services/assistant-service.js'
@@ -17,6 +18,7 @@ const pending = new PendingMessageRegistry(backend)
 const startService = new StartService(backend, config.fallbackLocale, pending)
 const settings = new SettingsService(backend, pending, config.fallbackLocale)
 const meetings = new MeetingsService(backend, pending, config.fallbackLocale, config.backendUrl)
+const nearby = new NearbyService(backend, pending, config.fallbackLocale, startService)
 const assistant = new AssistantChatService(backend, config.fallbackLocale, startService)
 
 bot.on('message_callback', async (ctx, next) => {
@@ -49,6 +51,10 @@ bot.command('start', async (ctx) => {
 
 bot.on('message_created', async (ctx) => {
   const location = ctx.message?.body.attachments?.find((attachment) => attachment.type === 'location')
+  if (location && 'latitude' in location && nearby.isWaiting(ctx.chatId ?? undefined)) {
+    await nearby.receive(ctx, location.latitude, location.longitude)
+    return
+  }
   if (assistant.isActive(ctx.chatId ?? undefined) && location && 'latitude' in location) {
     await assistant.handleLocation(ctx, location.latitude, location.longitude)
     return
@@ -163,13 +169,22 @@ bot.action(new RegExp(`^${SettingsAction.LanguagePrefix}`), async (ctx) => {
   }
 })
 
-for (const action of [
-  MenuAction.NearbyEvents,
-]) {
-  bot.action(action, async (ctx) => {
-    await startService.handleNotReady(ctx)
-  })
-}
+bot.action(MenuAction.NearbyEvents, async (ctx) => {
+  await nearby.open(ctx)
+})
+
+bot.action(/^nearby:going:(\d+)$/, async (ctx) => {
+  const eventId = Number(ctx.callback?.payload?.slice('nearby:going:'.length))
+  if (Number.isInteger(eventId)) await nearby.toggle(ctx, eventId)
+})
+
+bot.action('nearby:again', async (ctx) => {
+  await nearby.again(ctx)
+})
+
+bot.action('nearby:menu', async (ctx) => {
+  await nearby.close(ctx)
+})
 
 const recovery = await pending.recoverAfterRestart(bot.api)
 console.info('PENDING_STARTUP_RECOVERY_COMPLETED', recovery)

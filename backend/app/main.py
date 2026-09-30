@@ -12,6 +12,7 @@ from app.api.assistant import router as assistant_router
 from app.api.event_categories import admin_router as event_categories_admin_router
 from app.api.event_categories import public_router as event_categories_router
 from app.api.media import router as media_router
+from app.api.recommendations import router as recommendations_router
 from app.api.events import router as events_router
 
 from app.core.settings import get_settings
@@ -46,6 +47,7 @@ api_router.include_router(assistant_router)
 api_router.include_router(event_categories_router)
 api_router.include_router(event_categories_admin_router)
 api_router.include_router(media_router)
+api_router.include_router(recommendations_router)
 api_router.include_router(events_router)
 
 

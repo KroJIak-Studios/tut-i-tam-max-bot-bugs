@@ -29,6 +29,7 @@ interface EventsCardProps {
   categories: EventCategory[]
   onOpenDetail: (event: AdminEventItem) => void
   onOpenPhotos: (event: AdminEventItem) => void
+  onEdit: (event: AdminEventItem) => void
 }
 
 export const EventsCard: React.FC<EventsCardProps> = ({
@@ -37,6 +38,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({
   categories,
   onOpenDetail,
   onOpenPhotos,
+  onEdit,
 }) => {
   const originInfo = getOriginBadge(event.origin)
   const phaseInfo = getPhaseBadge(event.phase)
@@ -184,6 +186,14 @@ export const EventsCard: React.FC<EventsCardProps> = ({
         >
           <ImageIcon size={15} aria-hidden="true" />
           <span>Фото ({event.images?.length || 0})</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+          onClick={() => onEdit(event)}
+        >
+          <span>Изменить</span>
         </button>
       </div>
     </article>

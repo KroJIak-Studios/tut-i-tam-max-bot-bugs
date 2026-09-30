@@ -7,12 +7,14 @@ interface EventsHeaderProps {
   stats: EventsStatsSummary | null
   isLoading: boolean
   onRefresh: () => void
+  onCreate: () => void
 }
 
 export const EventsHeader: React.FC<EventsHeaderProps> = ({
   stats,
   isLoading,
   onRefresh,
+  onCreate,
 }) => {
   return (
     <header className={styles.header}>
@@ -43,9 +45,7 @@ export const EventsHeader: React.FC<EventsHeaderProps> = ({
           <button
             type="button"
             className={`${styles.btn} ${styles.btnPrimary}`}
-            disabled
-            title="Форма создания официального мероприятия будет добавлена следующим этапом"
-            aria-label="Создать мероприятие (форма будет добавлена следующим этапом)"
+            onClick={onCreate}
           >
             <Plus size={16} aria-hidden="true" />
             <span>Создать мероприятие</span>

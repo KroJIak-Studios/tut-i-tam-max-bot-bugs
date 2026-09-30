@@ -133,20 +133,13 @@
 /* 7-дневная горизонтальная полоса */
 .daysStrip {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  gap: 6px;
   margin-bottom: 18px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-
-.daysStrip::-webkit-scrollbar {
-  display: none;
 }
 
 .stripItem {
-  flex: 0 0 52px;
+  flex: 1 1 0;
+  min-width: 0;
   height: 60px;
   display: flex;
   flex-direction: column;

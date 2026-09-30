@@ -2,7 +2,9 @@ alembic==1.16.5
 cryptography==49.0.0
 fastapi==0.115.14
 httpx==0.28.1
-psycopg[binary]==3.2.9
+pgvector==0.4.1
+psycopg==3.2.9
+psycopg-binary==3.2.9
 pydantic-settings==2.10.1
 python-dotenv==1.1.1
 python-multipart==0.0.20

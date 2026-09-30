@@ -26,8 +26,8 @@ export const MapTimeScrubber: React.FC<MapTimeScrubberProps> = ({
   selectedMinutes,
   onChangeMinutes,
   isToday = true,
-  minMinutes = 9 * 60,
-  maxMinutes = 23 * 60 + 59,
+  minMinutes = 0,
+  maxMinutes = 23 * 60,
   step = 15,
 }) => {
   const { t } = useTranslation()
@@ -40,9 +40,9 @@ export const MapTimeScrubber: React.FC<MapTimeScrubberProps> = ({
   const range = maxMinutes - minMinutes
   const percentage = range <= 0 ? 0 : Math.max(0, Math.min(100, ((clampedMinutes - minMinutes) / range) * 100))
   const nowPercentage = range <= 0 ? 0 : Math.max(0, Math.min(100, ((nowMinutes - minMinutes) / range) * 100))
-  const showNow = isToday && nowMinutes >= minMinutes && nowMinutes <= maxMinutes
+  const showNow = nowMinutes >= minMinutes
   const timeLabel = formatMinutesToTime(clampedMinutes)
-  const ticks = [9, 12, 15, 18, 21].map((hour) => ({ minutes: hour * 60, label: `${String(hour).padStart(2, '0')}:00` }))
+  const ticks = [0, 6, 12, 18, 23].map((hour) => ({ minutes: hour * 60, label: `${String(hour).padStart(2, '0')}:00` }))
 
   return (
     <div className={styles.scrubberCard} role="group" aria-label={t('map.scrubberAriaLabel', 'Выбор времени на карте')}>
@@ -54,9 +54,7 @@ export const MapTimeScrubber: React.FC<MapTimeScrubberProps> = ({
       </div>
       <div className={styles.trackContainer}>
         <div className={styles.floatingBubble} style={{ left: thumbLeft(percentage) }} aria-hidden="true">{timeLabel}</div>
-        {showNow && (
-          <span className={styles.nowMark} style={{ left: thumbLeft(nowPercentage) }}>{t('map.now', 'Сейчас')}</span>
-        )}
+        {showNow && Math.abs(clampedMinutes - nowMinutes) > 20 && <span className={styles.nowLine} style={{ left: thumbLeft(nowPercentage) }} />}
         <input
           type="range"
           min={minMinutes}
@@ -72,11 +70,15 @@ export const MapTimeScrubber: React.FC<MapTimeScrubberProps> = ({
         />
       </div>
       <div className={styles.ticksRow} aria-hidden="true">
-        {ticks.map((tick) => (
-          <button key={tick.minutes} type="button" tabIndex={-1} className={`${styles.tickBtn} ${Math.abs(clampedMinutes - tick.minutes) <= 15 ? styles.tickBtnActive : ''}`} onClick={() => onChangeMinutes(tick.minutes)}>
-            {tick.label}
-          </button>
-        ))}
+        {showNow && <span className={styles.nowMark} style={{ left: thumbLeft(nowPercentage) }}>{t('map.now', 'Сейчас')}</span>}
+        {ticks.map((tick) => {
+          const tickPercentage = range <= 0 ? 0 : ((tick.minutes - minMinutes) / range) * 100
+          return (
+            <button key={tick.minutes} type="button" tabIndex={-1} className={`${styles.tickBtn} ${Math.abs(clampedMinutes - tick.minutes) <= 15 ? styles.tickBtnActive : ''}`} style={{ left: thumbLeft(tickPercentage) }} onClick={() => onChangeMinutes(tick.minutes)}>
+              {tick.label}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

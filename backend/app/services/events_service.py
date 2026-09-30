@@ -19,7 +19,8 @@ from app.models.event_category import EventCategory
 from app.models.user import MaxUser
 from app.schemas.admin_events import AdminEventPatch, AdminEventWrite
 from app.schemas.events import EventCreate, ReviewCreate, UserEventUpdate
-from app.services.ip_geolocation_service import IpGeolocationService
+from app.core.settings import get_settings
+from app.services.embedding_index import EmbeddingIndex
 from app.services.media_storage import MediaStorage
 
 
@@ -205,6 +206,7 @@ class EventsService:
         self.session.add(OfficialEvent(event_id=event.id, price_rub=data.price_rub, pushkin_card=data.pushkin_card))
         if data.area is not None:
             self.session.add(EventArea(event_id=event.id, path=data.area))
+        await EmbeddingIndex(self.session, get_settings()).index_event(event)
         await self.session.commit()
         await self.session.refresh(event)
         return await self.admin_card(event)
@@ -235,6 +237,9 @@ class EventsService:
                 self.session.add(EventArea(event_id=event.id, path=changes["area"]))
             elif area is not None:
                 area.path = changes["area"]
+        text_changed = "title" in changes or "description" in changes
+        if text_changed or "visible" in changes:
+            await EmbeddingIndex(self.session, get_settings()).index_event(event)
         await self.session.commit()
         await self.session.refresh(event)
         return await self.admin_card(event)
@@ -376,6 +381,7 @@ class EventsService:
         record.moderated_at = datetime.now(timezone.utc)
         record.moderated_by = "admin"
         event.visible = status == "approved"
+        await EmbeddingIndex(self.session, get_settings()).index_event(event)
         await self.session.commit()
         return await self.admin_card(event)
 

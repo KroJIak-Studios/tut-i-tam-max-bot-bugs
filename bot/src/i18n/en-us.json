@@ -53,6 +53,16 @@
     "gis": "2GIS",
     "back": "Back"
   },
+  "nearby": {
+    "ask": "Send your location and I’ll pick a nearby event.",
+    "share": "Send my location",
+    "searching": "Looking for an event",
+    "empty": "Nothing suitable is nearby yet.",
+    "another": "Find another",
+    "going": "I'll go",
+    "going_done": "You're going",
+    "menu": "Main menu"
+  },
   "assistant": {
     "greetings": {
       "one": "Hi, I’m here. Ask where to go and I’ll suggest something.",

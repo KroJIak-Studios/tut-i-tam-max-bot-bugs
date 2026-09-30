@@ -124,6 +124,14 @@
   align-items: center;
   justify-content: center;
   color: #2563EB;
+  flex-shrink: 0;
+}
+
+.dateChipText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dateChipChevron {
@@ -132,6 +140,7 @@
   justify-content: center;
   color: #9CA3AF;
   margin-left: -1px;
+  flex-shrink: 0;
 }
 
 .dateChipCustom .dateChipChevron {

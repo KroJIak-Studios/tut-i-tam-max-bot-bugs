@@ -24,6 +24,16 @@ export interface BotMeeting {
   chat_invite_url: string | null
 }
 
+export interface NearbyEvent {
+  id: number
+  title: string
+  description: string
+  address: string
+  starts_at: string
+  images: string[]
+  going: boolean
+}
+
 export interface AssistantTurn {
   status: 'answer' | 'location_required'
   text: string
@@ -189,6 +199,19 @@ export class BackendClient {
     if (!response.ok) throw new Error(`Backend request failed: ${response.status}`)
     const body = await response.json() as { token?: string }
     return body.token ?? null
+  }
+
+  async nearbyEvent(input: UserProfileInput, latitude: number, longitude: number): Promise<NearbyEvent | null> {
+    const response = await fetch(new URL('/api/recommendations/nearby', this.baseUrl), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...this.identity(input), latitude, longitude }),
+    })
+    if (response.status === 204) return null
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`)
+    const text = await response.text()
+    if (!text || text === 'null') return null
+    return JSON.parse(text) as NearbyEvent
   }
 
   async assistantTurn(

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -40,6 +41,8 @@ class Event(Base):
     chat_max_id: Mapped[int | None] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(3072))
+    embedding_model: Mapped[str | None] = mapped_column(String(255))
 
 class OfficialEvent(Base):
     __tablename__ = "official_events"

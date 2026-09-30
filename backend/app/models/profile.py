@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,6 +19,8 @@ class Interest(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     color: Mapped[str] = mapped_column(String(7))
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(3072))
+    embedding_model: Mapped[str | None] = mapped_column(String(255))
     names: Mapped[list["InterestName"]] = relationship(
         cascade="all, delete-orphan",
         order_by="InterestName.locale_code",

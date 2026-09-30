@@ -62,7 +62,7 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
         <span className={styles.dateChipIcon}>
           <IconCalendar size={14} color="currentColor" />
         </span>
-        <span>{dateLabel}</span>
+        <span className={styles.dateChipText}>{dateLabel}</span>
         <span className={styles.dateChipChevron}>
           <IconChevronDown size={13} color="currentColor" />
         </span>
