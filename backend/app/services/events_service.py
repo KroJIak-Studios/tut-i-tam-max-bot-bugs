@@ -238,7 +238,10 @@ class EventsService:
         self.session.add(OfficialEvent(event_id=event.id, price_rub=data.price_rub, pushkin_card=data.pushkin_card))
         if data.area is not None:
             self.session.add(EventArea(event_id=event.id, path=data.area))
-        await EmbeddingIndex(self.session, get_settings()).index_event(event)
+        try:
+            await EmbeddingIndex(self.session, get_settings()).index_event(event)
+        except Exception:
+            logger.exception("event embedding index failed on create", extra={"event_id": event.id})
         await self.session.commit()
         await self.session.refresh(event)
         return await self.admin_card(event)
@@ -279,7 +282,10 @@ class EventsService:
         text_changed = "title" in changes or "description" in changes
         visibility_only = set(changes) == {"visible"}
         if text_changed:
-            await EmbeddingIndex(self.session, get_settings()).index_event(event)
+            try:
+                await EmbeddingIndex(self.session, get_settings()).index_event(event)
+            except Exception:
+                logger.exception("event embedding index failed on update", extra={"event_id": event.id})
         await self.session.commit()
         if visibility_only:
             schedule_event_embedding(background, event.id)
@@ -320,18 +326,9 @@ class EventsService:
 
     async def _bind_chat(self, event: Event, invite_url: str) -> None:
         normalized = MaxChatService().invite(invite_url)
-        taken = await self.session.scalar(
-            select(Event.id).where(Event.chat_invite_url == normalized, Event.id != event.id)
-        )
-        if taken is not None:
-            raise HTTPException(status_code=409, detail="chat_already_used")
         event.chat_invite_url = normalized
         event.chat_max_id = None
-        try:
-            await self.session.commit()
-        except IntegrityError:
-            await self.session.rollback()
-            raise HTTPException(status_code=409, detail="chat_already_used") from None
+        await self.session.commit()
 
     async def cancel_own_event(self, user: MaxUser, event_id: int) -> None:
         record = await self.session.scalar(

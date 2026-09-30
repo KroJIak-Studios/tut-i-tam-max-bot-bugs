@@ -1,5 +1,6 @@
 import { apiClient } from '../../../services/api/apiClient'
 import { ApiError } from '../../../services/api/types'
+import { tokenStorage } from '../../../services/auth/tokenStorage'
 import { citiesApi } from '../../cities/api/citiesApi'
 import { categoriesApi } from '../../categories/api/categoriesApi'
 import { dashboardApi } from '../../dashboard/api/dashboardApi'
@@ -162,7 +163,7 @@ export const eventsApi = {
 
     // Using raw apiRequest with FormData (browser sets multipart/form-data boundary automatically)
     const BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
-    const token = sessionStorage.getItem('tut_i_tam_admin_access_token')
+    const token = tokenStorage.getAccessToken()
     const headers: Record<string, string> = {}
     if (token) {
       headers['Authorization'] = `Bearer ${token}`

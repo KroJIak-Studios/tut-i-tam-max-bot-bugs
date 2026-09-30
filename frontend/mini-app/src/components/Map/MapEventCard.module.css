@@ -2,7 +2,6 @@
   position: relative;
   background: #FFFFFF;
   border-radius: 20px;
-  padding: 13px 15px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -69,6 +68,8 @@
   letter-spacing: -0.3px;
   line-height: 1.3;
   margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 
@@ -122,8 +123,10 @@
 }
 
 .actionButton {
-  height: 42px;
+  height: 44px;
+  min-height: 44px;
   width: 100%;
+  border: none;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
@@ -178,7 +181,8 @@
     font-size: 12px;
   }
   .actionButton {
-    height: 38px;
+    height: 40px;
+    min-height: 40px;
     font-size: 14px;
   }
 }
