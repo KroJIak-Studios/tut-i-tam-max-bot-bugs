@@ -49,6 +49,8 @@ export function useEvents() {
   const [isPhotosModalOpen, setIsPhotosModalOpen] = useState<boolean>(false)
   const [isMutatingPhoto, setIsMutatingPhoto] = useState<boolean>(false)
   const [photosError, setPhotosError] = useState<string | null>(null)
+  const [visibilityError, setVisibilityError] = useState<string | null>(null)
+  const visibilityRequestsRef = useRef<Set<number>>(new Set())
 
   // Debounce search query
   useEffect(() => {
@@ -76,6 +78,46 @@ export function useEvents() {
     setFilters(DEFAULT_FILTERS)
     setPage(1)
   }, [])
+
+  const handleToggleVisible = useCallback(async (event: AdminEventItem) => {
+    if (visibilityRequestsRef.current.has(event.id)) return
+    visibilityRequestsRef.current.add(event.id)
+    setVisibilityError(null)
+    const nextVisible = !event.visible
+    const applyVisible = (visible: boolean, confirmed?: AdminEventItem) => {
+      const leavesCurrentFilter =
+        (filters.visible === 'visible' && !visible) ||
+        (filters.visible === 'hidden' && visible)
+      let removed = false
+      setEvents((current) => {
+        if (!current.some((item) => item.id === event.id)) return current
+        if (!leavesCurrentFilter) {
+          return current.map((item) => (
+            item.id === event.id ? { ...item, ...confirmed, visible } : item
+          ))
+        }
+        removed = true
+        return current.filter((item) => item.id !== event.id)
+      })
+      if (removed) {
+        setTotal((current) => Math.max(0, current - 1))
+      }
+      setSelectedEvent((current) => (
+        current?.id === event.id ? { ...current, ...confirmed, visible } : current
+      ))
+    }
+
+    applyVisible(nextVisible)
+    try {
+      const updated = await eventsApi.updateEvent(event.id, { visible: nextVisible })
+      applyVisible(updated.visible, updated)
+    } catch (err) {
+      applyVisible(event.visible, event)
+      setVisibilityError(formatEventApiError(err, 'Не удалось изменить видимость мероприятия'))
+    } finally {
+      visibilityRequestsRef.current.delete(event.id)
+    }
+  }, [filters.visible])
 
   // Main data loader from backend
   const loadData = useCallback(async () => {
@@ -259,10 +301,12 @@ export function useEvents() {
     isPhotosModalOpen,
     isMutatingPhoto,
     photosError,
+    visibilityError,
     setPage,
     refresh: loadData,
     updateFilters: handleUpdateFilters,
     resetFilters: handleResetFilters,
+    toggleVisible: handleToggleVisible,
     openDetail: handleOpenDetail,
     closeDetail: handleCloseDetail,
     openPhotosModal: handleOpenPhotosModal,

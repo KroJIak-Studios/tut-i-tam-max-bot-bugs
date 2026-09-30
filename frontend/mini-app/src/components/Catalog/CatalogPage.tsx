@@ -20,6 +20,7 @@ import { CatalogEmptyState } from './CatalogEmptyState'
 import { MapDatePickerSheet, type DatePreset } from '../Map/MapDatePickerSheet'
 import { MapFilterSheet } from '../Map/MapFilterSheet'
 import { BottomNavigation } from '../BottomNavigation'
+import { IconPlus } from '../Icons'
 import styles from './CatalogPage.module.css'
 
 interface EventWithDistance { event: MapEvent; distanceMeters: number }
@@ -156,6 +157,9 @@ export const CatalogPage: React.FC = () => {
     </main>
     {isDatePickerOpen && <MapDatePickerSheet selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} dateEnd={filters.dateEnd} activePreset={filters.dateFilter} onClose={() => setIsDatePickerOpen(false)} onSelectDate={handleSelectDate} />}
     {isFilterSheetOpen && <MapFilterSheet filters={filters} categories={categories} onClose={() => setIsFilterSheetOpen(false)} onApply={handleApplyFilters} onReset={handleResetFilters} />}
+    <button type="button" className={styles.createFab} aria-label={t('catalog.createEvent')} onClick={() => navigate('/events/create')}>
+      <IconPlus size={26} color="#FFFFFF" />
+    </button>
     <BottomNavigation activeTab="none" onTabChange={handleTabChange} />
   </div>
 }

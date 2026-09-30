@@ -13,7 +13,10 @@ export class PrimaryMessageService {
     const profile = await this.loadProfile(ctx)
     const existingMessageId = await this.backend.getPrimaryMessageId(profile)
 
+    console.info('PRIMARY_DECIDE', { chatId: profile.chatId, existingMessageId: existingMessageId ?? null, alwaysCreateNew })
+
     if (alwaysCreateNew && existingMessageId) {
+      console.info('PRIMARY_REPLACE', { chatId: profile.chatId, previousMessageId: existingMessageId })
       await this.sendReplacement(ctx, profile, existingMessageId, message)
       return
     }
@@ -23,12 +26,17 @@ export class PrimaryMessageService {
       try {
         result = await ctx.api.editMessage(existingMessageId, message.editOptions())
       } catch (error) {
+        console.info('PRIMARY_EDIT_FAILED', { chatId: profile.chatId, messageId: existingMessageId, error: error instanceof Error ? error.message : String(error) })
         if (!this.isMissingMessageError(error)) throw error
         await this.sendReplacement(ctx, profile, existingMessageId, message)
         return
       }
 
-      if (result.success || this.isUnchangedMessageError(result.message)) return
+      if (result.success || this.isUnchangedMessageError(result.message)) {
+        console.info('PRIMARY_EDITED', { chatId: profile.chatId, messageId: existingMessageId, success: result.success })
+        return
+      }
+      console.info('PRIMARY_EDIT_REJECTED', { chatId: profile.chatId, messageId: existingMessageId, message: result.message })
       if (this.isMissingMessageError(new Error(result.message))) {
         await this.sendReplacement(ctx, profile, existingMessageId, message)
         return
@@ -37,6 +45,7 @@ export class PrimaryMessageService {
     }
 
     const sent = await ctx.reply(message.text, message.extra)
+    console.info('PRIMARY_CREATED', { chatId: profile.chatId, messageId: sent.body.mid })
     await this.backend.savePrimaryMessage(profile, sent.body.mid)
   }
 
@@ -61,6 +70,7 @@ export class PrimaryMessageService {
     message: PrimaryMessage,
   ): Promise<void> {
     const replacement = await ctx.reply(message.text, message.extra)
+    console.info('PRIMARY_REPLACEMENT_SENT', { chatId: profile.chatId, messageId: replacement.body.mid, previousMessageId })
     const deletion = await ctx.api.deleteMessage(previousMessageId)
     if (!deletion.success && !this.isMissingMessageError(new Error(deletion.message))) {
       throw new Error(`Could not remove previous Primary message: ${deletion.message}`)

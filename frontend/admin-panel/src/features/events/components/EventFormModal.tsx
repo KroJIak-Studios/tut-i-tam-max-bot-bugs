@@ -87,9 +87,11 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
 
   if (!isOpen) return null
 
+  const coordinate = (value: string) => /^-?\d+(\.\d+)?$/.test(value.trim()) ? Number(value) : null
+
   const addFiles = (list: FileList | null) => {
     if (!list) return
-    const room = 3 - keptPhotos.length
+    const room = 10 - keptPhotos.length
     const next = Array.from(list).slice(0, room).map((file) => ({
       key: `new-${file.name}-${file.lastModified}-${Math.random()}`,
       url: URL.createObjectURL(file),
@@ -154,9 +156,15 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           <label>Город
             <AdminSelect value={cityId} onChange={setCityId} options={cities.map((city) => ({ value: String(city.id), label: resolveCityName(city.id, cities) }))} />
           </label>
-          <label>Категория
-            <AdminSelect value={categoryId} onChange={setCategoryId} placeholder="Без категории" options={[{ value: '', label: 'Без категории' }, ...categories.map((category) => ({ value: String(category.id), label: resolveCategoryName(category.id, categories) }))]} />
-          </label>
+          <div className={styles.categoryRow}>
+            <label>Категория
+              <AdminSelect value={categoryId} onChange={setCategoryId} placeholder="Без категории" options={[{ value: '', label: 'Без категории' }, ...categories.map((category) => ({ value: String(category.id), label: resolveCategoryName(category.id, categories) }))]} />
+            </label>
+            <label>Стоимость
+              <input className={styles.price} inputMode="numeric" value={price} disabled={userEvent} placeholder="Бесплатно" onChange={(input) => { setPrice(input.target.value); if (!Number(input.target.value)) setPushkin(false) }} />
+            </label>
+            <button type="button" className={pushkin && pushkinEnabled ? styles.switchOn : styles.switch} disabled={!pushkinEnabled} onClick={() => setPushkin((value) => !value)}>Пушкинская карта</button>
+          </div>
           <label>Начало<AdminDateTime value={startsAt} onChange={setStartsAt} /></label>
           <label>Окончание<AdminDateTime value={endsAt} onChange={setEndsAt} /></label>
           <div className={styles.addressRow}>
@@ -168,18 +176,16 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
           </div>
           <div className={styles.wide}>
             <span className={styles.photoLabel}>Точка на карте</span>
-            <CityMapPicker latitude={latitude ? Number(latitude) : null} longitude={longitude ? Number(longitude) : null} onChange={(lat, lng) => { setLatitude(lat == null ? '' : String(lat)); setLongitude(lng == null ? '' : String(lng)) }} />
-          </div>
-          <div className={styles.priceRow}>
-            <label>Стоимость
-              <input className={styles.price} inputMode="numeric" value={price} disabled={userEvent} placeholder="Бесплатно" onChange={(input) => { setPrice(input.target.value); if (!Number(input.target.value)) setPushkin(false) }} />
-            </label>
-            <button type="button" className={pushkin && pushkinEnabled ? styles.switchOn : styles.switch} disabled={!pushkinEnabled} onClick={() => setPushkin((value) => !value)}>Пушкинская карта</button>
+            <CityMapPicker latitude={coordinate(latitude)} longitude={coordinate(longitude)} onChange={(lat, lng) => { setLatitude(lat == null ? '' : String(lat)); setLongitude(lng == null ? '' : String(lng)) }} />
+            <div className={styles.coords}>
+              <label>Широта<input value={latitude} onChange={(input) => setLatitude(input.target.value)} /></label>
+              <label>Долгота<input value={longitude} onChange={(input) => setLongitude(input.target.value)} /></label>
+            </div>
           </div>
           <label className={styles.wide}>Ссылка на чат MAX<input value={chatUrl} onChange={(input) => setChatUrl(input.target.value)} placeholder="https://max.ru/join/..." /></label>
           <label className={styles.wide}>Описание<textarea rows={4} value={description} onChange={(input) => setDescription(input.target.value)} /></label>
           <div className={styles.wide}>
-            <span className={styles.photoLabel}>Фотографии ({keptPhotos.length}/3)</span>
+            <span className={styles.photoLabel}>Фотографии ({keptPhotos.length}/10)</span>
             <div className={styles.photos}>
               {keptPhotos.map((photo) => (
                 <div key={photo.key} className={styles.photo}>
@@ -187,7 +193,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                   <button type="button" aria-label="Убрать фотографию" onClick={() => removePhoto(photo)}><X size={14} /></button>
                 </div>
               ))}
-              {keptPhotos.length < 3 && (
+              {keptPhotos.length < 10 && (
                 <button type="button" className={styles.add} aria-label="Добавить фотографию" onClick={() => fileInputRef.current?.click()}><Plus size={28} /></button>
               )}
             </div>

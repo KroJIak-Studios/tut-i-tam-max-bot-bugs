@@ -125,16 +125,16 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
     if (!rangeStart || rangeEnd) {
       setRangeStart(iso)
       setRangeEnd(null)
+      onSelectDate(iso, 'custom', iso)
       return
     }
-    const from = rangeStart < iso ? rangeStart : iso
-    const to = rangeStart < iso ? iso : rangeStart
-    const span = Math.round(Math.abs(parseIsoDate(from).getTime() - parseIsoDate(to).getTime()) / 86_400_000)
-    if (span > 20) {
-      setRangeStart(iso)
-      setRangeEnd(null)
-      return
-    }
+    const direction = iso >= rangeStart ? 1 : -1
+    const end = new Date(parseIsoDate(rangeStart))
+    const span = Math.round(Math.abs(parseIsoDate(iso).getTime() - parseIsoDate(rangeStart).getTime()) / 86_400_000)
+    end.setDate(end.getDate() + direction * Math.min(span, 20))
+    const limited = getIsoDate(0, end)
+    const from = rangeStart < limited ? rangeStart : limited
+    const to = rangeStart < limited ? limited : rangeStart
     setRangeStart(from)
     setRangeEnd(to)
     onSelectDate(from, 'custom', to)

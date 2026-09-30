@@ -139,6 +139,33 @@
   transform: scale(0.94);
 }
 
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status_pending,
+.status_changes_requested {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.status_approved {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+.status_rejected {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
 @media (max-width: 360px) {
   .card {
     gap: 10px;

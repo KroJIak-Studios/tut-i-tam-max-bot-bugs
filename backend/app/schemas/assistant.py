@@ -26,3 +26,20 @@ class AssistantTurnResponse(BaseModel):
     text: str
     suggestions: list[str]
     actions: list[AssistantAction]
+
+
+class AssistantClientTurn(BaseModel):
+    text: str = Field(default="", max_length=2000)
+    location: AssistantLocation | None = None
+    new_conversation: bool = False
+    choice_context: str = Field(default="", max_length=2000)
+
+
+class AssistantHistoryMessage(BaseModel):
+    id: int
+    role: str
+    text: str
+
+
+class AssistantHistoryResponse(BaseModel):
+    messages: list[AssistantHistoryMessage]

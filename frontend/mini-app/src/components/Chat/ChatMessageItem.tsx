@@ -1,16 +1,16 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { ChatMessage } from '../../types'
-import { IconSparkles } from '../Icons'
-import { ChatRecommendationCard } from './ChatRecommendationCard'
+import { IconLocationPin, IconSparkles } from '../Icons'
+import { AssistantText } from './AssistantText'
 import { ChatSuggestions } from './ChatSuggestions'
 import styles from './ChatMessageItem.module.css'
 
 interface ChatMessageItemProps {
   message: ChatMessage
-  onOpenOnMap: (eventId: string) => void
-  onSelectSuggestion: (text: string) => void
-  onToast: (text: string) => void
+  onSelectSuggestion: (text: string, context: string) => void
+  onShareLocation: () => void
   isLatestAi?: boolean
   showAiBadge?: boolean
   disabled?: boolean
@@ -20,9 +20,8 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
   (
     {
       message,
-      onOpenOnMap,
       onSelectSuggestion,
-      onToast,
+      onShareLocation,
       isLatestAi = false,
       showAiBadge = true,
       disabled = false,
@@ -34,7 +33,7 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
 
     if (isUser) {
       return (
-        <div ref={ref} className={styles.userMessageRow}>
+        <div ref={ref} className={`${styles.userMessageRow} ${styles.appear}`}>
           <div className={styles.userBubble}>
             <p className={styles.messageText}>{message.text}</p>
           </div>
@@ -42,10 +41,8 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
       )
     }
 
-    const messageText = message.id === 'msg-welcome' ? t('chat.welcomeText') : message.text
-
     return (
-      <div ref={ref} className={styles.aiMessageRow}>
+      <div ref={ref} className={`${styles.aiMessageRow} ${styles.appear}`}>
         {showAiBadge && (
           <div className={styles.aiHeader}>
             <div className={styles.aiBadge}>
@@ -56,21 +53,35 @@ export const ChatMessageItem = React.forwardRef<HTMLDivElement, ChatMessageItemP
         )}
 
         <div className={styles.aiBubble}>
-          <p className={styles.messageText}>{messageText}</p>
+          <AssistantText text={message.text} />
 
-          {message.event && (
-            <ChatRecommendationCard
-              event={message.event}
-              onOpenOnMap={onOpenOnMap}
-              onToast={onToast}
-            />
+          {isLatestAi && message.actions && message.actions.length > 0 && (
+            <div className={styles.actions}>
+              {message.actions.map((action) => (
+                <Link key={action.path} to={action.path} className={styles.actionLink}>
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {isLatestAi && message.needsLocation && (
+            <button
+              type="button"
+              className={styles.locationButton}
+              onClick={onShareLocation}
+              disabled={disabled}
+            >
+              <IconLocationPin size={16} />
+              <span>{t('chat.shareLocation')}</span>
+            </button>
           )}
         </div>
 
         {isLatestAi && message.suggestions && message.suggestions.length > 0 && (
           <ChatSuggestions
             suggestions={message.suggestions}
-            onSelectSuggestion={onSelectSuggestion}
+            onSelectSuggestion={(text) => onSelectSuggestion(text, message.text)}
             disabled={disabled}
           />
         )}

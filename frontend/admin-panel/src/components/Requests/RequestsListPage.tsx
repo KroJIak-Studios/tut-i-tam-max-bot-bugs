@@ -17,6 +17,8 @@ import { categoriesApi } from '../../features/categories/api/categoriesApi'
 import { citiesApi } from '../../features/cities/api/citiesApi'
 import type { EventCategory } from '../../features/categories/types'
 import type { City } from '../../features/cities/types/city'
+import { AdminSelect } from '../AdminSelect'
+import { resolveCategoryName, resolveCityName } from '../../features/events/utils/eventFormatters'
 import styles from './RequestsListPage.module.css'
 
 const PAGE_SIZE = 20
@@ -42,26 +44,6 @@ function getStatusBadgeClass(status: ModerationStatus): string {
     default:
       return ''
   }
-}
-
-function getCategoryName(
-  categoryId: number | null,
-  categories: EventCategory[],
-): string {
-  if (categoryId === null) return '—'
-  const found = categories.find((c) => c.id === categoryId)
-  if (!found) return `#${categoryId}`
-  const ruName = found.names.find((n) => n.locale_code === 'ru')
-  if (ruName) return ruName.text
-  return found.names[0]?.text || `#${categoryId}`
-}
-
-function getCityName(cityId: number, cities: City[]): string {
-  const found = cities.find((c) => c.id === cityId)
-  if (!found) return `#${cityId}`
-  const ruName = found.names.find((n) => n.locale_code === 'ru')
-  if (ruName) return ruName.text
-  return found.names[0]?.text || `#${cityId}`
 }
 
 export const RequestsListPage: React.FC = () => {
@@ -208,9 +190,9 @@ export const RequestsListPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className={styles.filtersRow}>
-        <div className={styles.searchWrapper}>
-          <Search size={15} className={styles.searchIcon} aria-hidden="true" />
+      <div className={styles.filters}>
+        <div className={styles.searchRow}>
+          <Search size={16} className={styles.searchIcon} aria-hidden="true" />
           <input
             type="search"
             className={styles.searchInput}
@@ -231,66 +213,47 @@ export const RequestsListPage: React.FC = () => {
           )}
         </div>
 
-        {cities.length > 0 && (
-          <select
-            className={styles.filterSelect}
-            value={selectedCityId}
-            onChange={(e) =>
-              setSelectedCityId(e.target.value === 'all' ? 'all' : Number(e.target.value))
-            }
-            aria-label="Фильтр по городу"
-          >
-            <option value="all">Все города</option>
-            {cities.map((city) => {
-              const name = city.names.find((n) => n.locale_code === 'ru')?.text ?? city.names[0]?.text ?? `#${city.id}`
-              return (
-                <option key={city.id} value={city.id}>
-                  {name}
-                </option>
-              )
-            })}
-          </select>
-        )}
-
-        {categories.length > 0 && (
-          <select
-            className={styles.filterSelect}
-            value={selectedCategoryId}
-            onChange={(e) =>
-              setSelectedCategoryId(
-                e.target.value === 'all' ? 'all' : Number(e.target.value),
-              )
-            }
-            aria-label="Фильтр по категории"
-          >
-            <option value="all">Все категории</option>
-            {categories.map((cat) => {
-              const name =
-                cat.names.find((n) => n.locale_code === 'ru')?.text ??
-                cat.names[0]?.text ??
-                `#${cat.id}`
-              return (
-                <option key={cat.id} value={cat.id}>
-                  {name}
-                </option>
-              )
-            })}
-          </select>
-        )}
-
-        {(selectedCityId !== 'all' || selectedCategoryId !== 'all' || search) && (
-          <button
-            type="button"
-            className={styles.resetFiltersBtn}
-            onClick={() => {
-              setSelectedCityId('all')
-              setSelectedCategoryId('all')
-              handleClearSearch()
-            }}
-          >
-            Сбросить фильтры
-          </button>
-        )}
+        <div className={styles.selectorsRow}>
+          <div className={styles.filterGroup}>
+            <AdminSelect
+              value={String(selectedCityId)}
+              onChange={(value) => setSelectedCityId(value === 'all' ? 'all' : Number(value))}
+              options={[
+                { value: 'all', label: 'Все города' },
+                ...cities.map((city) => ({
+                  value: String(city.id),
+                  label: resolveCityName(city.id, cities),
+                })),
+              ]}
+            />
+          </div>
+          <div className={styles.filterGroup}>
+            <AdminSelect
+              value={String(selectedCategoryId)}
+              onChange={(value) => setSelectedCategoryId(value === 'all' ? 'all' : Number(value))}
+              options={[
+                { value: 'all', label: 'Все категории' },
+                ...categories.map((cat) => ({
+                  value: String(cat.id),
+                  label: resolveCategoryName(cat.id, categories),
+                })),
+              ]}
+            />
+          </div>
+          {(selectedCityId !== 'all' || selectedCategoryId !== 'all' || search) && (
+            <button
+              type="button"
+              className={styles.resetFiltersBtn}
+              onClick={() => {
+                setSelectedCityId('all')
+                setSelectedCategoryId('all')
+                handleClearSearch()
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Error state */}
@@ -362,12 +325,12 @@ export const RequestsListPage: React.FC = () => {
                       </td>
                       <td className={styles.td}>
                         <span className={styles.cityBadge}>
-                          {getCityName(item.city_id, cities)}
+                          {resolveCityName(item.city_id, cities)}
                         </span>
                       </td>
                       <td className={styles.td}>
                         <span className={styles.categoryBadge}>
-                          {getCategoryName(item.category_id, categories)}
+                          {resolveCategoryName(item.category_id, categories)}
                         </span>
                       </td>
                       <td className={`${styles.td} ${styles.dateCell}`}>
@@ -433,7 +396,7 @@ export const RequestsListPage: React.FC = () => {
                         {item.author.last_name ? ` ${item.author.last_name}` : ''} · #{item.author.id}
                       </span>
                     )}
-                    <span>{getCityName(item.city_id, cities)}</span>
+                    <span>{resolveCityName(item.city_id, cities)}</span>
                     <span>{formatTimeAgo(item.moderation?.submitted_at)}</span>
                   </div>
                   <ChevronRight size={16} className={styles.mobileCardChevron} />

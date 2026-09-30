@@ -5,13 +5,11 @@ import styles from './HomeHero.module.css'
 
 interface HomeHeroProps {
   title?: string
-  imageUrl?: string
   onClick?: () => void
 }
 
 export const HomeHero: React.FC<HomeHeroProps> = ({
   title,
-  imageUrl = '/home-kazan-hero.jpg',
   onClick,
 }) => {
   const { t } = useTranslation()
@@ -25,7 +23,15 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       aria-label={heroTitle}
     >
       <div className={styles.imageLayer}>
-        <img src={imageUrl} alt="" className={styles.heroImage} />
+        <img
+          src="/home-kazan-hero.webp"
+          alt=""
+          className={styles.heroImage}
+          width={800}
+          height={446}
+          decoding="sync"
+          fetchPriority="high"
+        />
       </div>
 
       <div className={styles.contentLayer}>

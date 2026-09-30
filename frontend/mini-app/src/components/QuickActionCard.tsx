@@ -7,6 +7,7 @@ import {
   IconCalendar,
   IconLocationPinFilled,
   IconHeart,
+  IconPlus,
 } from './Icons'
 import styles from './QuickActionCard.module.css'
 
@@ -45,6 +46,8 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({ item, onClick 
         return <IconLocationPinFilled size={22} color="#FFFFFF" />
       case 'heart':
         return <IconHeart size={22} color="#FFFFFF" />
+      case 'plus':
+        return <IconPlus size={22} color="#FFFFFF" />
       default:
         return <IconGrid size={22} color="#FFFFFF" />
     }

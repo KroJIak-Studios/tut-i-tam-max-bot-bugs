@@ -8,12 +8,13 @@ import { QuickActionCard } from './QuickActionCard'
 import { FeaturedEventCard } from './FeaturedEventCard'
 import { BottomNavigation } from './BottomNavigation'
 import { getCatalogEvents } from '../services/mapService'
+import { beginNearbySearch } from '../services/nearbyService'
 import { VOLUNTEERING_CATEGORY_CODE } from '../services/eventCategoryService'
 import styles from './HomePage.module.css'
 
 const HOME_ACTIONS = [
   { id: 'catalog', icon: 'grid', theme: 'purple' },
-  { id: 'tonight', icon: 'calendar', theme: 'orange' },
+  { id: 'create', icon: 'plus', theme: 'orange' },
   { id: 'pushkinskaya', icon: 'location', theme: 'green' },
   { id: 'volunteers', icon: 'heart', theme: 'pink' },
 ] as const
@@ -46,7 +47,8 @@ export const HomePage: React.FC = () => {
   }, [])
 
   const handleHeroClick = () => {
-    navigate('/map')
+    beginNearbySearch()
+    navigate('/nearby')
   }
 
   const handleTabChange = (tab: NavTabId) => {
@@ -59,7 +61,7 @@ export const HomePage: React.FC = () => {
 
   const handleActionClick = (id: string) => {
     if (id === 'catalog') navigate('/catalog')
-    else if (id === 'tonight') navigate('/map')
+    else if (id === 'create') navigate('/events/create')
     else if (id === 'pushkinskaya') navigate('/catalog?pushkin=true')
     else if (id === 'volunteers') navigate(`/catalog?category_code=${VOLUNTEERING_CATEGORY_CODE}`)
   }

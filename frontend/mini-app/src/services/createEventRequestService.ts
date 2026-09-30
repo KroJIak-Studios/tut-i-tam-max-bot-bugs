@@ -3,7 +3,7 @@ import { i18n, FALLBACK_LOCALE } from '../i18n'
 import type { EventCategoryRecord } from './eventCategoryService'
 import { getEventCategoryName } from './eventCategoryService'
 import { getEventCategories } from './mapService'
-import { apiRequest } from './api'
+import { apiRequest, apiUpload } from './api'
 import { calculateDefaultEndDateTime } from '../utils/formatters'
 
 export const REQUESTS_CHANGED_EVENT = 'tut_i_tam_requests_changed'
@@ -65,7 +65,21 @@ export async function submitCreateEventRequest(draft: CreateEventDraft, locale: 
       ...(draft.locationArea?.points.length ? { area: draft.locationArea.points.map(({ lat, lng }) => [lat, lng]) } : {}),
     }) })
     const data = eventToRequest(response, locale, categories)
+    for (const photo of draft.photos) {
+      if (!photo.file) continue
+      const body = new FormData()
+      body.append('file', photo.file)
+      await apiUpload(`/events/${response.id}/photos`, body)
+    }
     window.dispatchEvent(new Event(REQUESTS_CHANGED_EVENT))
     return { success: true, data }
-  } catch (err) { return { success: false, error: err instanceof Error ? err.message : 'Unknown submission error' } }
+  } catch (err) {
+    const code = err instanceof Error ? err.message : ''
+    const error = code === 'moderation_conflict'
+      ? 'Фотографии можно менять, пока заявка не одобрена.'
+      : code === 'event_photo_limit'
+        ? 'Можно добавить не больше 10 фотографий.'
+        : code || 'Не удалось отправить заявку'
+    return { success: false, error }
+  }
 }

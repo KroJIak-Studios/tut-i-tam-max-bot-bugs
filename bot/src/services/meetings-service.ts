@@ -47,7 +47,7 @@ export class MeetingsService {
     await this.renderCard(ctx, profile, meeting)
   }
 
-  private async renderCard(ctx: Context, profile: UserProfileInput, meeting: BotMeetingCard | null): Promise<void> {
+  async renderCard(ctx: Context, profile: UserProfileInput, meeting: BotMeetingCard | null, extraRows: ReturnType<typeof Keyboard.button.callback>[][] = []): Promise<void> {
     const status = await this.backend.getAccessStatus(profile)
     const i18n = new I18n(status.locale, this.fallbackLocale)
     if (!meeting) {
@@ -58,9 +58,20 @@ export class MeetingsService {
       return
     }
 
+    const card = await this.cardContent(ctx, profile, meeting, i18n, status.locale)
+    const rows = extraRows.length
+      ? [...card.rows, ...extraRows]
+      : [...card.rows, [Keyboard.button.callback(`↩️ ${i18n.translate('meetings.back')}`, MeetingsAction.BackToList)]]
+    await this.pending.sendOrUpdatePending(ctx, card.text, {
+      format: 'html',
+      attachments: [...card.images.slice(0, 3), Keyboard.inlineKeyboard(rows)],
+    })
+  }
+
+  async cardContent(ctx: Context, profile: UserProfileInput, meeting: BotMeetingCard, i18n: I18n, locale: string) {
     const startParam = `event-${meeting.id}`
     const botName = await this.botName(ctx)
-    const date = new Intl.DateTimeFormat(status.locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(meeting.starts_at))
+    const date = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(meeting.starts_at))
     const blocks = [`<b>${escapeHtml(meeting.title)}</b>`, this.schedule(i18n, date, meeting)]
     if (meeting.address.trim()) blocks.push(`${i18n.translate('meetings.address')} ${escapeHtml(meeting.address)}`)
     if (meeting.description.trim()) blocks.push(`<blockquote>${escapeHtml(meeting.description)}</blockquote>`)
@@ -69,20 +80,18 @@ export class MeetingsService {
     const goingLabel = meeting.going
       ? `🙋 ${i18n.translate('meetings.going')} ✅`
       : `🙋 ${i18n.translate('meetings.join')}`
-    const rows = [
-      [Keyboard.button.openApp(`📱 ${i18n.translate('meetings.open_mini_app')}`, botName ?? '', undefined, startParam)],
-      [Keyboard.button.callback(goingLabel, `${MeetingsAction.GoingPrefix}${meeting.id}`)],
-      [
-        Keyboard.button.link(`📍 ${i18n.translate('meetings.yandex')}`, `https://yandex.ru/maps/?pt=${meeting.longitude},${meeting.latitude}&z=16&text=${meeting.latitude},${meeting.longitude}`),
-        Keyboard.button.link(`📍 ${i18n.translate('meetings.gis')}`, `https://2gis.ru/geo/${meeting.longitude},${meeting.latitude}`),
+    return {
+      text: blocks.join('\n\n'),
+      images: (await this.photoTokens(ctx, profile, meeting.images.slice(0, 3))).map((token) => ({ type: 'image' as const, payload: { token } })),
+      rows: [
+        [Keyboard.button.openApp(`📱 ${i18n.translate('meetings.open_mini_app')}`, botName ?? '', undefined, startParam)],
+        [Keyboard.button.callback(goingLabel, `${MeetingsAction.GoingPrefix}${meeting.id}`)],
+        [
+          Keyboard.button.link(`📍 ${i18n.translate('meetings.yandex')}`, `https://yandex.ru/maps/?pt=${meeting.longitude},${meeting.latitude}&z=16&text=${meeting.latitude},${meeting.longitude}`),
+          Keyboard.button.link(`📍 ${i18n.translate('meetings.gis')}`, `https://2gis.ru/geo/${meeting.longitude},${meeting.latitude}`),
+        ],
       ],
-      [Keyboard.button.callback(`↩️ ${i18n.translate('meetings.back')}`, MeetingsAction.BackToList)],
-    ]
-    const images = (await this.photoTokens(ctx, profile, meeting.images)).map((token) => ({ type: 'image' as const, payload: { token } }))
-    await this.pending.sendOrUpdatePending(ctx, blocks.join('\n\n'), {
-      format: 'html',
-      attachments: [...images, Keyboard.inlineKeyboard(rows)],
-    })
+    }
   }
 
   private schedule(i18n: I18n, date: string, meeting: BotMeetingCard): string {

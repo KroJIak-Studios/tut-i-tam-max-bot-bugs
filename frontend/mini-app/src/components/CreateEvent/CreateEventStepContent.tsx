@@ -7,6 +7,7 @@ import { FALLBACK_LOCALE } from '../../i18n'
 import { formatEventDateTimeRange } from '../../utils/formatters'
 import { CreateEventLocationMap } from './CreateEventLocationMap'
 import { CreateEventLocationPreview } from './CreateEventLocationPreview'
+import { EventPhotoGrid } from '../EventPhotos/EventPhotoGrid'
 import styles from './CreateEventStepContent.module.css'
 
 interface CreateEventStepContentProps {
@@ -114,6 +115,11 @@ const StepBasics: React.FC<{
             {t(errors.category)}
           </span>
         )}
+      </div>
+
+      <div className={styles.formGroup}>
+        <span className={styles.label}>{t('eventPhotos.label', { count: draft.photos.length })}</span>
+        <EventPhotoGrid photos={draft.photos} onChange={(photos) => onUpdate({ photos })} />
       </div>
     </>
   )
@@ -435,16 +441,31 @@ const StepReview: React.FC<{
             {t('createEvent.review.editLabel')}
           </button>
         </div>
+
+        {draft.photos.length > 0 && (
+          <div className={styles.reviewRow}>
+            <div>
+              <div className={styles.reviewRowLabel}>{t('eventPhotos.reviewLabel')}</div>
+              <div className={styles.reviewPhotos}>
+                {draft.photos.map((photo) => (
+                  <img key={photo.id} src={photo.url} alt="" />
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.editBtn}
+              onClick={() => onGoToStep(0)}
+              aria-label={`${t('createEvent.review.editLabel')}: ${t('eventPhotos.reviewLabel')}`}
+            >
+              {t('createEvent.review.editLabel')}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Notices */}
       <div className={styles.notices}>
         <div className={styles.notice}>
-          <span className={styles.noticeIcon}>🎟</span>
-          <span className={styles.noticeText}>{t('createEvent.review.freeNotice')}</span>
-        </div>
-        <div className={styles.notice}>
-          <span className={styles.noticeIcon}>🔍</span>
           <span className={styles.noticeText}>{t('createEvent.review.moderationNotice')}</span>
         </div>
       </div>

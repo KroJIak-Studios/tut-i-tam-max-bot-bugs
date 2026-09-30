@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+import logging
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy import delete, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.max_init_data import MaxInitUser
@@ -20,8 +22,29 @@ from app.models.user import MaxUser
 from app.schemas.admin_events import AdminEventPatch, AdminEventWrite
 from app.schemas.events import EventCreate, ReviewCreate, UserEventUpdate
 from app.core.settings import get_settings
+from app.db import SessionFactory
 from app.services.embedding_index import EmbeddingIndex
+from app.services.ip_geolocation_service import IpGeolocationService
+from app.services.max_chat_service import MaxChatService
 from app.services.media_storage import MediaStorage
+
+logger = logging.getLogger(__name__)
+
+
+def schedule_event_embedding(background: BackgroundTasks, event_id: int) -> None:
+    background.add_task(refresh_event_embedding, event_id)
+
+
+async def refresh_event_embedding(event_id: int) -> None:
+    try:
+        async with SessionFactory() as session:
+            event = await session.get(Event, event_id)
+            if event is None:
+                return
+            await EmbeddingIndex(session, get_settings()).index_event(event)
+            await session.commit()
+    except Exception:
+        logger.exception("event embedding refresh failed", extra={"event_id": event_id})
 
 
 class EventsService:
@@ -72,6 +95,15 @@ class EventsService:
             key=lambda city: (city.latitude - latitude) ** 2 + (city.longitude - longitude) ** 2,
         )
         return nearest.id
+
+    async def place_point(self, user: MaxUser, ip_address: str | None) -> tuple[float, float] | None:
+        city = await self.session.get(City, user.city_id) if user.city_id else None
+        if city is None or city.latitude is None or city.longitude is None:
+            city_id = await self._nearest_city_id(ip_address)
+            city = await self.session.get(City, city_id) if city_id else None
+        if city is None or city.latitude is None or city.longitude is None:
+            return None
+        return city.latitude, city.longitude
 
     async def create_user_event(self, user: MaxUser, data: EventCreate) -> Event:
         city_exists = await self.session.scalar(select(City.id).where(City.id == data.city_id))
@@ -186,7 +218,7 @@ class EventsService:
             "price_rub": official.price_rub if official is not None else None,
             "pushkin_card": official.pushkin_card if official is not None else None,
             "chat_invite_url": event.chat_invite_url,
-            "chat_connected": event.chat_max_id is not None,
+            "chat_connected": bool(event.chat_invite_url),
             "chat_id": event.chat_max_id,
             "area": area.path if area is not None else None,
             "images": [
@@ -211,7 +243,7 @@ class EventsService:
         await self.session.refresh(event)
         return await self.admin_card(event)
 
-    async def update_event(self, event_id: int, data: AdminEventPatch) -> dict:
+    async def update_event(self, event_id: int, data: AdminEventPatch, background: BackgroundTasks) -> dict:
         event = await self.session.get(Event, event_id)
         if event is None:
             raise HTTPException(status_code=404, detail="event_not_found")
@@ -222,6 +254,13 @@ class EventsService:
         official = await self.session.scalar(select(OfficialEvent).where(OfficialEvent.event_id == event.id))
         if official is None and ("price_rub" in changes or "pushkin_card" in changes):
             raise HTTPException(status_code=422, detail="user_event_has_no_price")
+        if changes.get("visible") is True and not event.visible:
+            user_event = await self.session.scalar(select(UserEvent).where(UserEvent.event_id == event.id))
+            if user_event is not None and user_event.moderation_status != "approved":
+                user_event.moderation_status = "approved"
+                user_event.moderation_comment = None
+                user_event.moderated_at = datetime.now(timezone.utc)
+                user_event.moderated_by = "admin"
         for field in ("title", "description", "city_id", "category_id", "address", "latitude", "longitude", "starts_at", "ends_at", "visible", "chat_invite_url"):
             if field in changes:
                 setattr(event, field, changes[field])
@@ -238,9 +277,15 @@ class EventsService:
             elif area is not None:
                 area.path = changes["area"]
         text_changed = "title" in changes or "description" in changes
-        if text_changed or "visible" in changes:
+        visibility_only = set(changes) == {"visible"}
+        if text_changed:
             await EmbeddingIndex(self.session, get_settings()).index_event(event)
         await self.session.commit()
+        if visibility_only:
+            schedule_event_embedding(background, event.id)
+            return {"id": event.id, "visible": event.visible}
+        if "visible" in changes:
+            schedule_event_embedding(background, event.id)
         await self.session.refresh(event)
         return await self.admin_card(event)
 
@@ -256,14 +301,45 @@ class EventsService:
         for key in keys:
             storage.delete(key)
 
-    async def connect_chat(self, event_id: int, invite_url: str, check: dict) -> dict:
+    async def connect_chat(self, event_id: int, invite_url: str) -> dict:
         event = await self.session.get(Event, event_id)
         if event is None:
             raise HTTPException(status_code=404, detail="event_not_found")
-        event.chat_invite_url = invite_url
-        event.chat_max_id = check["chat_id"] if check["bot_ready"] else None
-        await self.session.commit()
-        return check
+        await self._bind_chat(event, invite_url)
+        return {"connected": True, "missing": []}
+
+    async def connect_own_chat(self, user: MaxUser, event_id: int, invite_url: str) -> dict:
+        record = await self.session.scalar(
+            select(UserEvent).where(UserEvent.event_id == event_id, UserEvent.author_user_id == user.id)
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        event = await self.session.get(Event, event_id)
+        await self._bind_chat(event, invite_url)
+        return {"connected": True, "missing": []}
+
+    async def _bind_chat(self, event: Event, invite_url: str) -> None:
+        normalized = MaxChatService().invite(invite_url)
+        taken = await self.session.scalar(
+            select(Event.id).where(Event.chat_invite_url == normalized, Event.id != event.id)
+        )
+        if taken is not None:
+            raise HTTPException(status_code=409, detail="chat_already_used")
+        event.chat_invite_url = normalized
+        event.chat_max_id = None
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            raise HTTPException(status_code=409, detail="chat_already_used") from None
+
+    async def cancel_own_event(self, user: MaxUser, event_id: int) -> None:
+        record = await self.session.scalar(
+            select(UserEvent).where(UserEvent.event_id == event_id, UserEvent.author_user_id == user.id)
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        await self.delete_event(event_id)
 
     async def _require_place(self, city_id: int, category_id: int | None) -> None:
         if await self.session.scalar(select(City.id).where(City.id == city_id)) is None:
@@ -309,6 +385,8 @@ class EventsService:
         )
         if record is None:
             raise HTTPException(status_code=404, detail="event_not_found")
+        if record.moderation_status != "changes_requested":
+            raise HTTPException(status_code=409, detail="moderation_conflict")
         event = await self.session.get(Event, event_id)
         changes = data.model_dump(exclude_unset=True)
         if "city_id" in changes or "category_id" in changes:
@@ -325,7 +403,7 @@ class EventsService:
             elif area is not None:
                 area.path = changes["area"]
         substantial = bool(changes)
-        if record.moderation_status in {"rejected", "changes_requested"} or (record.moderation_status == "approved" and substantial):
+        if substantial:
             record.moderation_status = "pending"
             record.submitted_at = datetime.now(timezone.utc)
             event.visible = False
@@ -373,9 +451,13 @@ class EventsService:
         record = await self.session.scalar(select(UserEvent).where(UserEvent.event_id == event_id))
         if record is None:
             raise HTTPException(status_code=404, detail="event_not_found")
+        event = await self.session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        if status == "approved" and record.moderation_status == "approved":
+            return await self.admin_card(event)
         if record.moderation_status not in {"pending", "changes_requested"}:
             raise HTTPException(status_code=409, detail="moderation_conflict")
-        event = await self.session.get(Event, event_id)
         record.moderation_status = status
         record.moderation_comment = comment
         record.moderated_at = datetime.now(timezone.utc)
@@ -385,6 +467,36 @@ class EventsService:
         await self.session.commit()
         return await self.admin_card(event)
 
+    async def add_own_photo(self, user: MaxUser, event_id: int, upload) -> dict:
+        await self._editable_user_event(user, event_id)
+        return await self.add_photo(event_id, upload)
+
+    async def delete_own_photo(self, user: MaxUser, event_id: int, photo_id: int) -> None:
+        await self._editable_user_event(user, event_id)
+        await self.delete_photo(event_id, photo_id)
+
+    async def order_own_photos(self, user: MaxUser, event_id: int, photo_ids: list[int]) -> dict:
+        await self._editable_user_event(user, event_id)
+        photos = list(await self.session.scalars(select(EventPhoto).where(EventPhoto.event_id == event_id)))
+        if {photo.id for photo in photos} != set(photo_ids) or len(photo_ids) != len(photos):
+            raise HTTPException(status_code=422, detail="invalid_photo_order")
+        by_id = {photo.id: photo for photo in photos}
+        for position, photo_id in enumerate(photo_ids):
+            by_id[photo_id].position = position
+        await self.session.commit()
+        event = await self.session.get(Event, event_id)
+        return await self.card(user, event)
+
+    async def _editable_user_event(self, user: MaxUser, event_id: int) -> UserEvent:
+        record = await self.session.scalar(
+            select(UserEvent).where(UserEvent.event_id == event_id, UserEvent.author_user_id == user.id)
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="event_not_found")
+        if record.moderation_status == "approved":
+            raise HTTPException(status_code=409, detail="moderation_conflict")
+        return record
+
     async def add_photo(self, event_id: int, upload) -> dict:
         event = await self.session.get(Event, event_id)
         if event is None:
@@ -392,7 +504,7 @@ class EventsService:
         count = await self.session.scalar(
             select(func.count()).select_from(EventPhoto).where(EventPhoto.event_id == event_id)
         )
-        if count is not None and count >= 3:
+        if count is not None and count >= 10:
             raise HTTPException(status_code=409, detail="event_photo_limit")
         storage = MediaStorage()
         storage_key, content_type = await storage.save(upload)
@@ -501,9 +613,12 @@ class EventsService:
             "author": author,
             "price_rub": official.price_rub if official is not None else None,
             "pushkin_card": official.pushkin_card if official is not None else None,
-            "chat_connected": event.chat_max_id is not None,
+            "chat_connected": bool(event.chat_invite_url),
+            "chat_invite_url": event.chat_invite_url,
+            "owned": user_event is not None and user_event.author_user_id == user.id,
             "area": area.path if area is not None else None,
             "images": [MediaStorage().public_url(photo.storage_key) for photo in photos],
+            "photos": [{"id": photo.id, "url": MediaStorage().public_url(photo.storage_key)} for photo in photos],
             "going": going is not None,
             "attendees_count": attendees_count or 0,
             "reviews": [await self._review_payload(review) for review in reviews],

@@ -6,10 +6,12 @@
 .close, .footer button, .switch, .switchOn, .add { border: 1px solid #e2e8f0; background: #fff; border-radius: 10px; }
 .close { width: 34px; height: 34px; }
 .body { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 18px 20px; overflow: auto; }
-.body label, .wide { display: flex; flex-direction: column; gap: 6px; color: #64748b; font-size: 12px; font-weight: 650; }
+.body label, .wide { display: flex; flex-direction: column; gap: 6px; min-width: 0; color: #64748b; font-size: 12px; font-weight: 650; }
 .wide { grid-column: 1 / -1; }
 .body input, .body select, .body textarea { height: 42px; border: 1px solid #dbe3ee; border-radius: 10px; padding: 0 12px; color: #0f172a; font-size: 14px; font-weight: 450; }
 .body textarea { height: auto; padding: 10px 12px; resize: vertical; }
+.categoryRow { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 140px auto; gap: 16px; align-items: end; }
+.categoryRow label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .addressRow { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; }
 .addressRow label { display: flex; flex-direction: column; gap: 6px; }
 .price { width: 140px; }
@@ -17,6 +19,9 @@
 .visibility { display: flex; align-items: end; gap: 8px; }
 .switch, .switchOn { height: 42px; padding: 0 14px; font-weight: 650; }
 .switchOn { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+.coords { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.coords label { display: flex; flex-direction: column; gap: 6px; }
+.switch:disabled, .switchOn:disabled, input:disabled { cursor: not-allowed; opacity: .55; }
 .photoLabel { color: #64748b; font-size: 12px; font-weight: 650; }
 .photos { display: flex; align-items: center; gap: 12px; min-height: 112px; }
 .photo { position: relative; width: 148px; height: 112px; }

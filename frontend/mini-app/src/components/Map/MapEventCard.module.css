@@ -5,9 +5,10 @@
   padding: 13px 15px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  width: 260px;
+  gap: 10px;
+  width: min(300px, calc(100vw - 48px));
   box-sizing: border-box;
+  padding: 16px;
   animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -62,11 +63,11 @@
 }
 
 .title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text-main, #111827);
   letter-spacing: -0.3px;
-  line-height: 1.25;
+  line-height: 1.3;
   margin: 0;
 }
 
@@ -84,8 +85,8 @@
 }
 
 .detailsLink {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--color-primary, #2563EB);
   display: inline-flex;
   align-items: center;
@@ -101,11 +102,15 @@
 
 .infoItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 13px;
   color: #4B5563;
   font-weight: 500;
+}
+
+.dateText {
+  line-height: 1.35;
 }
 
 .infoIcon {

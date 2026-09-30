@@ -34,6 +34,16 @@ class UserEventUpdate(BaseModel):
     area: list[list[float]] | None = None
 
 
+class PhotoOrder(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    photo_ids: list[int] = Field(min_length=0, max_length=10)
+
+
+class ChatLink(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    chat_invite_url: str = Field(min_length=1, max_length=2048)
+
+
 class ReviewCreate(BaseModel):
     rating: int = Field(ge=1, le=5)
     text: str | None = None

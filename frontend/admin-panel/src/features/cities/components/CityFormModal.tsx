@@ -14,6 +14,7 @@ import type {
   Locale,
   TranslationFormItem,
 } from '../types/city'
+import { AdminSelect } from '../../../components/AdminSelect'
 import { CityMapPicker } from './CityMapPicker'
 import styles from './CityFormModal.module.css'
 
@@ -306,21 +307,12 @@ export const CityFormModal: React.FC<CityFormModalProps> = ({
                   return (
                     <div key={item.id} className={styles.translationRow}>
                       <div className={styles.translationFields}>
-                        <select
-                          className={styles.select}
+                        <AdminSelect
                           value={item.locale_code}
-                          onChange={(e) =>
-                            handleTranslationChange(item.id, 'locale_code', e.target.value)
-                          }
                           disabled={isSubmitting}
-                          aria-label="Выбор языка"
-                        >
-                          {rowAvailableLocales.map((loc) => (
-                            <option key={loc.code} value={loc.code}>
-                              {loc.native_name} ({loc.code})
-                            </option>
-                          ))}
-                        </select>
+                          options={rowAvailableLocales.map((loc) => ({ value: loc.code, label: `${loc.native_name} (${loc.code})` }))}
+                          onChange={(value) => handleTranslationChange(item.id, 'locale_code', value)}
+                        />
 
                         <input
                           type="text"

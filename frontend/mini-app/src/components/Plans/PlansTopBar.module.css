@@ -18,7 +18,7 @@
 .topBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   height: 38px;
   padding: 0 16px;
   position: relative;
@@ -30,7 +30,9 @@
 .brandLockup {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
+  margin: 0;
   user-select: none;
 }
 
@@ -51,15 +53,6 @@
   line-height: 1.2;
 }
 
-.pageTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-main, #1F2937);
-  letter-spacing: -0.2px;
-  margin: 0;
-  line-height: 1.2;
-}
-
 @media (max-height: 700px) {
   .topBarWrapper {
     padding-top: max(env(safe-area-inset-top, 0px) + 4px, 8px);
@@ -74,8 +67,5 @@
   }
   .brandTitle {
     font-size: 15px;
-  }
-  .pageTitle {
-    font-size: 14px;
   }
 }

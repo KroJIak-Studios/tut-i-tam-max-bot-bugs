@@ -28,8 +28,6 @@
 :global(.tut-custom-popup .leaflet-popup-content) { margin: 0; line-height: inherit; width: auto !important; }
 :global(.tut-custom-popup .leaflet-popup-tip) { background: #FFFFFF; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); }
 .mapContainer :global(.leaflet-bottom.leaflet-right) { bottom: calc(var(--bottom-nav-height, 68px) + var(--bottom-nav-overhang, 0px) + 78px); right: 10px; }
-.mapContainer :global(.leaflet-control-attribution) { background: rgba(255,255,255,.85); border-radius: 4px; padding: 2px 5px; font-size: 9px; color: #6B7280; }
-.mapContainer :global(.leaflet-control-attribution a) { color: #4B5563; }
 
 .locationHint {
   position: absolute;

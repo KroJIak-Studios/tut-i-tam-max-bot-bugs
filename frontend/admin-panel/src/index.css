@@ -103,7 +103,10 @@ select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-.admin-datetime { width: 100%; height: 42px; border: 1px solid #dbe3ee; border-radius: 10px; padding: 0 12px; color: #0f172a; font-size: 14px; font-weight: 450; }
+.admin-datetime-wrap { position: relative; display: block; width: 100%; }
+.admin-datetime { width: 100%; height: 42px; box-sizing: border-box; border: 1px solid #dbe3ee; border-radius: 10px; padding: 0 32px 0 12px; color: #0f172a; font-size: 14px; font-weight: 450; }
+.admin-datetime-wrap .react-datepicker__close-icon { right: 8px; padding: 0; }
+.admin-datetime-wrap .react-datepicker__close-icon::after { background: #94a3b8; font-size: 14px; height: 16px; width: 16px; }
 .admin-datetime-popper { z-index: 1400 !important; }
 .admin-datetime-calendar { border: 0 !important; border-radius: 16px !important; box-shadow: 0 16px 40px rgba(15, 23, 42, .16) !important; font-family: inherit !important; overflow: hidden; }
 .admin-datetime-calendar .react-datepicker__header { background: #fff; border-bottom: 1px solid #e2e8f0; }
@@ -114,3 +117,8 @@ select {
 .admin-datetime-calendar .react-datepicker__time-list-item--selected { background: #2563eb !important; border-radius: 8px; }
 .admin-datetime-calendar .react-datepicker__day:hover,
 .admin-datetime-calendar .react-datepicker__time-list-item:hover { background: #eff6ff; border-radius: 8px; }
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+}

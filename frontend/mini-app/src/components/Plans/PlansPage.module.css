@@ -43,6 +43,32 @@
   width: 100%;
 }
 
+.requestError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  text-align: center;
+  color: #B91C1C;
+}
+
+.requestError p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.requestError button {
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9999px;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .toast {
   align-self: center;
   background-color: rgba(17, 24, 39, 0.9);

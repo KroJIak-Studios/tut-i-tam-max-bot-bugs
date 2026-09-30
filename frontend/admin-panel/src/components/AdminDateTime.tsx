@@ -17,6 +17,8 @@ export function AdminDateTime({ value, onChange }: { value: string; onChange: (v
       locale="ru"
       placeholderText="Выберите дату"
       isClearable
+      wrapperClassName="admin-datetime-wrap"
+      className="admin-datetime"
       popperClassName="admin-datetime-popper"
       calendarClassName="admin-datetime-calendar"
     />

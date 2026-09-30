@@ -45,6 +45,7 @@ export const INITIAL_DRAFT: CreateEventDraft = {
   isFree: true,
   pushkinCard: false,
   source: 'user',
+  photos: [],
 }
 
 export function useCreateEventWizard() {

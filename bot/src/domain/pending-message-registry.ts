@@ -51,10 +51,10 @@ export class PendingMessageRegistry {
     }
   }
 
-  async sendPending(ctx: Context, text: string, extra: MessageExtra = {}): Promise<void> {
+  async sendPending(ctx: Context, text: string, extra: MessageExtra = {}): Promise<Awaited<ReturnType<Context['reply']>>> {
     const message = await ctx.reply(text, { format: 'html', ...extra })
     const chatId = ctx.chatId
-    if (chatId === undefined || chatId === null) return
+    if (chatId === undefined || chatId === null) return message
 
     try {
       await this.backend.trackPendingMessage(chatId, message.body.mid)
@@ -64,6 +64,7 @@ export class PendingMessageRegistry {
       throw error
     }
     this.logCreated(chatId, message.body.mid, 'pending')
+    return message
   }
 
   async deleteSnapshot(api: Api, chatId: number, exceptMessageId?: string): Promise<CleanupResult> {

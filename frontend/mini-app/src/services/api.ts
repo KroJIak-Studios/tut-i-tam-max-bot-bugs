@@ -66,16 +66,16 @@ export function isAccessCodeRequired(error: unknown): boolean {
   return error instanceof ApiError && error.status === 403 && error.detail === 'access_code_required'
 }
 
-export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiRequest<T>(path: string, init: RequestInit = {}, baseUrl = API_BASE_URL): Promise<T> {
   const initData = maxInitData() || (isLocalDevelopment() ? localDevInitData() : '')
   if (!initData) throw new ApiError(401, 'init_data_required')
   const headers = new Headers(init.headers)
   headers.set('Authorization', `tma ${initData}`)
-  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
 
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+    response = await fetch(`${baseUrl}${path}`, { ...init, headers })
   } catch (err) {
     throw new ApiError(0, err instanceof Error ? err.message : 'network_error')
   }
@@ -94,9 +94,15 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   return response.json() as Promise<T>
 }
 
+export async function apiUpload<T>(path: string, body: FormData): Promise<T> {
+  return apiRequest<T>(path, { method: 'POST', body })
+}
+
 export function closeMaxMiniApp(): void {
   const webApp = (window as Window & { WebApp?: MaxWebApp }).WebApp
   webApp?.close?.()
 }
+
+export const ASSISTANT_API_BASE_URL = API_BASE_URL.replace(/\/v1$/, '')
 
 export { API_BASE_URL }

@@ -19,6 +19,7 @@ import {
   validateInterestForm,
 } from '../utils/localeUtils'
 import { interestsApi } from '../api/interestsApi'
+import { AdminSelect } from '../../../components/AdminSelect'
 import styles from './InterestModal.module.css'
 
 interface InterestModalProps {
@@ -286,24 +287,12 @@ export const InterestModal: React.FC<InterestModalProps> = ({
                   return (
                     <div key={trans.id} className={styles.translationRow}>
                       <div className={styles.translationInputs}>
-                        <select
-                          className={styles.selectLocale}
+                        <AdminSelect
                           value={trans.locale_code}
-                          onChange={(e) =>
-                            handleTranslationLocaleChange(
-                              trans.id,
-                              e.target.value,
-                            )
-                          }
                           disabled={isSubmitting}
-                          aria-label="Выбор языка перевода"
-                        >
-                          {allowedLocalesForRow.map((loc) => (
-                            <option key={loc.code} value={loc.code}>
-                              {loc.native_name} ({loc.code})
-                            </option>
-                          ))}
-                        </select>
+                          options={allowedLocalesForRow.map((loc) => ({ value: loc.code, label: `${loc.native_name} (${loc.code})` }))}
+                          onChange={(value) => handleTranslationLocaleChange(trans.id, value)}
+                        />
 
                         <input
                           type="text"

@@ -18,22 +18,17 @@ export const ChatSuggestions: React.FC<ChatSuggestionsProps> = ({
 
   return (
     <div className={styles.suggestionsContainer} role="group" aria-label={t('chat.quickPromptsAriaLabel')}>
-      {suggestions.map((item, idx) => {
-        const label = item.startsWith('chat.suggestions.')
-          ? t(item)
-          : t(`chat.suggestions.${item}`, { defaultValue: item })
-        return (
-          <button
-            key={idx}
-            type="button"
-            className={styles.chip}
-            onClick={() => onSelectSuggestion(item)}
-            disabled={disabled}
-          >
-            <span>{label}</span>
-          </button>
-        )
-      })}
+      {suggestions.map((item, index) => (
+        <button
+          key={`${item}-${index}`}
+          type="button"
+          className={styles.chip}
+          onClick={() => onSelectSuggestion(item)}
+          disabled={disabled}
+        >
+          <span>{item}</span>
+        </button>
+      ))}
     </div>
   )
 }

@@ -43,7 +43,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          maxLength={300}
+          maxLength={2000}
         />
         <button
           type="submit"

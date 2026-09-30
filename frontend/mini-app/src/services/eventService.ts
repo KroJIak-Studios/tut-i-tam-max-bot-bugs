@@ -2,12 +2,16 @@ import type { MapEvent, EventReview } from '../types'
 import { apiRequest, ApiError } from './api'
 import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
 import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
+import { getIsoDate } from '../utils/dateUtils'
 
 export interface DetailedEvent extends MapEvent {
   images: string[]
   reviews: EventReview[]
   isPast: boolean
   visitedDate?: string
+  owned: boolean
+  chatConnected: boolean
+  chatInviteUrl: string | null
 }
 
 interface ApiEvent {
@@ -26,6 +30,9 @@ interface ApiEvent {
   attendees_count?: number
   images?: string[]
   reviews?: EventReview[]
+  chat_connected?: boolean
+  chat_invite_url?: string | null
+  owned?: boolean
 }
 
 function mapDetail(item: ApiEvent): DetailedEvent {
@@ -41,9 +48,9 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     longitude: item.longitude,
     category: item.category_id == null ? null : String(item.category_id),
     categoryId: item.category_id ?? null,
-    date: item.starts_at.slice(0, 10),
-    startDate: item.starts_at.slice(0, 10),
-    endDate: item.ends_at?.slice(0, 10),
+    date: getIsoDate(0, start),
+    startDate: getIsoDate(0, start),
+    endDate: end ? getIsoDate(0, end) : undefined,
     startTime: start.toTimeString().slice(0, 5),
     endTime: end?.toTimeString().slice(0, 5),
     price,
@@ -55,6 +62,9 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     address: item.address || '',
     reviews: item.reviews || [],
     isPast: new Date(item.starts_at) < new Date(),
+    owned: Boolean(item.owned),
+    chatConnected: Boolean(item.chat_connected),
+    chatInviteUrl: item.chat_invite_url ?? null,
   }
 }
 
@@ -69,8 +79,11 @@ function findFallbackEvent(rawId: string): DetailedEvent | null {
     return {
       ...found,
       images: imgs,
-      reviews: found.reviews || [],
+      reviews: [],
       isPast: false,
+      owned: false,
+      chatConnected: false,
+      chatInviteUrl: null,
     }
   }
   const foundPast = INITIAL_PAST_EVENTS.find((e) => e.id.toLowerCase() === target)
@@ -94,6 +107,9 @@ function findFallbackEvent(rawId: string): DetailedEvent | null {
       reviews: [],
       isPast: true,
       visitedDate: foundPast.visitedDate,
+      owned: false,
+      chatConnected: false,
+      chatInviteUrl: null,
     }
   }
   return null
@@ -109,6 +125,14 @@ export async function getEventById(id: string): Promise<DetailedEvent> {
     }
     throw err
   }
+}
+
+export async function connectEventChat(id: string, chatInviteUrl: string): Promise<void> {
+  await apiRequest(`/events/${id}/chat`, { method: 'POST', body: JSON.stringify({ chat_invite_url: chatInviteUrl }) })
+}
+
+export async function cancelOwnEvent(id: string): Promise<void> {
+  await apiRequest(`/events/${id}`, { method: 'DELETE' })
 }
 
 export async function submitEventReview(id: string, rating: number, text: string): Promise<void> {

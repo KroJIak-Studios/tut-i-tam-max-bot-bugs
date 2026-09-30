@@ -13,12 +13,15 @@ import { MapEventCard } from './MapEventCard'
 import styles from './MapView.module.css'
 
 let lastMapPoint: { latitude: number; longitude: number } | null = null
+let lastMapZoom = 15
 
 interface MapViewProps {
   userLocation: GeoPoint | null
+  focusPoint?: { latitude: number; longitude: number } | null
   locationStatus: import('../../context/GeolocationContext').GeolocationStatus
   locationHintOffset: boolean
   hideLocationHint: boolean
+  timeControls: boolean
   currentCity: CityRecord | null
   onRequestLocation: () => void
   onRetryLocation: () => void
@@ -77,9 +80,11 @@ function createUserLocationIcon(): L.DivIcon {
 
 export const MapView: React.FC<MapViewProps> = ({
   userLocation,
+  focusPoint = null,
   locationStatus,
   locationHintOffset,
   hideLocationHint,
+  timeControls,
   currentCity,
   onRequestLocation,
   onRetryLocation,
@@ -141,17 +146,10 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const map = L.map(mapContainerRef.current, {
       center: [start.latitude, start.longitude],
-      zoom: 15,
+      zoom: lastMapZoom,
       zoomControl: false,
       attributionControl: false,
     })
-
-    // Dedicated attribution control with compact, legally compliant attribution
-    const attributionControl = L.control.attribution({
-      position: 'bottomright',
-      prefix: false,
-    })
-    attributionControl.addTo(map)
 
     // Initial tile layer from preferences
     const initialTile = createMapTileLayer(appMapProviderRef.current)
@@ -161,7 +159,15 @@ export const MapView: React.FC<MapViewProps> = ({
     const zonesLayer = L.layerGroup().addTo(map)
     const markersLayer = L.layerGroup().addTo(map)
 
+    map.on('moveend', () => {
+      const center = map.getCenter()
+      lastMapPoint = { latitude: center.lat, longitude: center.lng }
+      lastMapZoom = map.getZoom()
+    })
     mapInstanceRef.current = map
+    const center = map.getCenter()
+    lastMapPoint = { latitude: center.lat, longitude: center.lng }
+    lastMapZoom = map.getZoom()
     setMapReady(true)
     zonesLayerRef.current = zonesLayer
     markersLayerRef.current = markersLayer
@@ -184,8 +190,6 @@ export const MapView: React.FC<MapViewProps> = ({
     const position: L.LatLngExpression = [shownLocation.latitude, shownLocation.longitude]
     if (!userMarkerRef.current) {
       userMarkerRef.current = L.marker(position, { icon: createUserLocationIcon(), zIndexOffset: 500 }).addTo(map)
-      const target = L.latLng(shownLocation.latitude, shownLocation.longitude)
-      if (map.getCenter().distanceTo(target) > 300) map.setView(target, 15, { animate: true })
     } else {
       userMarkerRef.current.setLatLng(position)
     }
@@ -248,7 +252,7 @@ export const MapView: React.FC<MapViewProps> = ({
     return () => {
       map.off('click', handleMapClick)
     }
-  }, [onDeselect])
+  }, [onDeselect, mapReady])
 
   // Update Zones
   useEffect(() => {
@@ -300,8 +304,12 @@ export const MapView: React.FC<MapViewProps> = ({
       })
 
       marker.addTo(markersLayer)
+      if (isSelected) mapInstanceRef.current?.setView([evt.latitude, evt.longitude], 16, { animate: false })
     })
-  }, [events, selectedEventId, onSelectEvent])
+    if (selectedEventId && !events.some((evt) => evt.id === selectedEventId) && focusPoint && mapInstanceRef.current) {
+      mapInstanceRef.current.setView([focusPoint.latitude, focusPoint.longitude], 16, { animate: false })
+    }
+  }, [events, selectedEventId, onSelectEvent, focusPoint])
 
   return (
     <>
@@ -317,7 +325,7 @@ export const MapView: React.FC<MapViewProps> = ({
         )}
     </div>
     {preciseLocationAvailable && !userLocation && !hideLocationHint && <LocationHint status={locationStatus} offset={locationHintOffset} onRequest={onRequestLocation} onRetry={onRetryLocation} />}
-    <RecenterButton disabled={!shownLocation} onClick={recenter} />
+    <RecenterButton disabled={!shownLocation} lowered={!timeControls} onClick={recenter} />
     </>
   )
 }

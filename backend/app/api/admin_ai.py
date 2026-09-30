@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.admin_tokens import require_admin
 from app.core.settings import get_settings
 from app.db import get_session
-from app.schemas.ai import AiProviderCheck, AiProviderPatch, AiProviderView, AiProviderWrite
+from app.schemas.ai import AiProviderCheck, AiProviderPatch, AiProviderProbe, AiProviderView, AiProviderWrite
 from app.services.ai_provider_service import AiProviderService
 
 router = APIRouter(prefix="/admin/ai-providers", tags=["admin-ai"], dependencies=[Depends(require_admin)])
@@ -36,6 +36,11 @@ async def update_provider(
 @router.delete("/{provider_id}", status_code=204)
 async def delete_provider(provider_id: int, providers: AiProviderService = Depends(service)) -> None:
     await providers.delete(provider_id)
+
+
+@router.post("/probe", response_model=AiProviderCheck)
+async def probe_provider(data: AiProviderProbe, providers: AiProviderService = Depends(service)) -> AiProviderCheck:
+    return await providers.probe(data)
 
 
 @router.post("/{provider_id}/check", response_model=AiProviderCheck)

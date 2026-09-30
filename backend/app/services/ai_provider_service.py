@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.secret_box import SecretBox
 from app.core.settings import Settings
 from app.models.ai import AiProvider
-from app.schemas.ai import AiProviderCheck, AiProviderPatch, AiProviderView, AiProviderWrite
+from app.schemas.ai import AiProviderCheck, AiProviderPatch, AiProviderProbe, AiProviderView, AiProviderWrite
 
 
 class AiProviderService:
@@ -63,7 +63,13 @@ class AiProviderService:
             key = self._secrets.decrypt(row.encrypted_api_key)
         except ValueError:
             return AiProviderCheck(ok=False, detail="provider_key_unreadable")
-        url = f"{row.base_url.rstrip('/')}/models"
+        return await self._probe(row.base_url, key)
+
+    async def probe(self, data: AiProviderProbe) -> AiProviderCheck:
+        return await self._probe(str(data.base_url), data.api_key)
+
+    async def _probe(self, base_url: str, key: str) -> AiProviderCheck:
+        url = f"{base_url.rstrip('/')}/models"
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 response = await client.get(url, headers={"Authorization": f"Bearer {key}"})
@@ -73,7 +79,7 @@ class AiProviderService:
             return AiProviderCheck(ok=False, detail="provider_rejected")
         payload = response.json()
         names = [item.get("id", "") for item in payload.get("data", []) if isinstance(item, dict)]
-        return AiProviderCheck(ok=True, models=[name for name in names if name][:50])
+        return AiProviderCheck(ok=True, models=[name for name in names if name])
 
     async def enabled(self, purpose: str) -> tuple[AiProvider, str]:
         row = await self._session.scalar(
@@ -101,15 +107,14 @@ class AiProviderService:
     def _view(self, row: AiProvider) -> AiProviderView:
         try:
             key = self._secrets.decrypt(row.encrypted_api_key)
-            hint = f"{key[:3]}…{key[-2:]}" if len(key) > 6 else "••••"
         except ValueError:
-            hint = "не читается"
+            key = ""
         return AiProviderView(
             id=row.id,
             purpose=row.purpose,
             protocol=row.protocol,
             base_url=row.base_url,
-            key_hint=hint,
+            api_key=key,
             model=row.model,
             enabled=row.enabled,
             created_at=row.created_at,

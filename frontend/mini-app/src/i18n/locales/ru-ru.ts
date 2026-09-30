@@ -60,7 +60,7 @@ export interface TranslationSchema {
         title: string
         subtitle: string
       }
-      tonight: {
+      create: {
         title: string
         subtitle: string
       }
@@ -74,6 +74,11 @@ export interface TranslationSchema {
       }
     }
     recommendedToday: string
+    nearby: {
+      searching: string
+      empty: string
+      back: string
+    }
   }
   catalog: {
     title: string
@@ -81,6 +86,7 @@ export interface TranslationSchema {
     filters: string
     allDates: string
     loadMore: string
+    createEvent: string
     free: string
     onMap: string
     showOnMap: string
@@ -229,6 +235,10 @@ export interface TranslationSchema {
     detailsAriaLabel: string
     quickPromptsAriaLabel: string
     tapToOpenMap: string
+    more: string
+    clearHistory: string
+    shareLocation: string
+    locationDenied: string
     suggestions: {
       evening: string
       free: string
@@ -245,12 +255,16 @@ export interface TranslationSchema {
     tabs: {
       going: string
       past: string
+      requests: string
     }
     empty: {
       goingTitle: string
       goingDescription: string
       pastTitle: string
       pastDescription: string
+      requestsTitle: string
+      requestsDescription: string
+      createEvent: string
       openMap: string
       askAssistant: string
     }
@@ -263,6 +277,15 @@ export interface TranslationSchema {
     removedToast: string
     updateErrorToast: string
     reviewThanksToast: string
+    requests: {
+      loadError: string
+      status: {
+        pending: string
+        approved: string
+        rejected: string
+        changes_requested: string
+      }
+    }
     removeModal: {
       title: string
       description: string
@@ -280,6 +303,7 @@ export interface TranslationSchema {
     yourReview: string
     you: string
     noReviewsYet: string
+    beforeEvent: string
     starsAriaLabel_one: string
     starsAriaLabel_few: string
     starsAriaLabel_many: string
@@ -303,6 +327,19 @@ export interface TranslationSchema {
     gisMaps: string
     systemMaps: string
     addedToPlansToast: string
+    owner: {
+      chatTitle: string
+      chatHelp: string
+      connect: string
+      connecting: string
+      connected: string
+      invalidLink: string
+      alreadyUsed: string
+      cancelEvent: string
+      cancelTitle: string
+      cancelDescription: string
+      cancelConfirm: string
+    }
   }
   createEvent: {
     pageTitle: string
@@ -409,6 +446,14 @@ export interface TranslationSchema {
       leave: string
     }
   }
+  eventPhotos: {
+    label: string
+    add: string
+    remove: string
+    reviewLabel: string
+    limit: string
+    failed: string
+  }
   userRequests: {
     title: string
     emptyTitle: string
@@ -432,6 +477,15 @@ export interface TranslationSchema {
     statusPendingDesc: string
     statusApprovedDesc: string
     statusRejectedDesc: string
+    statusChangesDesc: string
+    moderatorComment: string
+    editTitle: string
+    editRequired: string
+    editFailed: string
+    fixAndResubmit: string
+    resubmit: string
+    saving: string
+    openEvent: string
     detailsTitle: string
     titleLabel: string
     categoryLabel: string
@@ -541,9 +595,9 @@ export const translation: TranslationSchema = {
         title: 'Каталог',
         subtitle: 'Места и активности',
       },
-      tonight: {
-        title: 'Сегодня вечером',
-        subtitle: 'События в Казани',
+      create: {
+        title: 'Создать',
+        subtitle: 'Своё мероприятие',
       },
       pushkinskaya: {
         title: 'Пушкинская',
@@ -555,6 +609,11 @@ export const translation: TranslationSchema = {
       },
     },
     recommendedToday: 'Рекомендуем сегодня',
+    nearby: {
+      searching: 'Ищу для вас мероприятие',
+      empty: 'Сейчас подходящих событий рядом больше нет. Возвращайтесь позже и попробуйте снова.',
+      back: 'На главную',
+    },
   },
   catalog: {
     title: 'Каталог',
@@ -562,6 +621,7 @@ export const translation: TranslationSchema = {
     filters: 'Фильтры',
     allDates: 'Все даты',
     loadMore: 'Показать ещё',
+    createEvent: 'Создать мероприятие',
     free: 'Бесплатно',
     onMap: 'На карте',
     showOnMap: 'Показать на карте: {{title}}',
@@ -598,7 +658,7 @@ export const translation: TranslationSchema = {
     selectedTime: 'Выбранное время',
     allDay: 'Весь день',
     scrubberAriaLabel: 'Выбор времени на карте',
-    showToday: 'Показать сегодня',
+    showToday: 'Показать доступные',
     details: 'Подробнее',
     eventAriaLabel: 'Событие: {{title}}',
     eventDetailsAriaLabel: 'Подробнее о событии: {{title}}',
@@ -710,6 +770,10 @@ export const translation: TranslationSchema = {
     detailsAriaLabel: 'Подробнее о событии: {{title}}',
     quickPromptsAriaLabel: 'Быстрые подсказки',
     tapToOpenMap: 'Нажмите, чтобы открыть карту',
+    more: 'Ещё',
+    clearHistory: 'Удалить историю чата',
+    shareLocation: 'Отправить геолокацию',
+    locationDenied: 'Не удалось получить геолокацию. Разрешите доступ к точке и попробуйте ещё раз.',
     suggestions: {
       evening: 'Куда пойти вечером?',
       free: 'Что есть бесплатного рядом?',
@@ -726,12 +790,16 @@ export const translation: TranslationSchema = {
     tabs: {
       going: 'Иду',
       past: 'Были',
+      requests: 'Заявки',
     },
     empty: {
       goingTitle: 'Пока ничего не запланировано',
       goingDescription: 'Найдите интересные события на карте Казани или попросите персональные рекомендации у ассистента.',
       pastTitle: 'История посещений пока пустая',
       pastDescription: 'Здесь будут сохраняться мероприятия, которые вы уже посетили в Казани.',
+      requestsTitle: 'Заявок пока нет',
+      requestsDescription: 'Здесь появятся мероприятия, которые вы отправите на проверку.',
+      createEvent: 'Создать мероприятие',
       openMap: 'Открыть карту',
       askAssistant: 'Спросить ассистента',
     },
@@ -744,6 +812,15 @@ export const translation: TranslationSchema = {
     removedToast: 'Удалено из ваших планов',
     updateErrorToast: 'Не удалось обновить планы',
     reviewThanksToast: 'Спасибо за ваш отзыв!',
+    requests: {
+      loadError: 'Не удалось загрузить заявки',
+      status: {
+        pending: 'На проверке',
+        approved: 'Одобрено',
+        rejected: 'Отклонено',
+        changes_requested: 'Нужны правки',
+      },
+    },
     removeModal: {
       title: 'Убрать из планов?',
       description: 'Мероприятие «{{title}}» будет удалено из ваших запланированных событий.',
@@ -760,7 +837,8 @@ export const translation: TranslationSchema = {
     leaveReview: 'Оставить отзыв',
     yourReview: 'Ваш отзыв',
     you: 'Вы',
-    noReviewsYet: 'Пока нет отзывов. Станьте первым!',
+    noReviewsYet: 'Пока нет отзывов',
+    beforeEvent: 'Отзывы можно оставить после мероприятия',
     starsAriaLabel_one: '{{count}} звезда',
     starsAriaLabel_few: '{{count}} звезды',
     starsAriaLabel_many: '{{count}} звёзд',
@@ -784,6 +862,19 @@ export const translation: TranslationSchema = {
     gisMaps: '2ГИС ↗',
     systemMaps: 'Системные карты ↗',
     addedToPlansToast: 'Добавлено в ваши планы!',
+    owner: {
+      chatTitle: 'Чат мероприятия',
+      chatHelp: 'Создайте группу в MAX и вставьте ссылку-приглашение.',
+      connect: 'Привязать',
+      connecting: 'Привязываем…',
+      connected: 'Чат успешно привязан',
+      invalidLink: 'Это не ссылка-приглашение MAX',
+      alreadyUsed: 'Эта ссылка уже привязана к другому мероприятию',
+      cancelEvent: 'Отменить мероприятие',
+      cancelTitle: 'Отменить мероприятие?',
+      cancelDescription: '«{{title}}» будет удалено. Это действие нельзя отменить.',
+      cancelConfirm: 'Удалить',
+    },
   },
   createEvent: {
     pageTitle: 'Создать мероприятие',
@@ -890,6 +981,14 @@ export const translation: TranslationSchema = {
       leave: 'Выйти',
     },
   },
+  eventPhotos: {
+    label: 'Фотографии {{count}}/10',
+    add: 'Добавить фотографию',
+    remove: 'Удалить фотографию',
+    reviewLabel: 'Фотографии',
+    limit: 'Можно добавить не больше 10 фотографий.',
+    failed: 'Не удалось обновить фотографии.',
+  },
   userRequests: {
     title: 'Мои заявки',
     emptyTitle: 'Заявок пока нет',
@@ -912,7 +1011,16 @@ export const translation: TranslationSchema = {
     statusTitle: 'Статус',
     statusPendingDesc: 'Мы проверим заявку и сообщим результат здесь.',
     statusApprovedDesc: 'Мероприятие проверено и одобрено.',
-    statusRejectedDesc: 'Заявка была отклонена модератором.',
+    statusRejectedDesc: 'Заявка отклонена.',
+    statusChangesDesc: 'Модератор попросил исправить заявку. Внесите правки и отправьте её снова.',
+    moderatorComment: 'Комментарий модератора',
+    editTitle: 'Исправить заявку',
+    editRequired: 'Заполните название, описание, адрес и время.',
+    editFailed: 'Не удалось отправить правки.',
+    fixAndResubmit: 'Исправить и отправить снова',
+    resubmit: 'Отправить снова',
+    saving: 'Отправляем...',
+    openEvent: 'Открыть мероприятие',
     detailsTitle: 'Детали мероприятия',
     titleLabel: 'Название',
     categoryLabel: 'Категория',

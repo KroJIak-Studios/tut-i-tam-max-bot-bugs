@@ -1,5 +1,6 @@
 import { apiRequest } from './api'
 import type { CatalogInterest, CatalogItem } from '../catalogNames'
+import type { EventCategoryRecord } from './eventCategoryService'
 
 export type ProfileRecord = {
   first_name: string
@@ -19,6 +20,7 @@ export type ProfileBundle = {
   me: ProfileRecord
   cities: CatalogItem[]
   interests: CatalogInterest[]
+  eventCategories: EventCategoryRecord[]
 }
 
 let bundle: ProfileBundle | null = null
@@ -39,8 +41,9 @@ export function loadProfileBundle(): Promise<ProfileBundle> {
       apiRequest<ProfileRecord>('/me'),
       apiRequest<CatalogItem[]>('/cities'),
       apiRequest<CatalogInterest[]>('/interests'),
-    ]).then(([me, cities, interests]) => {
-      bundle = { me, cities, interests }
+      apiRequest<EventCategoryRecord[]>('/event-categories'),
+    ]).then(([me, cities, interests, eventCategories]) => {
+      bundle = { me, cities, interests, eventCategories }
       pending = null
       return bundle
     }).catch((error: unknown) => {

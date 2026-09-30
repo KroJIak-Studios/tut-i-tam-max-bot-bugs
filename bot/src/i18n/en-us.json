@@ -57,7 +57,7 @@
     "ask": "Send your location and I’ll pick a nearby event.",
     "share": "Send my location",
     "searching": "Looking for an event",
-    "empty": "Nothing suitable is nearby yet.",
+    "empty": "There are no suitable nearby events right now. Come back later and try again.",
     "another": "Find another",
     "going": "I'll go",
     "going_done": "You're going",

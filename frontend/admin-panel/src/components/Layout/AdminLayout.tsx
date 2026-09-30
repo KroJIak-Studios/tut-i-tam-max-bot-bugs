@@ -10,6 +10,7 @@ import {
   IconHeart,
   IconLogOut,
   IconMenu,
+  IconSettings,
 } from '../Icons'
 import { useAuth } from '../../hooks/useAuth'
 import { useModerationCounts } from '../../features/moderation/hooks/useModerationCounts'
@@ -188,6 +189,21 @@ export const AdminLayout: React.FC = () => {
             <div className={styles.navItemLeft}>
               <IconHeart size={18} />
               <span className={styles.navItemText}>Интересы</span>
+            </div>
+          </NavLink>
+
+          <div className={styles.navSectionTitle}>Настройки</div>
+
+          <NavLink
+            to="/settings/models"
+            onClick={closeMobileMenu}
+            className={({ isActive }) =>
+              `${styles.navItem} ${isActive ? styles.active : ''}`
+            }
+          >
+            <div className={styles.navItemLeft}>
+              <IconSettings size={18} />
+              <span className={styles.navItemText}>Модели</span>
             </div>
           </NavLink>
         </aside>

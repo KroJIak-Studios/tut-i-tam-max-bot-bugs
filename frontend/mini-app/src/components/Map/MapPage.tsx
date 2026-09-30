@@ -7,9 +7,9 @@ import { getCities, type CityRecord } from '../../services/cityService'
 import { apiRequest } from '../../services/api'
 import type { EventCategoryRecord } from '../../services/mapService'
 import { getIsoDate, formatChipDate, getWeekendIsoDate } from '../../utils/dateUtils'
+import { getEventStartDate } from '../../utils/eventTime'
 import { useAttendance } from '../../context/useAttendance'
 import { useGeolocation } from '../../context/GeolocationContext'
-import { MapTopBar } from './MapTopBar'
 import { MapFilterChips } from './MapFilterChips'
 import { MapDatePickerSheet, type DatePreset } from './MapDatePickerSheet'
 import { MapView } from './MapView'
@@ -17,6 +17,8 @@ import { MapFilterSheet } from './MapFilterSheet'
 import { MapTimeScrubber } from './MapTimeScrubber'
 import { BottomNavigation } from '../BottomNavigation'
 import styles from './MapPage.module.css'
+
+const savedMapFilters = { filters: null as MapFilterState | null }
 
 const DEFAULT_FILTERS: MapFilterState = {
   quickChip: 'all',
@@ -34,7 +36,7 @@ export const MapPage: React.FC = () => {
   const { t, i18n } = useTranslation()
   const { point: userLocation, status: locationStatus, request: requestLocation, retry: retryLocation, enterMap, leaveMap } = useGeolocation()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     enterMap()
@@ -47,15 +49,17 @@ export const MapPage: React.FC = () => {
   const [categories, setCategories] = useState<EventCategoryRecord[]>([])
   const [currentCity, setCurrentCity] = useState<CityRecord | null>(null)
   const [userSelectedId, setUserSelectedId] = useState<string | null>(null)
+  const [dateRangeReady, setDateRangeReady] = useState(savedMapFilters.filters != null || searchParams.get('date') != null)
   const selectedEventId = userSelectedId
   const [loading, setLoading] = useState<boolean>(true)
   const [hasError, setHasError] = useState<boolean>(false)
 
   // Filters state initialized from query params
   const [filters, setFilters] = useState<MapFilterState>(() => {
+    const dateParam = searchParams.get('date')
+    if (savedMapFilters.filters) return { ...savedMapFilters.filters, ...(dateParam ? { timeSlotMinutes: null } : {}) }
     const pushkin = searchParams.get('pushkin') === 'true'
     const categoryParam = searchParams.get('category_id')
-    const dateParam = searchParams.get('date')
 
     const initial = { ...DEFAULT_FILTERS }
     if (pushkin) {
@@ -72,6 +76,11 @@ export const MapPage: React.FC = () => {
     } else if (dateParam === 'today') {
       initial.dateFilter = 'today'
       initial.selectedDate = getIsoDate(0)
+    } else if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      initial.dateFilter = dateParam === getIsoDate(0) ? 'today' : 'all'
+      initial.selectedDate = dateParam
+      initial.dateEnd = dateParam
+      initial.timeSlotMinutes = null
     }
     return initial
   })
@@ -104,12 +113,34 @@ export const MapPage: React.FC = () => {
       } else if (dateParam === 'today') {
         updated.dateFilter = 'today'
         updated.selectedDate = getIsoDate(0)
+        updated.dateEnd = getIsoDate(0)
+      } else if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+        updated.dateFilter = dateParam === getIsoDate(0) ? 'today' : 'all'
+        updated.selectedDate = dateParam
+        updated.dateEnd = dateParam
+        updated.timeSlotMinutes = null
       }
       setFilters(updated)
     }
   }
 
+  useEffect(() => {
+    savedMapFilters.filters = filters
+  }, [filters])
+
+  const focusEventId = searchParams.get('event')
+  const focusLatitude = Number(searchParams.get('lat'))
+  const focusLongitude = Number(searchParams.get('lng'))
+  const focusPoint = Number.isFinite(focusLatitude) && Number.isFinite(focusLongitude)
+    ? { latitude: focusLatitude, longitude: focusLongitude }
+    : null
   const isToday = filters.selectedDate === getIsoDate(0)
+
+  useEffect(() => {
+    if (!focusEventId || loading) return
+    const match = events.find((event) => event.id === focusEventId)
+    if (match) setUserSelectedId(match.id)
+  }, [events, focusEventId, loading])
 
   // Load map support data once
   useEffect(() => {
@@ -126,9 +157,19 @@ export const MapPage: React.FC = () => {
     let active = true
     setLoading(true)
 
-    getMapEvents(filters, currentCity?.id)
+    const query = dateRangeReady ? filters : { ...filters, dateFilter: 'all' as const, selectedDate: 'all', dateEnd: undefined, timeSlotMinutes: null }
+    getMapEvents(query, currentCity?.id)
       .then((data) => {
         if (!active) return
+        if (!dateRangeReady) {
+          const today = getIsoDate(0)
+          const nearest = data.map((event) => getEventStartDate(event)).filter((date) => date >= today).sort()[0]
+          setDateRangeReady(true)
+          if (nearest && nearest !== today) {
+            setFilters((current) => current.selectedDate === today ? { ...current, dateEnd: nearest, dateFilter: 'all' } : current)
+            return
+          }
+        }
         setEvents(data)
         setLoading(false)
         setHasError(false)
@@ -143,7 +184,7 @@ export const MapPage: React.FC = () => {
     return () => {
       active = false
     }
-  }, [filters, currentCity?.id])
+  }, [filters, currentCity?.id, dateRangeReady])
 
   // Count active non-default filters excluding quick buttons (today & free)
   const extraFilterCount = useMemo(() => {
@@ -162,7 +203,13 @@ export const MapPage: React.FC = () => {
 
   const handleDeselect = useCallback(() => {
     setUserSelectedId(null)
-  }, [])
+    if (!searchParams.get('event')) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('event')
+    next.delete('lat')
+    next.delete('lng')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
 
   const { toggleAttendance, attendance } = useAttendance()
 
@@ -242,10 +289,6 @@ export const MapPage: React.FC = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* 1. Header карты */}
-      <MapTopBar />
-
-      {/* 2. Быстрые чипы с выбором даты */}
       <MapFilterChips
         selectedDate={filters.selectedDate}
         dateEnd={filters.dateEnd}
@@ -300,8 +343,8 @@ export const MapPage: React.FC = () => {
             type="button"
             className={styles.emptyResetBtn}
             onClick={() => {
-              setLoading(true)
-              setFilters(DEFAULT_FILTERS)
+              setDateRangeReady(false)
+              setFilters((current) => ({ ...current, selectedDate: getIsoDate(0), dateEnd: getIsoDate(0), dateFilter: 'today', timeSlotMinutes: null }))
             }}
           >
             {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
@@ -318,9 +361,11 @@ export const MapPage: React.FC = () => {
         <MapView
           currentCity={currentCity}
           userLocation={userLocation}
+          focusPoint={focusPoint}
           locationStatus={locationStatus}
           locationHintOffset={hasError || (!loading && events.length === 0 && hasActiveEventFilters)}
           hideLocationHint={loading}
+          timeControls={!filters.dateEnd || filters.dateEnd === filters.selectedDate}
           onRequestLocation={requestLocation}
           onRetryLocation={retryLocation}
           events={displayedEvents}

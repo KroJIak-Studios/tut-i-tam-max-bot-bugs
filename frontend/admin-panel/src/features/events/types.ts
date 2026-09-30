@@ -124,19 +124,8 @@ export interface AdminChatCheckPayload {
 }
 
 export interface AdminChatCheckResult {
-  chat_found: boolean
-  bot_in_chat: boolean
-  bot_ready: boolean
-  status:
-    | 'ready'
-    | 'bot_not_in_chat'
-    | 'missing_permissions'
-    | 'chat_not_found'
-    | 'chat_unavailable'
-    | 'membership_unavailable'
-    | string
-  chat_id: number | null
-  permissions: string[]
+  connected: boolean
+  missing: string[]
 }
 
 /**

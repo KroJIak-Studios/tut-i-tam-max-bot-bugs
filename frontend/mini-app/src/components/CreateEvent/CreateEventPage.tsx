@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CreateEventTopBar } from './CreateEventTopBar'
@@ -9,17 +9,12 @@ import { CreateEventExitConfirmModal } from './CreateEventExitConfirmModal'
 import { CreateEventSuccessView } from './CreateEventSuccessView'
 import { useCreateEventWizard } from './useCreateEventWizard'
 import { submitCreateEventRequest } from '../../services/createEventRequestService'
-import { getEventCategories } from '../../services/mapService'
-import type { EventCategoryRecord } from '../../services/eventCategoryService'
+import { readProfileBundle } from '../../services/profileService'
 import { isEndDateTimeAfterStart } from '../../utils/formatters'
 import type { CreateEventDraft, CreateEventRequest, StepErrors } from './types'
 import styles from './CreateEventPage.module.css'
 
-function validateStep(
-  stepId: string,
-  draft: CreateEventDraft,
-  categoriesLoaded = true,
-): StepErrors {
+function validateStep(stepId: string, draft: CreateEventDraft): StepErrors {
   const errors: StepErrors = {}
   const today = new Date().toISOString().slice(0, 10)
 
@@ -30,7 +25,7 @@ function validateStep(
     if (!draft.description.trim()) {
       errors.description = 'createEvent.errors.descriptionRequired'
     }
-    if (categoriesLoaded && !draft.category) errors.category = 'createEvent.errors.categoryRequired'
+    if (!draft.category) errors.category = 'createEvent.errors.categoryRequired'
   }
 
   if (stepId === 'datetime') {
@@ -72,20 +67,20 @@ function validateStep(
   return errors
 }
 
-function validateAll(draft: CreateEventDraft, categoriesLoaded = true): {
+function validateAll(draft: CreateEventDraft): {
   valid: boolean
   firstInvalidStepIndex?: number
   errors?: StepErrors
 } {
-  const basicsErrors = validateStep('basics', draft, categoriesLoaded)
+  const basicsErrors = validateStep('basics', draft)
   if (Object.keys(basicsErrors).length > 0) {
     return { valid: false, firstInvalidStepIndex: 0, errors: basicsErrors }
   }
-  const datetimeErrors = validateStep('datetime', draft, categoriesLoaded)
+  const datetimeErrors = validateStep('datetime', draft)
   if (Object.keys(datetimeErrors).length > 0) {
     return { valid: false, firstInvalidStepIndex: 1, errors: datetimeErrors }
   }
-  const locationErrors = validateStep('location', draft, categoriesLoaded)
+  const locationErrors = validateStep('location', draft)
   if (Object.keys(locationErrors).length > 0) {
     return { valid: false, firstInvalidStepIndex: 2, errors: locationErrors }
   }
@@ -96,9 +91,7 @@ export const CreateEventPage: React.FC = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
 
-  const [categories, setCategories] = useState<EventCategoryRecord[]>([])
-  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
-  useEffect(() => { getEventCategories().then(setCategories).catch(() => setCategories([])).finally(() => setCategoriesLoaded(true)) }, [])
+  const categories = readProfileBundle()?.eventCategories ?? []
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submittedRequest, setSubmittedRequest] = useState<CreateEventRequest | null>(null)
@@ -121,7 +114,7 @@ export const CreateEventPage: React.FC = () => {
     resetDraft,
   } = useCreateEventWizard()
 
-  const isDraftValid = validateAll(draft, categoriesLoaded).valid
+  const isDraftValid = validateAll(draft).valid
 
   const handleExit = useCallback(() => {
     if (window.history.length > 1) {
@@ -132,12 +125,12 @@ export const CreateEventPage: React.FC = () => {
   }, [navigate])
 
   const handleSuccessDone = useCallback(() => {
-    navigate('/profile/requests')
+    navigate('/plans?tab=requests')
   }, [navigate])
 
   const handleBackClick = useCallback(() => {
     if (submittedRequest) {
-      navigate('/profile/requests')
+      navigate('/plans?tab=requests')
     } else if (isDirty) {
       setIsExitConfirmOpen(true)
     } else {
@@ -156,7 +149,7 @@ export const CreateEventPage: React.FC = () => {
   }, [handleExit, resetDraft])
 
   const handleNext = useCallback(() => {
-    const stepErrors = validateStep(currentStep.id, draft, categoriesLoaded)
+    const stepErrors = validateStep(currentStep.id, draft)
 
     if (Object.keys(stepErrors).length > 0) {
       setStepErrors(stepErrors)
@@ -169,7 +162,7 @@ export const CreateEventPage: React.FC = () => {
   const handleSubmit = useCallback(async () => {
     if (isSubmitting) return
 
-    const validation = validateAll(draft, categoriesLoaded)
+    const validation = validateAll(draft)
     if (!validation.valid && validation.firstInvalidStepIndex !== undefined) {
       goToStep(validation.firstInvalidStepIndex)
       if (validation.errors) {

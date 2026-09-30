@@ -4,9 +4,11 @@ from datetime import datetime, timezone
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.event import Event, EventAttendance, EventView
+from app.models.event import Event, EventAttendance, EventPhoto, EventView
 from app.models.profile import Interest, UserInterest
 from app.models.user import MaxUser
+from app.schemas.recommendations import NearbyEvent
+from app.services.media_storage import MediaStorage
 
 WALK_METERS_PER_MINUTE = 80
 MAX_WAIT_MINUTES = 90
@@ -34,12 +36,42 @@ class RecommendationService:
         for event in events:
             distance = _distance_meters(latitude, longitude, event.latitude, event.longitude)
             minutes_until = (event.starts_at - now).total_seconds() / 60
-            if minutes_until > distance / WALK_METERS_PER_MINUTE + MAX_WAIT_MINUTES:
-                continue
+            walk = distance / WALK_METERS_PER_MINUTE
+            wait = minutes_until - walk
+            fits = 0 <= wait <= MAX_WAIT_MINUTES
             similarity = await self._similarity(event.id, interest.id) if interest is not None else 0.5
-            ranked.append((distance - similarity * 1000, event))
-        ranked.sort(key=lambda item: item[0])
-        return [event for _, event in ranked[:limit]]
+            if fits:
+                ranked.append((0, -similarity, distance, event))
+            else:
+                missed = max(0.0, -wait)
+                extra_wait = max(0.0, wait - MAX_WAIT_MINUTES)
+                ranked.append((1, distance, missed + extra_wait, -similarity, event))
+        ranked.sort(key=lambda item: item[:-1])
+        return [item[-1] for item in ranked[:limit]]
+
+    async def found(self, user: MaxUser, latitude: float, longitude: float) -> NearbyEvent | None:
+        found = await self.nearby(user, latitude, longitude, limit=1)
+        if not found:
+            return None
+        event = found[0]
+        self._session.add(EventView(user_id=user.id, event_id=event.id))
+        await self._session.commit()
+        photos = list(await self._session.scalars(
+            select(EventPhoto.storage_key).where(EventPhoto.event_id == event.id).order_by(EventPhoto.position).limit(3)
+        ))
+        going = await self._session.scalar(
+            select(EventAttendance.event_id).where(EventAttendance.user_id == user.id, EventAttendance.event_id == event.id)
+        )
+        storage = MediaStorage()
+        return NearbyEvent(
+            id=event.id,
+            title=event.title,
+            description=event.description,
+            address=event.address,
+            starts_at=event.starts_at.isoformat(),
+            images=[storage.public_url(key) for key in photos],
+            going=going is not None,
+        )
 
     async def _strongest_interest(self, user: MaxUser) -> Interest | None:
         row = await self._session.execute(

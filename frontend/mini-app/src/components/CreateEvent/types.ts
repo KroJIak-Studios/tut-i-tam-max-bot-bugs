@@ -39,6 +39,7 @@ export interface CreateEventDraft {
   isFree: true
   pushkinCard: false
   source: 'user'
+  photos: Array<{ id: string; url: string; file?: File }>
 }
 
 export interface StepConfig {

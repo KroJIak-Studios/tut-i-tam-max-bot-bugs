@@ -51,13 +51,14 @@ export const CityMapPicker: React.FC<CityMapPickerProps> = ({
     const map = L.map(containerRef.current, {
       center: initialCenterRef.current,
       zoom: initialZoomRef.current,
-      scrollWheelZoom: false,
+      scrollWheelZoom: true,
       zoomControl: true,
       attributionControl: true,
     })
 
     // Remove Leaflet branding, keep mandatory OpenStreetMap attribution
     map.attributionControl.setPrefix('')
+    map.getContainer().addEventListener('wheel', (event) => event.stopPropagation())
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,

@@ -12,6 +12,9 @@
   --chat-content-gap: 16px;
   --chat-bottom-reserve: calc(var(--chat-composer-bottom) + var(--chat-composer-height) + var(--chat-content-gap));
 
+  width: 100%;
+  max-width: var(--app-max-width);
+  margin: 0 auto;
   height: 100dvh;
   min-height: 100vh;
   display: flex;
@@ -143,6 +146,10 @@
   width: 0;
   pointer-events: none;
   visibility: hidden;
+}
+
+.loadingState {
+  min-height: 48px;
 }
 
 @media (max-height: 700px) {

@@ -33,17 +33,22 @@ export class StartService {
   }
 
   async handleStart(ctx: Context, forceNewPrimary = false, locale?: string | null): Promise<void> {
+    console.info('START_BEGIN', { chatId: ctx.chatId ?? null, userId: ctx.user?.user_id ?? null, forceNewPrimary, locale: locale ?? null })
     const profile = await this.loadProfile(ctx, locale)
+    console.info('START_PROFILE_LOADED', { chatId: profile.chatId, userId: profile.user.user_id })
     const status = await this.backend.getAccessStatus(profile)
+    console.info('START_ACCESS', { chatId: profile.chatId, required: status.access_required, granted: status.access_granted, locale: status.locale })
     const i18n = new I18n(status.locale, this.fallbackLocale)
 
     if (status.access_required && !status.access_granted) {
+      console.info('START_ACCESS_CODE_REQUESTED', { chatId: profile.chatId })
       await this.pending.sendOrUpdatePending(ctx, i18n.translate('access.request_code'))
       return
     }
 
     const meetingCount = await this.meetingCount(profile)
     const botName = await this.botName(ctx)
+    console.info('START_SENDING_WELCOME', { chatId: profile.chatId, meetingCount, botName, forceNewPrimary })
 
     await this.primaryMessages.sendOrReplace(
       ctx,
@@ -51,6 +56,7 @@ export class StartService {
       forceNewPrimary,
     )
     await this.clearPending(ctx)
+    console.info('START_WELCOME_SENT', { chatId: profile.chatId })
   }
 
   async handleText(ctx: Context, text: string): Promise<void> {

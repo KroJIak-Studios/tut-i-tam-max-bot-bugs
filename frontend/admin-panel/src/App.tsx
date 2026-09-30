@@ -10,6 +10,7 @@ import { CategoriesPage } from './pages/CategoriesPage'
 import { CitiesPage } from './pages/CitiesPage'
 import { InterestsPage } from './pages/InterestsPage'
 import { EventsPage } from './pages/EventsPage'
+import { AiProvidersPage } from './pages/AiProvidersPage'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/cities" element={<CitiesPage />} />
               <Route path="/interests" element={<InterestsPage />} />
               <Route path="/events" element={<EventsPage />} />
+              <Route path="/settings/models" element={<AiProvidersPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Route>

@@ -25,11 +25,16 @@ class AiProviderView(BaseModel):
     purpose: str
     protocol: str
     base_url: str
-    key_hint: str
+    api_key: str
     model: str
     enabled: bool
     created_at: datetime
     updated_at: datetime
+
+
+class AiProviderProbe(BaseModel):
+    base_url: HttpUrl
+    api_key: str = Field(min_length=1, max_length=4096)
 
 
 class AiProviderCheck(BaseModel):

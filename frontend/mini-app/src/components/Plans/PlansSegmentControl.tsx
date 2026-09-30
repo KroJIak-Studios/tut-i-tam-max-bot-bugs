@@ -2,13 +2,14 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from './PlansSegmentControl.module.css'
 
-export type PlansTab = 'going' | 'past'
+export type PlansTab = 'going' | 'past' | 'requests'
 
 interface PlansSegmentControlProps {
   activeTab: PlansTab
   onChange: (tab: PlansTab) => void
   goingCount?: number
   pastCount?: number
+  requestsCount?: number
 }
 
 export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
@@ -16,6 +17,7 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
   onChange,
   goingCount,
   pastCount,
+  requestsCount,
 }) => {
   const { t } = useTranslation()
 
@@ -24,9 +26,8 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
       <div className={styles.pillTrack} role="tablist" aria-label={t('plans.sectionsAriaLabel')}>
         {/* Animated sliding highlight */}
         <div
-          className={`${styles.sliderIndicator} ${
-            activeTab === 'past' ? styles.sliderIndicatorRight : styles.sliderIndicatorLeft
-          }`}
+          className={styles.sliderIndicator}
+          style={{ transform: `translateX(${activeTab === 'past' ? '100%' : activeTab === 'requests' ? '200%' : '0'})` }}
           aria-hidden="true"
         />
 
@@ -53,6 +54,19 @@ export const PlansSegmentControl: React.FC<PlansSegmentControlProps> = ({
           <span>{t('plans.tabs.past')}</span>
           {pastCount !== undefined && pastCount > 0 && (
             <span className={styles.tabBadge}>{pastCount}</span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'requests'}
+          className={`${styles.tabBtn} ${activeTab === 'requests' ? styles.tabBtnActive : ''}`}
+          onClick={() => onChange('requests')}
+        >
+          <span>{t('plans.tabs.requests')}</span>
+          {requestsCount !== undefined && requestsCount > 0 && (
+            <span className={styles.tabBadge}>{requestsCount}</span>
           )}
         </button>
       </div>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent, NavTabId } from '../../types'
 import { useAttendance } from '../../context/useAttendance'
@@ -11,6 +11,8 @@ import { PlanEventCard } from './PlanEventCard'
 import { PastEventCard } from './PastEventCard'
 import { PlansEmptyState } from './PlansEmptyState'
 import { PlansSkeleton } from './PlansSkeleton'
+import { getMyEventRequests } from '../../services/mapService'
+import { PlansRequestsList } from './PlansRequestsList'
 import { ConfirmRemoveModal } from './ConfirmRemoveModal'
 import { ReviewModal } from './ReviewModal'
 import { BottomNavigation } from '../BottomNavigation'
@@ -19,10 +21,21 @@ import styles from './PlansPage.module.css'
 export const PlansPage: React.FC = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { goingEvents, loading, removeAttendance } = useAttendance()
   const { pastEvents, submitReview } = useReviews()
 
-  const [activeSegment, setActiveSegment] = useState<PlansTab>('going')
+  const [activeSegment, setActiveSegment] = useState<PlansTab>(searchParams.get('tab') === 'requests' ? 'requests' : 'going')
+  const [requestsCount, setRequestsCount] = useState(0)
+  const handleRequestsCount = useCallback((count: number) => setRequestsCount(count), [])
+
+  useEffect(() => {
+    let active = true
+    getMyEventRequests()
+      .then((items) => { if (active) setRequestsCount(items.length) })
+      .catch(() => { if (active) setRequestsCount(0) })
+    return () => { active = false }
+  }, [])
 
   // Modals state
   const [removeTargetEvent, setRemoveTargetEvent] = useState<MapEvent | null>(null)
@@ -86,6 +99,7 @@ export const PlansPage: React.FC = () => {
             onChange={setActiveSegment}
             goingCount={goingEvents.length}
             pastCount={pastEvents.length}
+            requestsCount={requestsCount}
           />
 
           {/* Toast alert if active */}
@@ -97,9 +111,15 @@ export const PlansPage: React.FC = () => {
 
           {/* List Content */}
           <div className={styles.listSection}>
-            {loading ? (
-              <PlansSkeleton />
-            ) : activeSegment === 'going' ? (
+            {activeSegment === 'requests' && (
+              <PlansRequestsList
+                onOpen={(eventId) => navigate(`/plans/requests/${eventId}`)}
+                onCreate={() => navigate('/events/create')}
+                onCount={handleRequestsCount}
+              />
+            )}
+            {activeSegment !== 'requests' && loading && <PlansSkeleton />}
+            {activeSegment === 'going' && !loading && (
               goingEvents.length > 0 ? (
                 <div className={styles.cardsList}>
                   {goingEvents.map((evt) => (
@@ -118,23 +138,26 @@ export const PlansPage: React.FC = () => {
                   onOpenChat={() => navigate('/chat')}
                 />
               )
-            ) : pastEvents.length > 0 ? (
-              <div className={styles.cardsList}>
-                {pastEvents.map((evt) => (
-                  <PastEventCard
-                    key={evt.id}
-                    event={evt}
-                    onClick={handleEventClick}
-                    onOpenReview={setReviewTargetEvent}
-                  />
-                ))}
-              </div>
-            ) : (
-              <PlansEmptyState
-                type="past"
-                onOpenMap={() => navigate('/map')}
-                onOpenChat={() => navigate('/chat')}
-              />
+            )}
+            {activeSegment === 'past' && !loading && (
+              pastEvents.length > 0 ? (
+                <div className={styles.cardsList}>
+                  {pastEvents.map((evt) => (
+                    <PastEventCard
+                      key={evt.id}
+                      event={evt}
+                      onClick={handleEventClick}
+                      onOpenReview={setReviewTargetEvent}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <PlansEmptyState
+                  type="past"
+                  onOpenMap={() => navigate('/map')}
+                  onOpenChat={() => navigate('/chat')}
+                />
+              )
             )}
           </div>
         </div>

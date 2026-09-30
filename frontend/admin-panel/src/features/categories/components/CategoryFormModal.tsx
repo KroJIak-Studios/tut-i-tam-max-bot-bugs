@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { AlertCircle, Globe, Plus, Trash2, X } from 'lucide-react'
 import { DEFAULT_FALLBACK_LOCALE, getLocaleNativeName, splitCategoryNames } from '../constants'
 import type { EventCategory, EventCategoryInput, LocaleItem, TranslationFormItem } from '../types'
+import { AdminSelect } from '../../../components/AdminSelect'
 import styles from './CategoryFormModal.module.css'
 
 export interface CategoryFormModalProps {
@@ -290,32 +291,17 @@ const CategoryFormModalContent: React.FC<Omit<CategoryFormModalProps, 'isOpen'>>
 
                     return (
                       <div key={trans.id} className={styles.translationRow}>
-                        <select
-                          className={styles.localeSelect}
+                        <AdminSelect
                           value={trans.locale_code}
-                          onChange={(e) =>
-                            handleTranslationChange(trans.id, 'locale_code', e.target.value)
-                          }
                           disabled={isSubmitting}
-                          aria-label="Выбор языка"
-                        >
-                          {/* Текущая выбранная локаль */}
-                          <option value={trans.locale_code}>
-                            {getLocaleNativeName(trans.locale_code, locales)} ({trans.locale_code})
-                          </option>
-                          {/* Остальные неиспользованные локали */}
-                          {availableForThisRow
-                            .filter(
-                              (l) =>
-                                l.code.toLowerCase().trim() !==
-                                trans.locale_code.toLowerCase().trim(),
-                            )
-                            .map((l) => (
-                              <option key={l.code} value={l.code}>
-                                {l.native_name} ({l.code})
-                              </option>
-                            ))}
-                        </select>
+                          options={[
+                            { value: trans.locale_code, label: `${getLocaleNativeName(trans.locale_code, locales)} (${trans.locale_code})` },
+                            ...availableForThisRow
+                              .filter((l) => l.code.toLowerCase().trim() !== trans.locale_code.toLowerCase().trim())
+                              .map((l) => ({ value: l.code, label: `${l.native_name} (${l.code})` })),
+                          ]}
+                          onChange={(value) => handleTranslationChange(trans.id, 'locale_code', value)}
+                        />
 
                         <div className={styles.textInputWrap}>
                           <input

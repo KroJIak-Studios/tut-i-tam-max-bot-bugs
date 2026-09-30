@@ -1,4 +1,5 @@
 import { apiClient } from '../../../services/api/apiClient'
+import { ApiError } from '../../../services/api/types'
 import type {
   ModerationQueueResponse,
   ModerationQueueFilters,
@@ -7,79 +8,51 @@ import type {
   RequestChangesPayload,
 } from '../types'
 
+function message(error: unknown, fallback: string): never {
+  if (error instanceof ApiError && error.message === 'moderation_conflict') {
+    throw new Error('Эта заявка уже одобрена или закрыта. Обновите страницу.')
+  }
+  throw error instanceof Error ? error : new Error(fallback)
+}
+
 export const moderationApi = {
-  /**
-   * GET /api/admin/moderation/events
-   * Returns paginated queue with status counts.
-   */
   async getQueue(filters: ModerationQueueFilters = {}): Promise<ModerationQueueResponse> {
     const params = new URLSearchParams()
-
-    if (filters.status && filters.status !== 'all') {
-      params.set('status', filters.status)
-    }
-    if (filters.city_id !== undefined) {
-      params.set('city_id', String(filters.city_id))
-    }
-    if (filters.category_id !== undefined) {
-      params.set('category_id', String(filters.category_id))
-    }
-    if (filters.q) {
-      params.set('q', filters.q)
-    }
-    if (filters.limit !== undefined) {
-      params.set('limit', String(filters.limit))
-    }
-    if (filters.offset !== undefined) {
-      params.set('offset', String(filters.offset))
-    }
-
-    const qs = params.toString()
-    return apiClient.get<ModerationQueueResponse>(
-      `/admin/moderation/events${qs ? `?${qs}` : ''}`,
-    )
+    if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+    if (filters.city_id !== undefined) params.set('city_id', String(filters.city_id))
+    if (filters.category_id !== undefined) params.set('category_id', String(filters.category_id))
+    if (filters.q) params.set('q', filters.q)
+    if (filters.limit !== undefined) params.set('limit', String(filters.limit))
+    if (filters.offset !== undefined) params.set('offset', String(filters.offset))
+    const query = params.toString()
+    return apiClient.get<ModerationQueueResponse>(`/admin/moderation/events${query ? `?${query}` : ''}`)
   },
 
-  /**
-   * GET /api/admin/moderation/events/{event_id}
-   * Returns single event card with moderation block.
-   */
   async getEvent(eventId: number): Promise<ModerationEventCard> {
     return apiClient.get<ModerationEventCard>(`/admin/moderation/events/${eventId}`)
   },
 
-  /**
-   * POST /api/admin/moderation/events/{event_id}/approve
-   * Transitions: pending | changes_requested -> approved, visible = true
-   */
   async approve(eventId: number): Promise<ModerationEventCard> {
-    return apiClient.post<ModerationEventCard>(
-      `/admin/moderation/events/${eventId}/approve`,
-    )
+    try {
+      return await apiClient.post<ModerationEventCard>(`/admin/moderation/events/${eventId}/approve`)
+    } catch (error) {
+      message(error, 'Не удалось одобрить заявку')
+    }
   },
 
-  /**
-   * POST /api/admin/moderation/events/{event_id}/reject
-   * Transitions: pending | changes_requested -> rejected, visible = false
-   */
   async reject(eventId: number, payload: RejectPayload): Promise<ModerationEventCard> {
-    return apiClient.post<ModerationEventCard>(
-      `/admin/moderation/events/${eventId}/reject`,
-      payload,
-    )
+    try {
+      return await apiClient.post<ModerationEventCard>(`/admin/moderation/events/${eventId}/reject`, payload)
+    } catch (error) {
+      message(error, 'Не удалось отклонить заявку')
+    }
   },
 
-  /**
-   * POST /api/admin/moderation/events/{event_id}/request-changes
-   * Transitions: pending | changes_requested -> changes_requested, visible = false
-   */
-  async requestChanges(
-    eventId: number,
-    payload: RequestChangesPayload,
-  ): Promise<ModerationEventCard> {
-    return apiClient.post<ModerationEventCard>(
-      `/admin/moderation/events/${eventId}/request-changes`,
-      payload,
-    )
+  async requestChanges(eventId: number, payload: RequestChangesPayload): Promise<ModerationEventCard> {
+    try {
+      return await apiClient.post<ModerationEventCard>(`/admin/moderation/events/${eventId}/request-changes`, payload)
+    } catch (error) {
+      message(error, 'Не удалось отправить замечания')
+    }
   },
 }

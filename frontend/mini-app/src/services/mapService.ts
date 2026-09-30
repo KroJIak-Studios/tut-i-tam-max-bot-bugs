@@ -1,7 +1,9 @@
 import type { MapEvent, MapZone, MapFilterState, EventCategory } from '../types'
 import { filterEvents, parseTimeToMinutes } from './eventFilters'
-import { apiRequest, ApiError } from './api'
+import { apiRequest, apiUpload, ApiError } from './api'
+import { readProfileBundle } from './profileService'
 
+import { getIsoDate } from '../utils/dateUtils'
 import { INITIAL_MAP_EVENTS, MAP_ZONES } from '../mocks/mapData'
 
 export { parseTimeToMinutes }
@@ -16,6 +18,8 @@ export const DEFAULT_INITIAL_ATTENDANCE: Record<string, boolean> = {}
 export function loadAttendanceMap(): Record<string, boolean> { return {} }
 export function getAttendanceMap(): Record<string, boolean> { return {} }
 export function saveAttendanceMap(_map: Record<string, boolean>): void { /* API is the source of truth. */ }
+
+export type EventModerationStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested'
 
 export interface ApiMapEvent {
   id: string | number
@@ -35,7 +39,13 @@ export interface ApiMapEvent {
   image?: string
   images?: string[]
   area?: [number, number][]
+  photos?: Array<{ id: number; url: string }>
   going?: boolean
+  moderation?: {
+    status: EventModerationStatus
+    comment?: string | null
+    submitted_at?: string | null
+  } | null
 }
 
 export interface EventCategoryRecord { id: number; code: string | null; names: Array<{ locale_code: string; text: string }> }
@@ -49,17 +59,19 @@ export function mapApiEvent(item: ApiMapEvent): MapEvent {
     id: String(item.id), title: item.title, description: item.description || '',
     latitude: item.latitude, longitude: item.longitude,
     category: item.category_id == null ? null : String(item.category_id), categoryId: item.category_id ?? null,
-    date: item.starts_at.slice(0, 10),
-    startDate: item.starts_at.slice(0, 10), endDate: item.ends_at?.slice(0, 10),
+    date: getIsoDate(0, start),
+    startDate: getIsoDate(0, start), endDate: end ? getIsoDate(0, end) : undefined,
     startTime: start.toTimeString().slice(0, 5), endTime: end?.toTimeString().slice(0, 5),
     price, isFree: source === 'user' || price === 0,
     pushkinCard: source === 'user' ? false : Boolean(item.pushkin_card),
     attendeesCount: item.attendees_count ?? 0, source, image: item.image || item.images?.[0],
-    images: item.images, address: item.address, area: item.area, isGoing: item.going,
+    images: item.images, photos: item.photos?.map((photo) => ({ id: String(photo.id), url: photo.url })), address: item.address, area: item.area, isGoing: item.going,
   }
 }
 
 export async function getEventCategories(): Promise<EventCategoryRecord[]> {
+  const cached = readProfileBundle()?.eventCategories
+  if (cached) return cached
   return apiRequest<EventCategoryRecord[]>('/event-categories')
 }
 
@@ -73,6 +85,52 @@ export async function getMapZones(cityId: number): Promise<MapZone[]> {
       return MAP_ZONES
     }
     throw err
+  }
+}
+
+export async function getMyEventRequests(): Promise<MapEvent[]> {
+  const items = await apiRequest<ApiMapEvent[]>('/me/events')
+  return items.map((item) => ({
+    ...mapApiEvent(item),
+    moderationStatus: item.moderation?.status ?? 'pending',
+    moderationComment: item.moderation?.comment ?? null,
+  }))
+}
+
+export interface OwnEventRecord extends MapEvent {
+  moderationStatus: NonNullable<MapEvent['moderationStatus']>
+  moderationComment: string | null
+}
+
+export async function getOwnEvent(eventId: string): Promise<OwnEventRecord> {
+  const item = await apiRequest<ApiMapEvent>(`/events/${eventId}`)
+  return {
+    ...mapApiEvent(item),
+    moderationStatus: item.moderation?.status ?? 'pending',
+    moderationComment: item.moderation?.comment ?? null,
+  }
+}
+
+export async function uploadOwnPhoto(eventId: string, file: File): Promise<{ id: number; url: string }> {
+  const body = new FormData()
+  body.append('file', file)
+  return apiUpload<{ id: number; url: string }>(`/events/${eventId}/photos`, body)
+}
+
+export async function deleteOwnPhoto(eventId: string, photoId: string): Promise<void> {
+  await apiRequest(`/events/${eventId}/photos/${photoId}`, { method: 'DELETE' })
+}
+
+export async function orderOwnPhotos(eventId: string, photoIds: string[]): Promise<void> {
+  await apiRequest(`/events/${eventId}/photos/order`, { method: 'PUT', body: JSON.stringify({ photo_ids: photoIds.map(Number) }) })
+}
+
+export async function updateOwnEvent(eventId: string, body: Record<string, unknown>): Promise<OwnEventRecord> {
+  const item = await apiRequest<ApiMapEvent>(`/events/${eventId}`, { method: 'PATCH', body: JSON.stringify(body) })
+  return {
+    ...mapApiEvent(item),
+    moderationStatus: item.moderation?.status ?? 'pending',
+    moderationComment: item.moderation?.comment ?? null,
   }
 }
 

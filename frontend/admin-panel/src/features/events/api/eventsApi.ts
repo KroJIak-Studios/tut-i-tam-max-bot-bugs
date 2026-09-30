@@ -30,11 +30,11 @@ export function formatEventApiError(err: unknown, defaultMessage: string): strin
     if (err.message === 'invalid_chat_link') {
       return 'Некорректный формат ссылки на чат MAX. Ожидается ссылка вида max.ru/join/...'
     }
-    if (err.message === 'bot_token_missing') {
-      return 'Интеграция с ботом MAX не настроена на сервере (отсутствует токен).'
+    if (err.message === 'chat_already_used') {
+      return 'Эта ссылка уже привязана к другому мероприятию.'
     }
     if (err.message === 'event_photo_limit') {
-      return 'Достигнут лимит фотографий: для одного мероприятия разрешено не более 3 фото.'
+      return 'Достигнут лимит фотографий: для одного мероприятия разрешено не более 10 фото.'
     }
     if (err.message === 'photo_not_found') {
       return 'Фотография не найдена или уже удалена.'

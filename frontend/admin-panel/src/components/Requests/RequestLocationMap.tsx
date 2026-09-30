@@ -46,11 +46,12 @@ export const RequestLocationMap: React.FC<RequestLocationMapProps> = ({
       zoom: 14,
       zoomControl: true,
       attributionControl: true,
-      scrollWheelZoom: false,
+      scrollWheelZoom: true,
     })
 
     // Remove Leaflet branding, keep mandatory OpenStreetMap attribution
     map.attributionControl.setPrefix('')
+    map.getContainer().addEventListener('wheel', (event) => event.stopPropagation())
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,

@@ -1,6 +1,6 @@
 import secrets
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +24,6 @@ from app.schemas.profile import CityCreate, InterestCreate, InterestPatch
 from app.services.admin_auth_service import AdminAuthService
 from app.services.admin_stats_service import AdminStatsService
 from app.services.events_service import EventsService
-from app.services.max_chat_service import MaxChatService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -165,8 +164,13 @@ async def get_admin_event(event_id: int, session: AsyncSession = Depends(get_ses
 
 
 @router.patch("/events/{event_id}", dependencies=[Depends(require_admin)])
-async def update_admin_event(event_id: int, data: AdminEventPatch, session: AsyncSession = Depends(get_session)):
-    return await EventsService(session).update_event(event_id, data)
+async def update_admin_event(
+    event_id: int,
+    data: AdminEventPatch,
+    background: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
+):
+    return await EventsService(session).update_event(event_id, data, background)
 
 
 @router.delete("/events/{event_id}", status_code=204, dependencies=[Depends(require_admin)])
@@ -176,8 +180,7 @@ async def delete_admin_event(event_id: int, session: AsyncSession = Depends(get_
 
 @router.post("/events/{event_id}/chat", dependencies=[Depends(require_admin)])
 async def check_event_chat(event_id: int, data: AdminChatCheck, session: AsyncSession = Depends(get_session)):
-    result = await MaxChatService().check(data.chat_invite_url)
-    return await EventsService(session).connect_chat(event_id, data.chat_invite_url, result)
+    return await EventsService(session).connect_chat(event_id, data.chat_invite_url)
 
 
 @router.post("/events/{event_id}/photos", status_code=201, dependencies=[Depends(require_admin)])

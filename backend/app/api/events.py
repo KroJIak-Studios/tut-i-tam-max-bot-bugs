@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, Request, UploadFile
 from sqlalchemy import delete, exists, func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ from app.models.event import City, CityName, Event, EventAttendance, EventView, 
 from app.models.event_category import EventCategory, EventCategoryName
 from app.models.profile import Interest, InterestName, Locale, UserInterest
 from app.models.user import MaxUser
-from app.schemas.events import EventCreate, ReviewCreate, UserEventUpdate
+from app.schemas.events import ChatLink, EventCreate, PhotoOrder, ReviewCreate, UserEventUpdate
 from app.schemas.profile import MePatch
 from app.services.catalog_service import CatalogService
 from app.services.events_service import EventsService
@@ -187,6 +187,36 @@ async def update_own_event(event_id: int, data: UserEventUpdate, context: tuple[
     return await EventsService(session).update_own_event(user, event_id, data)
 
 
+@router.post("/events/{event_id}/photos", status_code=201)
+async def upload_own_photo(event_id: int, file: UploadFile = File(...), context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    return await EventsService(session).add_own_photo(user, event_id, file)
+
+
+@router.put("/events/{event_id}/photos/order")
+async def order_own_photos(event_id: int, data: PhotoOrder, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    return await EventsService(session).order_own_photos(user, event_id, data.photo_ids)
+
+
+@router.delete("/events/{event_id}/photos/{photo_id}", status_code=204)
+async def delete_own_photo(event_id: int, photo_id: int, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    await EventsService(session).delete_own_photo(user, event_id, photo_id)
+
+
+@router.post("/events/{event_id}/chat")
+async def connect_own_chat(event_id: int, data: ChatLink, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    return await EventsService(session).connect_own_chat(user, event_id, data.chat_invite_url)
+
+
+@router.delete("/events/{event_id}", status_code=204)
+async def cancel_own_event(event_id: int, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
+    session, user = context
+    await EventsService(session).cancel_own_event(user, event_id)
+
+
 @router.get("/events/{event_id}")
 async def get_event(event_id: int, context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
     session, user = context
@@ -218,7 +248,7 @@ async def cancel_attendance(event_id: int, context: tuple[AsyncSession, MaxUser]
 async def list_attendances(when: str = Query(pattern="^(upcoming|past)$"), context: tuple[AsyncSession, MaxUser] = Depends(current_user)):
     session, user = context
     now = datetime.now(timezone.utc)
-    statement = select(Event).join(EventAttendance).where(EventAttendance.user_id == user.id)
+    statement = select(Event).join(EventAttendance).where(EventAttendance.user_id == user.id, Event.visible.is_(True))
     statement = statement.where(Event.starts_at >= now if when == "upcoming" else Event.starts_at < now)
     rows = (await session.scalars(statement.order_by(Event.starts_at))).all()
     service = EventsService(session)

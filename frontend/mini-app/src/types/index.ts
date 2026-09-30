@@ -1,6 +1,6 @@
 export type NavTabId = 'home' | 'chat' | 'map' | 'plans' | 'profile'
 
-export type ActionIcon = 'grid' | 'calendar' | 'location' | 'heart'
+export type ActionIcon = 'grid' | 'calendar' | 'location' | 'heart' | 'plus'
 export type ActionTheme = 'purple' | 'orange' | 'green' | 'pink'
 
 export interface HomeActionItem {
@@ -59,12 +59,15 @@ export interface MapEvent {
   source: 'external' | 'user'
   image?: string
   images?: string[]
+  photos?: Array<{ id: string; url: string }>
   address?: string
   reviews?: EventReview[]
   isPast?: boolean
   visitedDate?: string
   aliasIds?: string[]
   area?: [number, number][]
+  moderationStatus?: 'pending' | 'approved' | 'rejected' | 'changes_requested'
+  moderationComment?: string | null
 }
 
 export interface MapZone {

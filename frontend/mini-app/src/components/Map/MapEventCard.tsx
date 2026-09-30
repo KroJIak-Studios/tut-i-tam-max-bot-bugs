@@ -49,9 +49,6 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
             {isActiveNow && (
               <span className={styles.activeNowBadge}>{t('events.happeningNow', 'Идёт сейчас')}</span>
             )}
-            {event.source === 'user' && (
-              <span className={styles.userBadge}>{t('events.userAdded')}</span>
-            )}
             <h2 className={styles.title}>{event.title}</h2>
           </div>
         </div>
@@ -61,7 +58,7 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
             <span className={styles.infoIcon}>
               <IconClock size={15} color="currentColor" />
             </span>
-            <span>{dateTimeText}</span>
+            <span className={styles.dateText}>{dateTimeText}</span>
           </div>
 
           <div className={styles.infoItem}>

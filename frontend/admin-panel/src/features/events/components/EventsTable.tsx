@@ -1,5 +1,5 @@
 import React from 'react'
-import { Eye, Image as ImageIcon, Pencil, CheckCircle2, XCircle } from 'lucide-react'
+import { Image as ImageIcon, Pencil, CheckCircle2, XCircle } from 'lucide-react'
 import {
   formatEventDateTime,
   formatEventPrice,
@@ -18,18 +18,16 @@ interface EventsTableProps {
   events: AdminEventItem[]
   cities: City[]
   categories: EventCategory[]
-  onOpenDetail: (event: AdminEventItem) => void
-  onOpenPhotos: (event: AdminEventItem) => void
   onEdit: (event: AdminEventItem) => void
+  onToggleVisible: (event: AdminEventItem) => void
 }
 
 export const EventsTable: React.FC<EventsTableProps> = ({
   events,
   cities,
   categories,
-  onOpenDetail,
-  onOpenPhotos,
   onEdit,
+  onToggleVisible,
 }) => {
   return (
     <div className={styles.tableWrapper}>
@@ -57,7 +55,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
             const firstPhoto = getFirstImageUrl(event.images)
 
             return (
-              <tr key={event.id} className={styles.tr}>
+              <tr key={event.id} className={styles.tr} onClick={() => onEdit(event)}>
                 <td className={styles.td}>
                   <div className={styles.eventCell}>
                     {firstPhoto ? (
@@ -146,29 +144,18 @@ export const EventsTable: React.FC<EventsTableProps> = ({
                     <button
                       type="button"
                       className={styles.iconBtn}
-                      onClick={() => onOpenDetail(event)}
-                      title="Просмотреть подробности"
-                      aria-label={`Подробности: ${event.title}`}
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.iconBtn}
-                      onClick={() => onOpenPhotos(event)}
-                      title={`Управление фото (${event.images?.length || 0})`}
-                      aria-label={`Фото: ${event.title}`}
-                    >
-                      <ImageIcon size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.iconBtn}
-                      onClick={() => onEdit(event)}
+                      onClick={(click) => { click.stopPropagation(); onEdit(event) }}
                       title="Редактировать"
                       aria-label={`Редактировать: ${event.title}`}
                     >
                       <Pencil size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.iconBtn}
+                      onClick={(click) => { click.stopPropagation(); onToggleVisible(event) }}
+                    >
+                      {event.visible ? 'Показан' : 'Скрыт'}
                     </button>
                   </div>
                 </td>

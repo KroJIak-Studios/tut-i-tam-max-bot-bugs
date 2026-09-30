@@ -13,7 +13,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 320px;
   background-color: #EEF2F6;
   border-radius: 9999px;
   padding: 3px;
@@ -25,20 +24,13 @@
   position: absolute;
   top: 3px;
   bottom: 3px;
-  width: calc(50% - 3px);
+  left: 3px;
+  width: calc((100% - 6px) / 3);
   background-color: #111827;
   border-radius: 9999px;
   box-shadow: 0 2px 8px rgba(17, 24, 39, 0.2);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
-}
-
-.sliderIndicatorLeft {
-  transform: translateX(0);
-}
-
-.sliderIndicatorRight {
-  transform: translateX(100%);
 }
 
 .tabBtn {
@@ -53,7 +45,7 @@
   border: none;
   background: transparent;
   color: #6B7280;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   cursor: pointer;
   border-radius: 9999px;

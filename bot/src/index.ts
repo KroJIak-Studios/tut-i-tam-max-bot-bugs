@@ -18,7 +18,7 @@ const pending = new PendingMessageRegistry(backend)
 const startService = new StartService(backend, config.fallbackLocale, pending)
 const settings = new SettingsService(backend, pending, config.fallbackLocale)
 const meetings = new MeetingsService(backend, pending, config.fallbackLocale, config.backendUrl)
-const nearby = new NearbyService(backend, pending, config.fallbackLocale, startService)
+const nearby = new NearbyService(backend, pending, config.fallbackLocale, startService, meetings)
 const assistant = new AssistantChatService(backend, config.fallbackLocale, startService)
 
 bot.on('message_callback', async (ctx, next) => {
@@ -38,10 +38,39 @@ bot.on('message_callback', async (ctx, next) => {
   await next()
 })
 
+bot.catch((error, ctx) => {
+  console.error('BOT_UPDATE_FAILED', {
+    type: ctx.updateType,
+    chatId: ctx.chatId ?? null,
+    userId: ctx.user?.user_id ?? null,
+    error: error instanceof Error ? error.stack ?? error.message : String(error),
+  })
+})
+
+bot.use(async (ctx, next) => {
+  console.info('BOT_UPDATE_RECEIVED', {
+    type: ctx.updateType,
+    chatId: ctx.chatId ?? null,
+    userId: ctx.user?.user_id ?? null,
+    text: ctx.message?.body.text ?? null,
+    at: new Date().toISOString(),
+  })
+  await next()
+  console.info('BOT_UPDATE_HANDLED', { type: ctx.updateType, chatId: ctx.chatId ?? null })
+})
+
 bot.on('bot_started', async (ctx) => {
+  console.info('BOT_STARTED_RECEIVED', {
+    chatId: ctx.chatId ?? null,
+    userId: ctx.user?.user_id ?? null,
+    locale: 'user_locale' in ctx.update ? ctx.update.user_locale ?? null : null,
+    payload: ctx.startPayload ?? null,
+  })
   await assistant.leaveForStart(ctx)
+  console.info('BOT_STARTED_ASSISTANT_LEFT', { chatId: ctx.chatId ?? null })
   const locale = ctx.update.user_locale
   await startService.handleStart(ctx, true, locale ? String(locale) : undefined)
+  console.info('BOT_STARTED_WELCOME_SENT', { chatId: ctx.chatId ?? null })
 })
 
 bot.command('start', async (ctx) => {

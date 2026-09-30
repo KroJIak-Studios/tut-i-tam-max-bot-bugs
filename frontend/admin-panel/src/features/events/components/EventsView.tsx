@@ -14,9 +14,7 @@ import { EventsHeader } from './EventsHeader'
 import { EventsFilters } from './EventsFilters'
 import { EventsCard } from './EventsCard'
 import { EventsTable } from './EventsTable'
-import { EventDetailModal } from './EventDetailModal'
 import { EventFormModal } from './EventFormModal'
-import { EventPhotosModal } from './EventPhotosModal'
 import styles from './EventsView.module.css'
 
 export const EventsView: React.FC = () => {
@@ -27,27 +25,18 @@ export const EventsView: React.FC = () => {
     stats,
     isLoading,
     error,
+    visibilityError,
     filters,
     page,
     total,
     totalPages,
-    selectedEvent,
-    isDetailOpen,
-    isLoadingDetail,
-    isPhotosModalOpen,
-    isMutatingPhoto,
-    photosError,
     setPage,
     refresh,
     updateFilters,
     resetFilters,
-    openDetail,
-    closeDetail,
-    openPhotosModal,
-    closePhotosModal,
-    uploadPhoto,
-    deletePhoto,
+    toggleVisible,
   } = useEvents()
+  const edit = (event: AdminEventItem) => { setEditedEvent(event); setIsFormOpen(true) }
 
   // Default to cards on small screens, table on larger screens
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
@@ -110,6 +99,9 @@ export const EventsView: React.FC = () => {
         </div>
       ) : (
         <>
+          {visibilityError && (
+            <p className={styles.inlineError} role="alert">{visibilityError}</p>
+          )}
           <div className={styles.viewControlsRow}>
             <div className={styles.countGroup}>
               <span className={styles.countLabel}>
@@ -154,9 +146,8 @@ export const EventsView: React.FC = () => {
               events={events}
               cities={cities}
               categories={categories}
-              onOpenDetail={openDetail}
-              onOpenPhotos={openPhotosModal}
-              onEdit={(event) => { setEditedEvent(event); setIsFormOpen(true) }}
+              onEdit={edit}
+              onToggleVisible={toggleVisible}
             />
           ) : (
             <div className={styles.cardsGrid}>
@@ -166,9 +157,8 @@ export const EventsView: React.FC = () => {
                   event={event}
                   cities={cities}
                   categories={categories}
-                  onOpenDetail={openDetail}
-                  onOpenPhotos={openPhotosModal}
-                  onEdit={(event) => { setEditedEvent(event); setIsFormOpen(true) }}
+                  onEdit={edit}
+                  onToggleVisible={toggleVisible}
                 />
               ))}
             </div>
@@ -212,20 +202,6 @@ export const EventsView: React.FC = () => {
       )}
 
       {/* Event Details Modal */}
-      <EventDetailModal
-        event={selectedEvent}
-        isOpen={isDetailOpen}
-        isLoading={isLoadingDetail}
-        cities={cities}
-        categories={categories}
-        onClose={closeDetail}
-        onUploadPhoto={uploadPhoto}
-        onDeletePhoto={deletePhoto}
-        isMutatingPhoto={isMutatingPhoto}
-        photosError={photosError}
-      />
-
-      {/* Event Photos Modal */}
       <EventFormModal
         event={editedEvent}
         isOpen={isFormOpen}
@@ -233,17 +209,6 @@ export const EventsView: React.FC = () => {
         categories={categories}
         onClose={() => setIsFormOpen(false)}
         onSaved={refresh}
-      />
-
-      <EventPhotosModal
-        key={selectedEvent ? `photos-${selectedEvent.id}-${isPhotosModalOpen}` : 'photos-none'}
-        event={selectedEvent}
-        isOpen={isPhotosModalOpen}
-        isMutating={isMutatingPhoto}
-        error={photosError}
-        onClose={closePhotosModal}
-        onUpload={uploadPhoto}
-        onDelete={deletePhoto}
       />
     </div>
   )

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getEventById, submitEventReview } from '../../services/eventService'
+import { cancelOwnEvent, connectEventChat, getEventById, submitEventReview } from '../../services/eventService'
+import { ApiError } from '../../services/api'
 import { useAttendance } from '../../context/useAttendance'
 import { useReviews } from '../../context/useReviews'
-import { useUserPreferences } from '../../context/useUserPreferences'
 import { formatEventDateTime, formatEventDateTimeRange, formatPrice } from '../../utils/formatters'
+import { getEventStartDate } from '../../utils/eventTime'
 import { isEventActiveAt } from '../../utils/eventTime'
 import {
   IconChevronLeft,
@@ -32,11 +33,14 @@ export const EventDetailsPage: React.FC = () => {
 
   const { isGoing, toggleAttendance, removeAttendance } = useAttendance()
   const { getReview, submitReview } = useReviews()
-  const { preferences } = useUserPreferences()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [chatUrl, setChatUrl] = useState('')
+  const [chatMessage, setChatMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [chatSaving, setChatSaving] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [event, setEvent] = useState<Awaited<ReturnType<typeof getEventById>> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -71,7 +75,11 @@ export const EventDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (!eventId) { setLoading(false); return }
-    getEventById(eventId).then(setEvent).catch(() => setEvent(null)).finally(() => setLoading(false))
+    getEventById(eventId).then((item) => {
+      setEvent(item)
+      setChatUrl(item.chatInviteUrl || '')
+      setChatMessage(item.chatConnected ? { ok: true, text: '' } : null)
+    }).catch(() => setEvent(null)).finally(() => setLoading(false))
   }, [eventId])
 
   if (loading) return <div className={styles.pageContainer} />
@@ -174,22 +182,33 @@ export const EventDetailsPage: React.FC = () => {
     showToast(t('plans.reviewThanksToast'))
   }
 
-  const handleOpenEventChat = () => {
-    showToast(t('chat.eventChatToast'))
+  const connectChat = async () => {
+    if (!event || chatSaving) return
+    setChatSaving(true)
+    try {
+      await connectEventChat(event.id, chatUrl.trim())
+      setEvent({ ...event, chatConnected: true, chatInviteUrl: chatUrl.trim() })
+      setChatMessage({ ok: true, text: t('eventDetails.owner.connected') })
+    } catch (error) {
+      const detail = error instanceof ApiError ? error.detail : undefined
+      const text = detail === 'chat_already_used'
+        ? t('eventDetails.owner.alreadyUsed')
+        : t('eventDetails.owner.invalidLink')
+      setChatMessage({ ok: false, text })
+    } finally {
+      setChatSaving(false)
+    }
+  }
+
+  const confirmCancelEvent = async () => {
+    if (!event) return
+    await cancelOwnEvent(event.id)
+    navigate('/plans')
   }
 
   // External Maps URLs
-  const yandexMapsUrl = `https://yandex.ru/maps/?pt=${event.longitude},${event.latitude}&z=16&text=${encodeURIComponent(event.title)}`
-  const dgisUrl = `https://2gis.ru/geo/${event.longitude},${event.latitude}`
-
-  const handleOpenPreferredMap = () => {
-    const provider = preferences.defaultMapProvider || 'yandex'
-    if (provider === '2gis') {
-      window.open(dgisUrl, '_blank', 'noopener,noreferrer')
-    } else {
-      window.open(yandexMapsUrl, '_blank', 'noopener,noreferrer')
-    }
-  }
+  const yandexMapsUrl = `https://yandex.ru/maps/?ll=${event.longitude},${event.latitude}&pt=${event.longitude},${event.latitude}&z=16`
+  const dgisUrl = `https://2gis.ru/geo/${event.longitude}%2C${event.latitude}?m=${event.longitude}%2C${event.latitude}%2F16`
 
   const rawPastDate = event.visitedDate
     ? event.visitedDate.replace(/^Были\s+/i, '')
@@ -340,6 +359,10 @@ export const EventDetailsPage: React.FC = () => {
                   </button>
                 )}
               </div>
+            ) : event.owned ? (
+              <button type="button" className={styles.cancelEventBtn} onClick={() => setCancelOpen(true)}>
+                {t('eventDetails.owner.cancelEvent')}
+              </button>
             ) : (
               <button
                 type="button"
@@ -374,23 +397,13 @@ export const EventDetailsPage: React.FC = () => {
                 <button
                   type="button"
                   className={styles.onMapAppBtn}
-                  onClick={() => navigate(`/map?event=${event.id}`)}
+                  onClick={() => navigate(`/map?event=${event.id}&date=${getEventStartDate(event)}&lat=${event.latitude}&lng=${event.longitude}`)}
                 >
                   <IconLocationPin size={15} color="currentColor" />
                   <span>{t('eventDetails.showOnMap')}</span>
                 </button>
               )}
 
-              {/* Preferred Map Provider Button */}
-              <button
-                type="button"
-                className={styles.openPreferredMapBtn}
-                onClick={handleOpenPreferredMap}
-              >
-                <span>{t('eventDetails.openInPreferredMap', { provider: preferences.defaultMapProvider === '2gis' ? (i18n.language.startsWith('en') ? '2GIS' : '2ГИС') : (i18n.language.startsWith('en') ? 'Yandex Maps' : 'Яндекс Картах') })}</span>
-              </button>
-
-              {/* External Maps Links */}
               <div className={styles.mapsActionsGrid}>
                 <a
                   href={yandexMapsUrl}
@@ -412,17 +425,30 @@ export const EventDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Event Chat */}
+          {(event.owned || (event.chatConnected && event.chatInviteUrl)) && (
           <div className={styles.card}>
-            <button
-              type="button"
-              className={styles.eventChatBtn}
-              onClick={handleOpenEventChat}
-            >
-              <IconChat size={18} color="currentColor" />
-              <span>{t('chat.eventChat')}</span>
-            </button>
+            {event.owned ? (
+              <div className={styles.chatLinkBox}>
+                <h2 className={styles.cardSectionTitle}>{t('eventDetails.owner.chatTitle')}</h2>
+                <p className={styles.chatHelp}>{t('eventDetails.owner.chatHelp')}</p>
+                <div className={styles.chatLinkRow}>
+                  <input value={chatUrl} onChange={(item) => setChatUrl(item.target.value)} placeholder="https://max.ru/join/..." />
+                  <button type="button" onClick={() => void connectChat()} disabled={chatSaving || !chatUrl.trim()}>{chatSaving ? t('eventDetails.owner.connecting') : t('eventDetails.owner.connect')}</button>
+                </div>
+                {chatMessage?.text && (
+                  <div className={chatMessage.ok ? styles.chatSuccess : styles.chatMissing} role="status">
+                    {chatMessage.text}
+                  </div>
+                )}
+              </div>
+            ) : event.chatConnected && event.chatInviteUrl ? (
+              <a className={styles.eventChatBtn} href={event.chatInviteUrl} target="_blank" rel="noopener noreferrer">
+                <IconChat size={18} color="currentColor" />
+                <span>{t('chat.eventChat')}</span>
+              </a>
+            ) : null}
           </div>
+          )}
 
           {/* Reviews List */}
           <div className={styles.card}>
@@ -493,7 +519,7 @@ export const EventDetailsPage: React.FC = () => {
 
               {!userReview && allReviews.length === 0 && (
                 <div className={styles.emptyReviews}>
-                  {t('reviews.noReviewsYet')}
+                  {event.isPast ? t('reviews.noReviewsYet') : t('reviews.beforeEvent')}
                 </div>
               )}
             </div>
@@ -521,6 +547,19 @@ export const EventDetailsPage: React.FC = () => {
         onClose={() => setIsRemoveModalOpen(false)}
         onConfirm={handleConfirmRemove}
       />
+
+      {cancelOpen && (
+        <div className={styles.confirmOverlay} role="dialog" aria-modal="true" onClick={() => setCancelOpen(false)}>
+          <div className={styles.confirmSheet} onClick={(item) => item.stopPropagation()}>
+            <h3>{t('eventDetails.owner.cancelTitle')}</h3>
+            <p>{t('eventDetails.owner.cancelDescription', { title: event.title })}</p>
+            <div className={styles.confirmActions}>
+              <button type="button" onClick={() => setCancelOpen(false)}>{t('common.cancel')}</button>
+              <button type="button" className={styles.confirmDanger} onClick={() => void confirmCancelEvent()}>{t('eventDetails.owner.cancelConfirm')}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ReviewModal
         event={

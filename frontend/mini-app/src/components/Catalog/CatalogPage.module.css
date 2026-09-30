@@ -167,3 +167,26 @@
   border: none;
   cursor: pointer;
 }
+
+.createFab {
+  position: fixed;
+  z-index: 110;
+  right: max(16px, calc((100vw - var(--app-max-width, 500px)) / 2 + 16px));
+  bottom: calc(50px + max(env(safe-area-inset-bottom, 0px), 12px) + 16px);
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #2563EB);
+  color: #FFFFFF;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.32);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.createFab:active {
+  transform: scale(0.96);
+}

@@ -93,7 +93,7 @@ class BotMeetingsService:
             longitude=event.longitude,
             starts_at=event.starts_at,
             ends_at=event.ends_at,
-            chat_invite_url=event.chat_invite_url if event.chat_max_id is not None else None,
+            chat_invite_url=event.chat_invite_url,
             price_rub=official.price_rub if official is not None else None,
             pushkin_card=official.pushkin_card if official is not None else False,
             images=[
@@ -102,7 +102,7 @@ class BotMeetingsService:
                     url=MediaStorage().public_url(photo.storage_key),
                     max_image_token=photo.max_image_token,
                 )
-                for photo in photos
+                for photo in photos[:3]
             ],
             attendees_count=sum(attendee_id != author_id for attendee_id in attendee_ids),
             going=user_id in attendee_ids,
