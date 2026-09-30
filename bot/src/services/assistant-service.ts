@@ -14,6 +14,8 @@ interface MenuMessage {
   text: string
   phrases: string[]
   chosen: number | null
+  actions: { label: string; path: string }[]
+  location: boolean
 }
 
 const LAST_MENU = new Map<number, MenuMessage>()
@@ -26,17 +28,21 @@ export class AssistantChatService {
     private readonly menu: StartService,
   ) {}
 
+  private botUsername: string | null = null
+
   async open(ctx: Context): Promise<void> {
     const profile = await this.loadProfile(ctx)
     ACTIVE_CHATS.add(profile.chatId)
     const i18n = await this.i18n(profile)
     const key = GREETING_KEYS[Math.floor(Math.random() * GREETING_KEYS.length)] ?? GREETING_KEYS[0]
     const text = i18n.translate(key)
-    await this.detachMenu(ctx, profile.chatId, i18n)
-    const sent = await ctx.reply(text, this.keyboard(i18n, []))
-    LAST_MENU.set(profile.chatId, { id: sent.body.mid, text, phrases: [], chosen: null })
+    const botName = await this.botName(ctx)
+    await this.detachMenu(ctx, profile.chatId)
+    const sent = await ctx.reply(text, this.keyboard(i18n, [], [], false, botName))
+    LAST_MENU.set(profile.chatId, { id: sent.body.mid, text, phrases: [], chosen: null, actions: [], location: false })
     await this.backend.trackPendingMessage(profile.chatId, sent.body.mid)
     GREETING_MESSAGES.set(profile.chatId, sent.body.mid)
+    await this.backend.assistantTurn(profile, '', null, true)
   }
 
   isActive(chatId: number | undefined): boolean {
@@ -44,6 +50,7 @@ export class AssistantChatService {
   }
 
   async handleText(ctx: Context, text: string): Promise<void> {
+    await this.clearUnchosenMenu(ctx)
     await this.answer(ctx, text, null)
   }
 
@@ -109,16 +116,32 @@ export class AssistantChatService {
       await this.backend.removePendingMessage(profile.chatId, greetingId)
     }
     const i18n = await this.i18n(profile)
+    const botName = await this.botName(ctx)
     await ctx.sendAction('typing_on')
     const turn = await this.backend.assistantTurn(profile, text, location)
-    await this.detachMenu(ctx, profile.chatId, i18n)
+    await this.detachMenu(ctx, profile.chatId)
     const phrases = turn.status === 'location_required' ? [] : turn.suggestions.slice(0, 4)
-    const sent = await ctx.reply(turn.text, this.keyboard(i18n, phrases))
-    LAST_MENU.set(profile.chatId, { id: sent.body.mid, text: turn.text, phrases, chosen: null })
+    const actions = turn.actions ?? []
+    const rendered = this.linkedText(turn.text, botName)
+    const locationRequest = turn.status === 'location_required'
+    const sent = await ctx.reply(rendered, this.keyboard(i18n, phrases, actions, locationRequest, botName))
+    LAST_MENU.set(profile.chatId, { id: sent.body.mid, text: rendered, phrases, chosen: null, actions, location: locationRequest })
     if (phrases.length) SUGGESTIONS.set(sent.body.mid, phrases)
   }
 
-  private async detachMenu(ctx: Context, chatId: number, i18n: I18n): Promise<void> {
+  private async clearUnchosenMenu(ctx: Context): Promise<void> {
+    if (ctx.chatId === undefined || ctx.chatId === null) return
+    const previous = LAST_MENU.get(ctx.chatId)
+    if (!previous || previous.chosen !== null) return
+    LAST_MENU.delete(ctx.chatId)
+    try {
+      await ctx.api.editMessage(previous.id, { text: previous.text, format: 'html', attachments: [] })
+    } catch {
+      return
+    }
+  }
+
+  private async detachMenu(ctx: Context, chatId: number): Promise<void> {
     const previous = LAST_MENU.get(chatId)
     if (!previous) return
     LAST_MENU.delete(chatId)
@@ -134,14 +157,45 @@ export class AssistantChatService {
     } catch {
       return
     }
-    void i18n
   }
 
-  private keyboard(i18n: I18n, suggestions: string[]) {
+  private keyboard(i18n: I18n, suggestions: string[], actions: { label: string; path: string }[], location: boolean, botName: string) {
     const phrases = suggestions.slice(0, 4).map((phrase) => phrase.split(/\s+/).slice(0, 2).join(' '))
-    const rows = this.suggestionRows(phrases)
+    const rows: any[][] = [...this.suggestionRows(phrases)]
+    for (const action of actions.slice(0, 3)) {
+      rows.push([Keyboard.button.openApp(`${this.actionEmoji(action.path)} ${action.label}`, botName, undefined, this.startParam(action.path))])
+    }
+    if (location) rows.push([Keyboard.button.requestGeoLocation(`📍 ${i18n.translate('assistant.share_location')}`, { quick: false })])
     rows.push([Keyboard.button.callback(`🏠 ${i18n.translate('assistant.menu')}`, AssistantAction.Menu)])
     return { format: 'html' as const, attachments: [Keyboard.inlineKeyboard(rows)] }
+  }
+
+  private linkedText(text: string, botName: string): string {
+    return text.replace(/\[([^\]]+)\]\((\/[^)\s]+)\)/g, (_match, label: string, path: string) => {
+      const url = botName ? `https://max.ru/${botName}?startapp=${this.startParam(path)}` : ''
+      return url ? `<a href="${url}">${label}</a>` : label
+    })
+  }
+
+  private startParam(path: string): string {
+    if (path.startsWith('/events/')) return `event-${path.slice('/events/'.length)}`
+    const screen = path.replace(/^\//, '') || 'home'
+    return `screen-${screen}`
+  }
+
+  private actionEmoji(path: string): string {
+    if (path.startsWith('/events/')) return '🎟️'
+    if (path.startsWith('/map')) return '🗺️'
+    if (path.startsWith('/catalog')) return '📚'
+    if (path.startsWith('/plans')) return '📅'
+    return '📱'
+  }
+
+  private async botName(ctx: Context): Promise<string> {
+    if (this.botUsername !== null) return this.botUsername
+    const info = await ctx.api.getMyInfo()
+    this.botUsername = info.username || ''
+    return this.botUsername
   }
 
   private suggestionRows(phrases: string[]) {

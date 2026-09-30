@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { MapEvent, MapFilterState, NavTabId, CatalogSort } from '../../types'
 import { getCatalogEvents, getEventCategories, type EventCategoryRecord } from '../../services/mapService'
-import { getCities, chooseInitialCity } from '../../services/cityService'
+import { getCities } from '../../services/cityService'
 import { useGeolocation } from '../../context/GeolocationContext'
 import { apiRequest } from '../../services/api'
 import { getEventCategoryName, VOLUNTEERING_CATEGORY_CODE } from '../../services/eventCategoryService'
@@ -26,19 +26,19 @@ interface EventWithDistance { event: MapEvent; distanceMeters: number }
 
 export const CatalogPage: React.FC = () => {
   const { t, i18n } = useTranslation()
-  const { point } = useGeolocation()
+  const { point, status, request } = useGeolocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState<MapFilterState>(() => {
     const initial = { ...DEFAULT_FILTERS, dateFilter: 'all' as const, selectedDate: 'all' }
     const pushkin = searchParams.get('pushkin') === 'true'
     const free = searchParams.get('free') === 'true'
-    const categoryId = Number(searchParams.get('category_id'))
     if (pushkin) initial.pushkinCardOnly = true
     if (free) initial.isFreeOnly = true
-    if (Number.isInteger(categoryId) && categoryId > 0) initial.category = categoryId
+    if (searchParams.get('category_code') === VOLUNTEERING_CATEGORY_CODE) initial.category = 'volunteering'
     return initial
   })
+  const categoryCode = searchParams.get('category_code') === VOLUNTEERING_CATEGORY_CODE ? VOLUNTEERING_CATEGORY_CODE : null
   const [rawEvents, setRawEvents] = useState<MapEvent[]>([])
   const [categories, setCategories] = useState<EventCategoryRecord[]>([])
   const [cityId, setCityId] = useState<number | null>(null)
@@ -53,18 +53,10 @@ export const CatalogPage: React.FC = () => {
 
   useEffect(() => {
     let active = true
-    Promise.all([getEventCategories(), getCities(), apiRequest<{ city: { id: number } | null }>('/me'), new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
-      if (!navigator.geolocation) return resolve(null)
-      navigator.geolocation.getCurrentPosition((position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }), () => resolve(null), { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 })
-    })]).then(([categoryItems, cityItems, profile, point]) => {
+    Promise.all([getEventCategories(), getCities(), apiRequest<{ city: { id: number } | null }>('/me')]).then(([categoryItems, cityItems, profile]) => {
       if (!active) return
       setCategories(categoryItems)
-      const categoryCode = searchParams.get('category_code')
-      if (categoryCode === VOLUNTEERING_CATEGORY_CODE) {
-        const volunteering = categoryItems.find((item) => item.code === VOLUNTEERING_CATEGORY_CODE)
-        if (volunteering) setFilters((current) => ({ ...current, category: volunteering.id }))
-      }
-      const selectedCity = profile.city ? cityItems.find((item) => item.id === profile.city?.id) ?? null : chooseInitialCity(cityItems, point ? { ...point, accuracy: 0 } : null)
+      const selectedCity = profile.city ? cityItems.find((item) => item.id === profile.city?.id) ?? null : cityItems[0] ?? null
       setCityId(selectedCity?.id ?? profile.city?.id ?? null)
       if (selectedCity && profile.city?.id !== selectedCity.id) {
         void apiRequest('/me', { method: 'PATCH', body: JSON.stringify({ city_id: selectedCity.id }) })
@@ -81,7 +73,8 @@ export const CatalogPage: React.FC = () => {
     const startsBefore = selectedDate && selectedDate !== 'all' ? `${selectedDate}T23:59:59Z` : undefined
     getCatalogEvents({
       cityId: cityId ?? undefined,
-      categoryId: filters.category === 'all' ? null : filters.category,
+      categoryId: filters.category === 'all' || filters.category === 'volunteering' ? null : filters.category,
+      categoryCode: filters.category === 'volunteering' ? VOLUNTEERING_CATEGORY_CODE : categoryCode,
       source: filters.source,
       free: filters.isFreeOnly ? true : undefined,
       pushkin: filters.pushkinCardOnly ? true : undefined,
@@ -101,7 +94,7 @@ export const CatalogPage: React.FC = () => {
       setLoading(false)
     })
     return () => { active = false }
-  }, [filters, offset, requestVersion, cityId])
+  }, [filters, offset, requestVersion, cityId, categoryCode])
 
   const sortedEvents: EventWithDistance[] = useMemo(() => {
     const userLat = point?.latitude ?? 0
@@ -126,6 +119,10 @@ export const CatalogPage: React.FC = () => {
   }, [])
   const handleApplyFilters = useCallback((newFilters: MapFilterState) => { setOffset(0); setFilters(newFilters) }, [])
   const handleResetFilters = useCallback(() => { setOffset(0); setFilters({ ...DEFAULT_FILTERS, dateFilter: 'all', selectedDate: 'all' }) }, [])
+  const handleSortChange = useCallback((sort: CatalogSort) => {
+    setSortOrder(sort)
+    if (sort === 'distance' && status !== 'watching' && status !== 'requesting') request()
+  }, [request, status])
   const handleCardClick = useCallback((id: string) => navigate(`/events/${id}`), [navigate])
   const handleMapClick = useCallback((id: string) => navigate(`/map?event=${id}`), [navigate])
   const handleTabChange = useCallback((tab: NavTabId) => {
@@ -147,7 +144,7 @@ export const CatalogPage: React.FC = () => {
         <div className={styles.filterBarSection}>
           <CatalogFilterBar selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} allDates={filters.dateFilter === 'all'} isFreeOnly={filters.isFreeOnly} extraFilterCount={extraFilterCount} onOpenDatePicker={() => setIsDatePickerOpen(true)} onToggleFree={handleToggleFree} onOpenFilterSheet={() => setIsFilterSheetOpen(true)} />
         </div>
-        {!loading && !hasError && cityId !== null && eventsWithNames.length > 0 && <div className={styles.listMetaRow}><span className={styles.countText}>{t('catalog.foundEvents', { count: eventsWithNames.length })}</span><CatalogSortDropdown value={sortOrder} onChange={setSortOrder} /></div>}
+        {!loading && !hasError && cityId !== null && eventsWithNames.length > 0 && <div className={styles.listMetaRow}><span className={styles.countText}>{t('catalog.foundEvents', { count: eventsWithNames.length })}</span><CatalogSortDropdown value={sortOrder} onChange={handleSortChange} /></div>}
         {loading && <div className={styles.loadingSkeletonList}>{[1, 2, 3].map((i) => <div key={i} className={styles.skeletonCard}><div className={styles.skeletonImage} /><div className={styles.skeletonContent}><div className={styles.skeletonLineShort} /><div className={styles.skeletonLineTitle} /><div className={styles.skeletonLineMedium} /></div></div>)}</div>}
         {!loading && hasError && <div className={styles.errorContainer} role="alert"><p className={styles.errorText}>{t('catalog.loadError')}</p><button type="button" className={styles.retryBtn} onClick={() => setRequestVersion((value) => value + 1)}>{t('common.retry')}</button></div>}
         {!loading && !hasError && cityId === null && <CatalogEmptyState onResetFilters={handleResetFilters} hasActiveFilters={false} />}

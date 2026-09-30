@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.settings import Settings
@@ -25,9 +25,11 @@ INSTRUCTION = """
 Не выдумывай события, цены и адреса. Если поиск ничего не дал, не сообщай об этом как о неудаче. Мягко спроси, какое настроение, и предложи направления.
 Кнопки под ответом — короткие реплики человека, не команды. Не предлагай «найти событие», «открыть каталог» или «показать карту». Предлагай вкус или настроение: «музыка», «потише», «сегодня», «с друзьями».
 Не предлагай вариант, который обещает готовый результат, если инструмент его не вернул.
-Не проси геолокацию сам. Для поиска рядом вызывай nearby_events без координат.
-В самом конце ответа одна строка JSON: {"suggestions":["до четырёх реплик","не больше двух слов"]}.
-Если уместных реплик нет, верни пустой список.
+Если человек просит что-то рядом, вызывай nearby_events без координат. Не проси точку словами: сервис сам поставит кнопку.
+Если человек спрашивает про свои планы, сначала вызови user_profile. upcoming_meetings — это весь актуальный список, first_meeting — ближайшая одна встреча. На «какие планы» перечисли все, на «что ближайшее» назови только first_meeting.
+Каждое название события делай ссылкой внутри фразы: «вечером [хореография](/events/2)». Не ставь ссылки отдельной строкой и не пиши слово «Подробнее».
+В самом конце одна строка JSON без переносов: {"suggestions":["до четырёх реплик"],"actions":[{"label":"Хореография","path":"/events/2"}]}.
+actions повторяют только те ссылки, которые уже стоят в тексте. Если ссылок нет, верни пустой actions.
 """.strip()
 
 
@@ -43,8 +45,13 @@ class AssistantService:
         text: str,
         location: dict[str, float] | None = None,
         channel: str = "bot",
+        new_conversation: bool = False,
     ) -> dict[str, Any]:
         user = await self._access.ensure_user(request)
+        if new_conversation:
+            await self._delete_sessions(user.id, channel)
+            if not text and location is None:
+                return {"status": "answer", "text": "", "suggestions": [], "actions": []}
         conversation = await self._active_session(user.id, channel)
         waiting = await self._session.scalar(select(AssistantWait).where(AssistantWait.session_id == conversation.id))
         if waiting and waiting.expires_at < datetime.now(timezone.utc):
@@ -74,10 +81,10 @@ class AssistantService:
             tool_calls = reply.get("tool_calls") or []
             content = reply.get("content") or ""
             if not tool_calls:
-                text, suggestions = self._split(content)
+                text, suggestions, actions = self._split(content)
                 await self._add(conversation.id, "assistant", text)
                 await self._session.commit()
-                return {"status": "answer", "text": text, "suggestions": suggestions, "actions": []}
+                return {"status": "answer", "text": text, "suggestions": suggestions, "actions": actions}
             await self._add(conversation.id, "assistant", content, tool_calls=tool_calls)
             messages.append({"role": "assistant", "content": content, "tool_calls": tool_calls})
             for call in tool_calls:
@@ -94,7 +101,7 @@ class AssistantService:
                     )
                     self._session.add(wait)
                     await self._session.commit()
-                    return {"status": "location_required", "text": "Скиньте точку, и я посмотрю, что рядом.", "suggestions": [], "actions": []}
+                    return {"status": "location_required", "text": "Чтобы подобрать рядом, нужна ваша точка.", "suggestions": [], "actions": []}
                 result = await call_tool(self._session, user, name, arguments)
                 await self._add(conversation.id, "tool", json.dumps(result, ensure_ascii=False), tool_call_id=call.get("id"), tool_name=name)
                 messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": json.dumps(result, ensure_ascii=False)})
@@ -139,6 +146,15 @@ class AssistantService:
         await self._session.refresh(row)
         return row
 
+    async def _delete_sessions(self, user_id: int, channel: str) -> None:
+        await self._session.execute(
+            delete(AssistantSession).where(
+                AssistantSession.user_id == user_id,
+                AssistantSession.channel == channel,
+            )
+        )
+        await self._session.commit()
+
     async def _messages(self, session_id: int) -> list[dict[str, Any]]:
         rows = list(await self._session.scalars(
             select(AssistantMessage).where(AssistantMessage.session_id == session_id).order_by(AssistantMessage.id)
@@ -173,15 +189,39 @@ class AssistantService:
             return {}
         return parsed if isinstance(parsed, dict) else {}
 
-    def _split(self, content: str) -> tuple[str, list[str]]:
+    def _split(self, content: str) -> tuple[str, list[str], list[dict[str, str]]]:
         text = content.strip()
-        start = text.rfind("{")
-        if start == -1:
-            return text, []
-        try:
-            payload = json.loads(text[start:])
-        except json.JSONDecodeError:
-            return text, []
-        suggestions = payload.get("suggestions", []) if isinstance(payload, dict) else []
+        suggestions_at = text.rfind('{"suggestions"')
+        if suggestions_at == -1:
+            suggestions_at = text.rfind("{'suggestions'")
+        candidate = text[suggestions_at:] if suggestions_at != -1 else ""
+        payload = self._json_object(candidate)
+        if payload is None:
+            start = text.rfind("{")
+            payload = self._json_object(text[start:]) if start != -1 else None
+            suggestions_at = start
+        if payload is None or suggestions_at == -1:
+            return text, [], []
+        suggestions = payload.get("suggestions", [])
         phrases = [phrase.strip() for phrase in suggestions if isinstance(phrase, str) and phrase.strip()][:4]
-        return text[:start].strip(), [phrase for phrase in phrases if len(phrase.split()) <= 2]
+        phrases = [phrase for phrase in phrases if len(phrase.split()) <= 2]
+        actions = []
+        for item in payload.get("actions", []):
+            if not isinstance(item, dict):
+                continue
+            label = str(item.get("label", "")).strip()
+            path = str(item.get("path", "")).strip()
+            if label and path.startswith("/") and self._known_path(path):
+                actions.append({"label": label[:40], "path": path[:120]})
+        return text[:suggestions_at].strip(), phrases, actions[:4]
+
+    def _json_object(self, text: str) -> dict[str, Any] | None:
+        try:
+            decoder = json.JSONDecoder()
+            payload, _ = decoder.raw_decode(text)
+        except json.JSONDecodeError:
+            return None
+        return payload if isinstance(payload, dict) and "suggestions" in payload else None
+
+    def _known_path(self, path: str) -> bool:
+        return path in {"/", "/catalog", "/map", "/plans"} or path.startswith("/events/")

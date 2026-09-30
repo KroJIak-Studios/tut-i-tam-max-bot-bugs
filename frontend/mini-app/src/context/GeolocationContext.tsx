@@ -77,6 +77,7 @@ export const GeolocationProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [stopWatching])
 
   const request = useCallback(() => {
+    mapIsActiveRef.current = true
     startWatching()
   }, [startWatching])
 

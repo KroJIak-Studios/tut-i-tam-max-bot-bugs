@@ -28,6 +28,7 @@ export interface AssistantTurn {
   status: 'answer' | 'location_required'
   text: string
   suggestions: string[]
+  actions: { label: string; path: string }[]
 }
 
 export interface BotMeetingPhoto {
@@ -194,12 +195,14 @@ export class BackendClient {
     input: UserProfileInput,
     text: string,
     location: { latitude: number; longitude: number } | null,
+    newConversation = false,
   ): Promise<AssistantTurn> {
     return this.request<AssistantTurn>('/api/assistant/turns', {
       ...this.identity(input),
       channel: 'bot',
       text,
       location,
+      new_conversation: newConversation,
     })
   }
 

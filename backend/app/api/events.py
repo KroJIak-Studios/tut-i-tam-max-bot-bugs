@@ -132,6 +132,7 @@ async def list_interests(context: tuple[AsyncSession, MaxUser] = Depends(current
 async def list_events(
     city_id: int | None = None,
     category_id: int | None = None,
+    category_code: str | None = None,
     starts_after: datetime | None = None,
     starts_before: datetime | None = None,
     free: bool | None = None,
@@ -151,7 +152,8 @@ async def list_events(
         raise HTTPException(status_code=422, detail="invalid_category")
     rows = await catalog.list_events(
         city_id=city_id,
-        category_id=category_id,
+        category_id=None if category_code else category_id,
+        category_code=category_code,
         starts_after=starts_after,
         starts_before=starts_before,
         free=free,

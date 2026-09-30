@@ -14,6 +14,7 @@ class CatalogService:
         *,
         city_id: int | None,
         category_id: int | None,
+        category_code: str | None,
         starts_after,
         starts_before,
         free: bool | None,
@@ -26,7 +27,11 @@ class CatalogService:
         statement = select(Event).where(Event.visible.is_(True))
         if city_id is not None:
             statement = statement.where(Event.city_id == city_id)
-        if category_id is not None:
+        if category_code is not None:
+            statement = statement.where(Event.category_id.in_(
+                select(EventCategory.id).where(EventCategory.code == category_code)
+            ))
+        elif category_id is not None:
             statement = statement.where(Event.category_id == category_id)
         if starts_after is not None:
             statement = statement.where(Event.starts_at >= starts_after)

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MapFilterState } from '../../types'
 import type { EventCategoryRecord } from '../../services/eventCategoryService'
-import { getEventCategoryName } from '../../services/eventCategoryService'
+import { getEventCategoryName, VOLUNTEERING_CATEGORY_CODE } from '../../services/eventCategoryService'
 import { FALLBACK_LOCALE } from '../../i18n'
 import { IconClose } from '../Icons'
 import styles from './MapFilterSheet.module.css'
@@ -54,6 +54,10 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
     onClose()
   }
 
+  const volunteering = categories.find((category) => category.code === VOLUNTEERING_CATEGORY_CODE)
+  const rest = categories.filter((category) => category.code !== VOLUNTEERING_CATEGORY_CODE)
+  const volunteeringSelected = draft.category === 'volunteering' || (volunteering != null && draft.category === volunteering.id)
+
   return (
     <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
@@ -70,7 +74,8 @@ export const MapFilterSheet: React.FC<MapFilterSheetProps> = ({
             <div className={styles.sectionTitle}>{t('filters.categoriesTitle')}</div>
             <div className={styles.chipGroup}>
               <button type="button" className={`${styles.filterOptionChip} ${draft.category === 'all' ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, category: 'all' })}>{t('filters.categories.all')}</button>
-              {categories.map((category) => (
+              <button type="button" className={`${styles.filterOptionChip} ${volunteeringSelected ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, category: volunteering?.id ?? 'volunteering' })}>{volunteering ? getEventCategoryName(volunteering, i18n.language, FALLBACK_LOCALE) : t('events.volunteering')}</button>
+              {rest.map((category) => (
                 <button key={category.id} type="button" className={`${styles.filterOptionChip} ${draft.category === category.id ? styles.filterOptionChipSelected : ''}`} onClick={() => setDraft({ ...draft, category: category.id })}>
                   {getEventCategoryName(category, i18n.language, FALLBACK_LOCALE)}
                 </button>

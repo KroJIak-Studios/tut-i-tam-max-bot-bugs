@@ -1,13 +1,13 @@
 import math
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.event import Event, OfficialEvent
+from app.models.event import Event, EventAttendance, OfficialEvent
 from app.models.profile import InterestName, UserInterest
 from app.models.user import MaxUser
 
@@ -40,9 +40,30 @@ async def profile_tool(session: AsyncSession, user: MaxUser, arguments: dict[str
             .where(UserInterest.user_id == user.id)
             .order_by(UserInterest.weight.desc())
         ))
+    now = datetime.now(timezone.utc)
+    meetings = list(await session.scalars(
+        select(Event)
+        .join(EventAttendance, EventAttendance.event_id == Event.id)
+        .where(
+            EventAttendance.user_id == user.id,
+            Event.visible.is_(True),
+            or_(Event.ends_at.is_(None), Event.ends_at >= now),
+            Event.starts_at >= now - timedelta(hours=12),
+        )
+        .order_by(Event.starts_at)
+        .limit(5)
+    ))
+    payloads = [await _event_payload(session, event) for event in meetings]
     return {
         "name": user.first_name,
+        "last_name": user.last_name,
+        "username": user.username,
+        "locale": user.locale,
+        "city_id": user.city_id,
+        "notifications": user.notification_preference,
         "interests": [{"name": name, "taste": _taste(weight)} for name, weight in rows[:8]],
+        "upcoming_meetings": payloads,
+        "first_meeting": payloads[0] if payloads else None,
         "has_precise_location": False,
     }
 
@@ -87,7 +108,7 @@ def registry() -> dict[str, AssistantTool]:
     tools = [
         AssistantTool(
             "user_profile",
-            "Имя и вкусы текущего пользователя. Точную точку не возвращает.",
+            "Всё известное о текущем пользователе: имя, язык, город, уведомления, интересы и его будущие встречи.",
             _schema({}, []),
             profile_tool,
         ),

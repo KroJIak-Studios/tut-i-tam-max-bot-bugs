@@ -88,6 +88,7 @@ export async function getMyAttendances(when: 'upcoming' | 'past'): Promise<MapEv
 export interface CatalogQuery {
   cityId?: number
   categoryId?: number | null
+  categoryCode?: string | null
   source?: 'all' | 'external' | 'user'
   free?: boolean
   pushkin?: boolean
@@ -101,7 +102,8 @@ export interface CatalogQuery {
 export async function getCatalogEvents(query: CatalogQuery = {}): Promise<MapEvent[]> {
   const params = new URLSearchParams()
   if (query.cityId !== undefined) params.set('city_id', String(query.cityId))
-  if (query.categoryId != null) params.set('category_id', String(query.categoryId))
+  if (query.categoryCode) params.set('category_code', query.categoryCode)
+  else if (query.categoryId != null) params.set('category_id', String(query.categoryId))
   if (query.source && query.source !== 'all') params.set('source', query.source)
   if (query.free !== undefined) params.set('free', String(query.free))
   if (query.pushkin !== undefined) params.set('pushkin', String(query.pushkin))

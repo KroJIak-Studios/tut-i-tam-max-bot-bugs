@@ -12,6 +12,7 @@ class AssistantTurnRequest(MaxIdentityRequest):
     channel: str = Field(default="bot", pattern="^(bot|mini_app)$")
     text: str = Field(default="", max_length=2000)
     location: AssistantLocation | None = None
+    new_conversation: bool = False
 
 
 class AssistantAction(BaseModel):

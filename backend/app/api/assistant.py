@@ -16,5 +16,5 @@ def service(session: AsyncSession = Depends(get_session)) -> AssistantService:
 @router.post("/turns", response_model=AssistantTurnResponse)
 async def turn(request: AssistantTurnRequest, assistant: AssistantService = Depends(service)) -> AssistantTurnResponse:
     location = request.location.model_dump() if request.location else None
-    result = await assistant.turn(request, request.text, location, request.channel)
+    result = await assistant.turn(request, request.text, location, request.channel, request.new_conversation)
     return AssistantTurnResponse(**result)
