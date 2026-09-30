@@ -112,6 +112,10 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
       setError('Заполните название, город, адрес, дату и координаты.')
       return
     }
+    if (endsAt && new Date(endsAt) <= new Date(startsAt)) {
+      setError('Время окончания должно быть позже времени начала.')
+      return
+    }
     setSaving(true)
     setError(null)
     const fields = {
