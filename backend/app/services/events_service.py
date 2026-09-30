@@ -326,18 +326,9 @@ class EventsService:
 
     async def _bind_chat(self, event: Event, invite_url: str) -> None:
         normalized = MaxChatService().invite(invite_url)
-        taken = await self.session.scalar(
-            select(Event.id).where(Event.chat_invite_url == normalized, Event.id != event.id)
-        )
-        if taken is not None:
-            raise HTTPException(status_code=409, detail="chat_already_used")
         event.chat_invite_url = normalized
         event.chat_max_id = None
-        try:
-            await self.session.commit()
-        except IntegrityError:
-            await self.session.rollback()
-            raise HTTPException(status_code=409, detail="chat_already_used") from None
+        await self.session.commit()
 
     async def cancel_own_event(self, user: MaxUser, event_id: int) -> None:
         record = await self.session.scalar(

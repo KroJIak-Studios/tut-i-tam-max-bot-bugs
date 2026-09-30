@@ -4,6 +4,8 @@ import { INITIAL_MAP_EVENTS } from '../mocks/mapData'
 import { INITIAL_PAST_EVENTS } from '../mocks/plansData'
 import { getIsoDate } from '../utils/dateUtils'
 
+export const DEFAULT_EVENT_CHAT_URL = 'https://max.ru/join/sfWhQMWdAzsQZDo47d0e4NubYOl-f5oJFLqKbfQhqPQ'
+
 export interface DetailedEvent extends MapEvent {
   images: string[]
   reviews: EventReview[]
@@ -63,8 +65,8 @@ function mapDetail(item: ApiEvent): DetailedEvent {
     reviews: item.reviews || [],
     isPast: new Date(item.starts_at) < new Date(),
     owned: Boolean(item.owned),
-    chatConnected: Boolean(item.chat_connected),
-    chatInviteUrl: item.chat_invite_url ?? null,
+    chatConnected: Boolean(item.chat_connected || item.chat_invite_url || DEFAULT_EVENT_CHAT_URL),
+    chatInviteUrl: item.chat_invite_url || DEFAULT_EVENT_CHAT_URL,
   }
 }
 
@@ -82,8 +84,8 @@ function findFallbackEvent(rawId: string): DetailedEvent | null {
       reviews: [],
       isPast: false,
       owned: false,
-      chatConnected: false,
-      chatInviteUrl: null,
+      chatConnected: true,
+      chatInviteUrl: DEFAULT_EVENT_CHAT_URL,
     }
   }
   const foundPast = INITIAL_PAST_EVENTS.find((e) => e.id.toLowerCase() === target)
@@ -108,8 +110,8 @@ function findFallbackEvent(rawId: string): DetailedEvent | null {
       isPast: true,
       visitedDate: foundPast.visitedDate,
       owned: false,
-      chatConnected: false,
-      chatInviteUrl: null,
+      chatConnected: true,
+      chatInviteUrl: DEFAULT_EVENT_CHAT_URL,
     }
   }
   return null
