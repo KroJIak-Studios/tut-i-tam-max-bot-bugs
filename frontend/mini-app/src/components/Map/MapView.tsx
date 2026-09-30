@@ -110,11 +110,19 @@ export const MapView: React.FC<MapViewProps> = ({
     ? { latitude: currentCity.latitude, longitude: currentCity.longitude, accuracy: 0 }
     : null
   const shownLocation = userLocation ?? cityPoint
-  if (shownLocation) lastMapPoint = { latitude: shownLocation.latitude, longitude: shownLocation.longitude }
   const startPoint = shownLocation ?? lastMapPoint
   const startPointRef = useRef(startPoint)
-  startPointRef.current = startPoint
   const [canCreateMap, setCanCreateMap] = useState(startPoint != null)
+
+  useEffect(() => {
+    if (shownLocation) {
+      lastMapPoint = { latitude: shownLocation.latitude, longitude: shownLocation.longitude }
+    }
+    startPointRef.current = startPoint
+    if (startPoint && !canCreateMap) {
+      setCanCreateMap(true)
+    }
+  }, [shownLocation, startPoint, canCreateMap])
   const preciseLocationAvailable = locationStatus !== 'unavailable'
   const recenter = () => {
     if (shownLocation && mapInstanceRef.current) mapInstanceRef.current.setView([shownLocation.latitude, shownLocation.longitude], 15, { animate: true })
@@ -133,10 +141,6 @@ export const MapView: React.FC<MapViewProps> = ({
     L.DomEvent.disableClickPropagation(popupContainer)
     L.DomEvent.disableScrollPropagation(popupContainer)
   }, [popupContainer])
-
-  useEffect(() => {
-    if (startPointRef.current) setCanCreateMap(true)
-  }, [startPoint?.latitude, startPoint?.longitude])
 
   // Initialize Map
   useEffect(() => {
@@ -193,7 +197,7 @@ export const MapView: React.FC<MapViewProps> = ({
     } else {
       userMarkerRef.current.setLatLng(position)
     }
-  }, [shownLocation?.latitude, shownLocation?.longitude, mapReady])
+  }, [shownLocation, mapReady])
 
   // Dynamic Basemap switching without disturbing markers or zones
   useEffect(() => {
