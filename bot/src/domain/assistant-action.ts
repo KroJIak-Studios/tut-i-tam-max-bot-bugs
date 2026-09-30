@@ -1,4 +1,5 @@
 export enum AssistantAction {
-  SuggestPrefix = 'assistant:say:',
+  PickPrefix = 'assistant:pick:',
+  Stay = 'assistant:stay',
   Menu = 'assistant:menu',
 }

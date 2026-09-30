@@ -44,6 +44,8 @@ class EventCategoryService:
         category = await self._categories.get(category_id)
         if category is None:
             raise HTTPException(status_code=404, detail="event_category_not_found")
+        if category.code is not None:
+            raise HTTPException(status_code=409, detail="system_category")
         if await self._session.scalar(select(Event.id).where(Event.category_id == category_id).limit(1)) is not None:
             raise HTTPException(status_code=409, detail="event_category_in_use")
         await self._categories.delete(category)

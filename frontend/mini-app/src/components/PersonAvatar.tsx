@@ -18,7 +18,6 @@ export function personInitials(firstName?: string | null, lastName?: string | nu
 export function PersonAvatar({ firstName, lastName, imageUrl, className }: PersonAvatarProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
   const initials = personInitials(firstName, lastName)
-  const name = [firstName, lastName].filter(Boolean).join(' ')
   const imageReady = Boolean(imageUrl) && loadedUrl === imageUrl
 
   return (
@@ -27,7 +26,7 @@ export function PersonAvatar({ firstName, lastName, imageUrl, className }: Perso
       {imageUrl ? (
         <img
           src={imageUrl}
-          alt={name}
+          alt=""
           className={`${styles.image} ${imageReady ? styles.imageReady : ''}`}
           onLoad={() => setLoadedUrl(imageUrl)}
           onError={() => setLoadedUrl(null)}

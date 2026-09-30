@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className={styles.brandLockup}>
           <img
             src="/brand/tut-i-tam-logo-128.png"
-            alt={t('app.name')}
+            alt=""
             className={styles.brandLogo}
           />
           <h1 className={styles.topTitle}>{t('app.name')}</h1>

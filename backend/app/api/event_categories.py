@@ -16,7 +16,7 @@ def service(session: AsyncSession = Depends(get_session)) -> EventCategoryServic
 
 
 def category_payload(category: EventCategory) -> dict:
-    return {"id": category.id, "names": [{"locale_code": name.locale_code, "text": name.text} for name in category.names]}
+    return {"id": category.id, "code": category.code, "names": [{"locale_code": name.locale_code, "text": name.text} for name in category.names]}
 
 
 @public_router.get("")
