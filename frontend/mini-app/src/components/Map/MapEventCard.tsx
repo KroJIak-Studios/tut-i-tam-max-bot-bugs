@@ -19,6 +19,7 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
   const { t, i18n } = useTranslation()
   const dateTimeText = formatEventDateTimeRange(event, i18n.language)
   const isActiveNow = isEventActiveAt(event, new Date())
+  const isUserEvent = event.source === 'user'
 
   const priceDisplay =
     event.isFree || event.price === 0
@@ -76,26 +77,38 @@ export const MapEventCard: React.FC<MapEventCardProps> = ({
           </div>
         </div>
 
-        <div className={styles.detailsLink}>
-          <span>{t('map.details')}</span>
-          <span aria-hidden="true">→</span>
-        </div>
+        {!isUserEvent && (
+          <div className={styles.detailsLink}>
+            <span>{t('map.details')}</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        )}
       </div>
 
-      <button
-        type="button"
-        className={`${styles.actionButton} ${event.isGoing ? styles.actionButtonGoing : ''}`}
-        onClick={() => onToggleGoing(event.id)}
-      >
-        {event.isGoing ? (
-          <>
-            <IconCheck size={16} color="#FFFFFF" />
-            <span>{t('events.youreGoing')}</span>
-          </>
-        ) : (
-          <span>{t('events.imGoing')}</span>
-        )}
-      </button>
+      {isUserEvent ? (
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={() => onMoreDetails?.(event)}
+        >
+          <span>{t('map.details')}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={`${styles.actionButton} ${event.isGoing ? styles.actionButtonGoing : ''}`}
+          onClick={() => onToggleGoing(event.id)}
+        >
+          {event.isGoing ? (
+            <>
+              <IconCheck size={16} color="#FFFFFF" />
+              <span>{t('events.youreGoing')}</span>
+            </>
+          ) : (
+            <span>{t('events.imGoing')}</span>
+          )}
+        </button>
+      )}
     </div>
   )
 }
