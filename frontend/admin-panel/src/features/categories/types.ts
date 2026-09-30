@@ -6,6 +6,8 @@ export interface CategoryName {
 export interface EventCategory {
   id: number
   names: CategoryName[]
+  /** Included in list responses; create/update responses omit the aggregate. */
+  events_count?: number
 }
 
 export interface EventCategoryInput {

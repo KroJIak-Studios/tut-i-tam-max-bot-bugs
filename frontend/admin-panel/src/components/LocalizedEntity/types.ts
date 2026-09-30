@@ -16,8 +16,6 @@ export interface LocaleItem {
 export interface LocalizedEntity {
   id: number
   names: LocaleName[]
-  /** Optional: additional count metric to display (e.g. events_count, users_count) */
-  count?: number | null
 }
 
 export interface LocalizedEntityListProps<T extends LocalizedEntity> {
@@ -30,7 +28,9 @@ export interface LocalizedEntityListProps<T extends LocalizedEntity> {
   onDelete: (item: T) => void
   onCreateClick: () => void
   entityLabel: string
-  /** Label for the count column, e.g. "Мероприятий" or "Пользователей" */
+  /** Reads the backend aggregate; null or undefined means unavailable. */
+  getCount?: (item: T) => number | null | undefined
+  /** Column header label, e.g. "Мероприятий" or "Пользователей" */
   countLabel?: string
   createButtonLabel: string
   emptyTitle: string

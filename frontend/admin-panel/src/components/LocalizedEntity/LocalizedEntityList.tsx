@@ -19,11 +19,13 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
   onCreateClick,
   entityLabel,
   countLabel,
+  getCount,
   createButtonLabel,
   emptyTitle,
   emptyText,
 }: LocalizedEntityListProps<T>): React.ReactElement {
   const fallbackLocaleName = getLocaleNativeName(fallbackLocaleCode, locales)
+  const showCount = Boolean(countLabel && getCount)
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -123,7 +125,7 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
                   <th className={`${styles.th} ${styles.thTranslations}`}>
                     Дополнительные переводы
                   </th>
-                  {countLabel && (
+                  {showCount && (
                     <th className={`${styles.th} ${styles.thCount}`}>
                       {countLabel}
                     </th>
@@ -137,6 +139,7 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
                 {filtered.map((item) => {
                   const primaryName = getPrimaryName(item.names, fallbackLocaleCode)
                   const secondary = getSecondaryNames(item.names, fallbackLocaleCode)
+                  const count = getCount?.(item)
 
                   return (
                     <tr key={item.id} className={styles.tr}>
@@ -174,13 +177,13 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
                           </div>
                         )}
                       </td>
-                      {countLabel && (
+                      {showCount && (
                         <td className={`${styles.td} ${styles.countCell}`}>
-                          {item.count === null || item.count === undefined ? (
+                          {count === null || count === undefined ? (
                             <span className={styles.noTrans}>—</span>
                           ) : (
                             <span className={styles.countValue}>
-                              {item.count.toLocaleString('ru-RU')}
+                              {count.toLocaleString('ru-RU')}
                             </span>
                           )}
                         </td>
@@ -219,6 +222,7 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
             {filtered.map((item) => {
               const primaryName = getPrimaryName(item.names, fallbackLocaleCode)
               const secondary = getSecondaryNames(item.names, fallbackLocaleCode)
+              const count = getCount?.(item)
 
               return (
                 <div key={item.id} className={styles.card}>
@@ -232,11 +236,11 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
                       <span className={styles.idBadge}>#{item.id}</span>
                     </div>
 
-                    {countLabel && item.count !== null && item.count !== undefined && (
+                    {showCount && (
                       <div className={styles.cardCount}>
                         <span className={styles.cardCountLabel}>{countLabel}:</span>
                         <span className={styles.cardCountValue}>
-                          {item.count.toLocaleString('ru-RU')}
+                          {count?.toLocaleString('ru-RU') ?? '—'}
                         </span>
                       </div>
                     )}

@@ -97,10 +97,11 @@ export const CategoriesPage: React.FC = () => {
           onDelete={openDeleteModal}
           onCreateClick={openCreateModal}
           entityLabel="Категория"
+          countLabel="Мероприятий"
+          getCount={(category) => category.events_count}
           createButtonLabel="Добавить категорию"
           emptyTitle="Категории ещё не созданы"
           emptyText="В справочнике пока нет категорий мероприятий. Добавьте первую категорию с названиями на нужных языках."
-          /* events_count not yet available in backend — omit countLabel */
         />
       )}
 
