@@ -238,7 +238,10 @@ class EventsService:
         self.session.add(OfficialEvent(event_id=event.id, price_rub=data.price_rub, pushkin_card=data.pushkin_card))
         if data.area is not None:
             self.session.add(EventArea(event_id=event.id, path=data.area))
-        await EmbeddingIndex(self.session, get_settings()).index_event(event)
+        try:
+            await EmbeddingIndex(self.session, get_settings()).index_event(event)
+        except Exception:
+            logger.exception("event embedding index failed on create", extra={"event_id": event.id})
         await self.session.commit()
         await self.session.refresh(event)
         return await self.admin_card(event)
@@ -279,7 +282,10 @@ class EventsService:
         text_changed = "title" in changes or "description" in changes
         visibility_only = set(changes) == {"visible"}
         if text_changed:
-            await EmbeddingIndex(self.session, get_settings()).index_event(event)
+            try:
+                await EmbeddingIndex(self.session, get_settings()).index_event(event)
+            except Exception:
+                logger.exception("event embedding index failed on update", extra={"event_id": event.id})
         await self.session.commit()
         if visibility_only:
             schedule_event_embedding(background, event.id)
