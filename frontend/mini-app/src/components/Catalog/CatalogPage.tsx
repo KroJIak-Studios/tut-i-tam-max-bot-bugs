@@ -6,7 +6,7 @@ import { getCatalogEvents, getEventCategories, type EventCategoryRecord } from '
 import { getCities, chooseInitialCity } from '../../services/cityService'
 import { useGeolocation } from '../../context/GeolocationContext'
 import { apiRequest } from '../../services/api'
-import { getEventCategoryName } from '../../services/eventCategoryService'
+import { getEventCategoryName, VOLUNTEERING_CATEGORY_CODE } from '../../services/eventCategoryService'
 import { FALLBACK_LOCALE } from '../../i18n'
 import { DEFAULT_FILTERS, countExtraFilters } from '../../services/eventFilters'
 import { calculateDistanceMeters } from '../../utils/geoUtils'
@@ -59,6 +59,11 @@ export const CatalogPage: React.FC = () => {
     })]).then(([categoryItems, cityItems, profile, point]) => {
       if (!active) return
       setCategories(categoryItems)
+      const categoryCode = searchParams.get('category_code')
+      if (categoryCode === VOLUNTEERING_CATEGORY_CODE) {
+        const volunteering = categoryItems.find((item) => item.code === VOLUNTEERING_CATEGORY_CODE)
+        if (volunteering) setFilters((current) => ({ ...current, category: volunteering.id }))
+      }
       const selectedCity = profile.city ? cityItems.find((item) => item.id === profile.city?.id) ?? null : chooseInitialCity(cityItems, point ? { ...point, accuracy: 0 } : null)
       setCityId(selectedCity?.id ?? profile.city?.id ?? null)
       if (selectedCity && profile.city?.id !== selectedCity.id) {

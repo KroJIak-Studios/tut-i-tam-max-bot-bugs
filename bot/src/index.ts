@@ -66,10 +66,12 @@ bot.action(MenuAction.AiAssistant, async (ctx) => {
   await assistant.open(ctx)
 })
 
-bot.action(new RegExp(`^${AssistantAction.SuggestPrefix}(.+)$`), async (ctx) => {
-  const phrase = ctx.callback?.payload?.slice(AssistantAction.SuggestPrefix.length)
-  if (phrase) await assistant.handleSuggestion(ctx, phrase)
+bot.action(new RegExp(`^${AssistantAction.PickPrefix}(\\d+)$`), async (ctx) => {
+  const index = Number(ctx.callback?.payload?.slice(AssistantAction.PickPrefix.length))
+  if (Number.isInteger(index)) await assistant.choose(ctx, index)
 })
+
+bot.action(AssistantAction.Stay, async () => undefined)
 
 bot.action(AssistantAction.Menu, async (ctx) => {
   await assistant.close(ctx)

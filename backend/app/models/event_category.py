@@ -8,6 +8,7 @@ class EventCategory(Base):
     __tablename__ = "event_categories"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str | None] = mapped_column(String(32), unique=True)
     names: Mapped[list["EventCategoryName"]] = relationship(
         cascade="all, delete-orphan",
         order_by="EventCategoryName.locale_code",

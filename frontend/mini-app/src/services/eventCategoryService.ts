@@ -7,8 +7,11 @@ export interface EventCategoryName {
 
 export interface EventCategoryRecord {
   id: number
+  code: string | null
   names: EventCategoryName[]
 }
+
+export const VOLUNTEERING_CATEGORY_CODE = 'volunteering'
 
 export async function getEventCategories(): Promise<EventCategoryRecord[]> {
   return apiRequest<EventCategoryRecord[]>('/event-categories')

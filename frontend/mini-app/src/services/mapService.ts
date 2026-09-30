@@ -38,7 +38,7 @@ export interface ApiMapEvent {
   going?: boolean
 }
 
-export interface EventCategoryRecord { id: number; names: Array<{ locale_code: string; text: string }> }
+export interface EventCategoryRecord { id: number; code: string | null; names: Array<{ locale_code: string; text: string }> }
 
 export function mapApiEvent(item: ApiMapEvent): MapEvent {
   const start = new Date(item.starts_at)

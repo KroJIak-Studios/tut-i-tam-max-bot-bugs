@@ -10,7 +10,7 @@ export const ProfileTopBar: React.FC = () => {
         <div className={styles.brandLockup}>
           <img
             src="/brand/tut-i-tam-logo-128.png"
-            alt={t('app.name')}
+            alt=""
             className={styles.brandLogo}
           />
           <span className={styles.brandTitle}>{t('app.name')}</span>

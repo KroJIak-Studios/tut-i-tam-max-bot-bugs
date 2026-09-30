@@ -6,19 +6,16 @@ import styles from './HomeHero.module.css'
 interface HomeHeroProps {
   title?: string
   imageUrl?: string
-  alt?: string
   onClick?: () => void
 }
 
 export const HomeHero: React.FC<HomeHeroProps> = ({
   title,
   imageUrl = '/home-kazan-hero.jpg',
-  alt,
   onClick,
 }) => {
   const { t } = useTranslation()
   const heroTitle = title || t('home.heroTitle')
-  const heroAlt = alt || t('home.heroImageAlt')
 
   return (
     <button
@@ -28,7 +25,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       aria-label={heroTitle}
     >
       <div className={styles.imageLayer}>
-        <img src={imageUrl} alt={heroAlt} className={styles.heroImage} />
+        <img src={imageUrl} alt="" className={styles.heroImage} />
       </div>
 
       <div className={styles.contentLayer}>
