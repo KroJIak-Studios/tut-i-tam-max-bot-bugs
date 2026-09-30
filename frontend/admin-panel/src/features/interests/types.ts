@@ -12,6 +12,8 @@ export interface InterestItem {
   id: number
   names: InterestName[]
   color?: string
+  /** Included in list responses; create/update responses omit the aggregate. */
+  users_count?: number
 }
 
 export interface TranslationRow {

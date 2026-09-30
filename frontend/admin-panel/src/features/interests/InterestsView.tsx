@@ -235,10 +235,11 @@ export const InterestsView: React.FC = () => {
           onDelete={handleOpenDelete}
           onCreateClick={handleOpenCreate}
           entityLabel="Интерес"
+          countLabel="Пользователей"
+          getCount={(interest) => interest.users_count}
           createButtonLabel="Добавить интерес"
           emptyTitle="Интересы не найдены"
           emptyText="В справочнике пока нет интересов. Вы можете создать первый интерес с локализацией названий."
-          /* users_count not yet available in backend — omit countLabel */
         />
       )}
 

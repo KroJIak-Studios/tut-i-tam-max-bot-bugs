@@ -187,6 +187,7 @@
 
 .thCount {
   width: 100px;
+  text-align: center;
 }
 
 .thActions {
@@ -227,6 +228,7 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-main);
+  overflow-wrap: anywhere;
 }
 
 .noTrans {
@@ -373,6 +375,7 @@
 
 .cardCount {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
 }

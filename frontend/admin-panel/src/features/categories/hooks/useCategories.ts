@@ -90,15 +90,15 @@ export function useCategories(options: UseCategoriesOptions = {}) {
   const handleCreateCategory = useCallback(
     async (payload: EventCategoryInput) => {
       try {
-        const newCat = await categoriesApi.createCategory(payload)
-        setCategories((prev) => [newCat, ...prev])
+        await categoriesApi.createCategory(payload)
         showToast('success', 'Категория успешно создана')
+        await loadData()
       } catch (err) {
         const msg = formatCategoryApiError(err, 'Не удалось создать категорию')
         throw new Error(msg)
       }
     },
-    [showToast],
+    [loadData, showToast],
   )
 
   // Редактирование категории
@@ -106,17 +106,15 @@ export function useCategories(options: UseCategoriesOptions = {}) {
     async (payload: EventCategoryInput) => {
       if (!activeCategory) return
       try {
-        const updatedCat = await categoriesApi.updateCategory(activeCategory.id, payload)
-        setCategories((prev) =>
-          prev.map((cat) => (cat.id === activeCategory.id ? updatedCat : cat)),
-        )
+        await categoriesApi.updateCategory(activeCategory.id, payload)
         showToast('success', 'Категория успешно обновлена')
+        await loadData()
       } catch (err) {
         const msg = formatCategoryApiError(err, 'Не удалось обновить категорию')
         throw new Error(msg)
       }
     },
-    [activeCategory, showToast],
+    [activeCategory, loadData, showToast],
   )
 
   // Удаление категории
