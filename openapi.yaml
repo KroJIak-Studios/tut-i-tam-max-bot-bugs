@@ -1,0 +1,4469 @@
+openapi: 3.1.0
+info:
+  title: Тут и там
+  version: 1.0.0
+  description: 'Собственный API продукта «Тут и там»: каталог досуга рядом, личные мероприятия, чат MAX,
+    карта, отзывы и ассистент. Авторизация мини-приложения — заголовок Authorization: tma <initData>.
+    Для локальной проверки жюри при LOCAL_DEV_AUTH_ENABLED=true и запросе на localhost подходит Authorization:
+    tma local-development:<max_user_id>:<имя>:<локаль>.'
+  contact:
+    name: Тут и там
+servers:
+- url: https://tut-i-tam.goliluha.ru
+  description: Стенд проверки
+- url: http://localhost:8081
+  description: Локальный стенд через nginx мини-приложения
+paths:
+  /api/bot/access/status:
+    post:
+      tags:
+      - bot-access
+      summary: Get Access Status
+      operationId: get_access_status_api_bot_access_status_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaxIdentityRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessStatusResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/access/verify:
+    post:
+      tags:
+      - bot-access
+      summary: Verify Access Code
+      operationId: verify_access_code_api_bot_access_verify_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyAccessCodeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccessResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/access/primary-message:
+    post:
+      tags:
+      - bot-access
+      summary: Save Primary Message
+      operationId: save_primary_message_api_bot_access_primary_message_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrimaryMessageRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/access/primary-message/current:
+    post:
+      tags:
+      - bot-access
+      summary: Get Primary Message
+      operationId: get_primary_message_api_bot_access_primary_message_current_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaxIdentityRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrimaryMessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/settings/notifications:
+    put:
+      tags:
+      - bot-settings
+      summary: Update Notification Preference
+      operationId: update_notification_preference_api_bot_settings_notifications_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferenceRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - bot-settings
+      summary: Get Notification Preference
+      operationId: get_notification_preference_api_bot_settings_notifications_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaxIdentityRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/settings/locale:
+    put:
+      tags:
+      - bot-settings
+      summary: Update Locale
+      operationId: update_locale_api_bot_settings_locale_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalePreferenceRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalePreferenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/settings/me:
+    delete:
+      tags:
+      - bot-settings
+      summary: Delete User Data
+      operationId: delete_user_data_api_bot_settings_me_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaxIdentityRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/pending-messages:
+    put:
+      tags:
+      - bot-pending-messages
+      summary: Track Pending Message
+      operationId: track_pending_message_api_bot_pending_messages_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PendingMessageRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - bot-pending-messages
+      summary: Untrack Pending Message
+      operationId: untrack_pending_message_api_bot_pending_messages_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PendingMessageRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/pending-messages/batch:
+    delete:
+      tags:
+      - bot-pending-messages
+      summary: Remove Pending Batch
+      operationId: remove_pending_batch_api_bot_pending_messages_batch_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PendingMessageBatchRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/pending-messages/recovery-snapshot:
+    get:
+      tags:
+      - bot-pending-messages
+      summary: Get Recovery Snapshot
+      operationId: get_recovery_snapshot_api_bot_pending_messages_recovery_snapshot_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingMessageRecoveryResponse'
+  /api/bot/pending-messages/snapshot:
+    post:
+      tags:
+      - bot-pending-messages
+      summary: Get Pending Snapshot
+      operationId: get_pending_snapshot_api_bot_pending_messages_snapshot_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PendingMessageSnapshotRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingMessageSnapshotResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/meetings:
+    post:
+      tags:
+      - bot-meetings
+      summary: List Meetings
+      operationId: list_meetings_api_bot_meetings_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotMeetingsRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotMeetingsResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/meetings/photos/{photo_id}/token:
+    post:
+      tags:
+      - bot-meetings
+      summary: Save Photo Token
+      operationId: save_photo_token_api_bot_meetings_photos__photo_id__token_post
+      parameters:
+      - name: photo_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Photo Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotPhotoTokenRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                title: Response Save Photo Token Api Bot Meetings Photos  Photo Id  Token Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/meetings/{event_id}:
+    post:
+      tags:
+      - bot-meetings
+      summary: Meeting Card
+      operationId: meeting_card_api_bot_meetings__event_id__post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotMeetingsRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotMeetingCard'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/bot/meetings/{event_id}/attendance:
+    post:
+      tags:
+      - bot-meetings
+      summary: Set Attendance
+      operationId: set_attendance_api_bot_meetings__event_id__attendance_post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotMeetingAttendanceRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotMeetingCard'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/login:
+    post:
+      tags:
+      - admin
+      summary: Login
+      operationId: login_api_admin_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLogin'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTokens'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/refresh:
+    post:
+      tags:
+      - admin
+      summary: Refresh
+      operationId: refresh_api_admin_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRefresh'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTokens'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/me:
+    get:
+      tags:
+      - admin
+      summary: Me
+      operationId: me_api_admin_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSession'
+      security:
+      - HTTPBearer: []
+  /api/admin/stats:
+    get:
+      tags:
+      - admin
+      summary: Stats
+      operationId: stats_api_admin_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStats'
+      security:
+      - HTTPBearer: []
+  /api/admin/moderation/events:
+    get:
+      tags:
+      - admin
+      summary: Moderation Events
+      operationId: moderation_events_api_admin_moderation_events_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(pending|changes_requested|approved|rejected)$
+          - type: 'null'
+          title: Status
+      - name: city_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+      - name: category_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/moderation/events/{event_id}:
+    get:
+      tags:
+      - admin
+      summary: Moderation Event
+      operationId: moderation_event_api_admin_moderation_events__event_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/moderation/events/{event_id}/approve:
+    post:
+      tags:
+      - admin
+      summary: Approve Event
+      operationId: approve_event_api_admin_moderation_events__event_id__approve_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/moderation/events/{event_id}/reject:
+    post:
+      tags:
+      - admin
+      summary: Reject Event
+      operationId: reject_event_api_admin_moderation_events__event_id__reject_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminModerationReason'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/moderation/events/{event_id}/request-changes:
+    post:
+      tags:
+      - admin
+      summary: Request Event Changes
+      operationId: request_event_changes_api_admin_moderation_events__event_id__request_changes_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminModerationComment'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/events:
+    get:
+      tags:
+      - admin
+      summary: List Admin Events
+      operationId: list_admin_events_api_admin_events_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: city_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+      - name: category_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+      - name: source
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(official|user)$
+          - type: 'null'
+          title: Source
+      - name: visible
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Visible
+      - name: free
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Free
+      - name: pushkin
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pushkin
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - admin
+      summary: Create Admin Event
+      operationId: create_admin_event_api_admin_events_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminEventWrite'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/events/{event_id}:
+    get:
+      tags:
+      - admin
+      summary: Get Admin Event
+      operationId: get_admin_event_api_admin_events__event_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - admin
+      summary: Update Admin Event
+      operationId: update_admin_event_api_admin_events__event_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminEventPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - admin
+      summary: Delete Admin Event
+      operationId: delete_admin_event_api_admin_events__event_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/events/{event_id}/chat:
+    post:
+      tags:
+      - admin
+      summary: Check Event Chat
+      operationId: check_event_chat_api_admin_events__event_id__chat_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminChatCheck'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/events/{event_id}/photos:
+    post:
+      tags:
+      - admin
+      summary: Upload Event Photo
+      operationId: upload_event_photo_api_admin_events__event_id__photos_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_event_photo_api_admin_events__event_id__photos_post'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/events/{event_id}/photos/{photo_id}:
+    delete:
+      tags:
+      - admin
+      summary: Delete Event Photo
+      operationId: delete_event_photo_api_admin_events__event_id__photos__photo_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: photo_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Photo Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/locales:
+    get:
+      tags:
+      - admin
+      summary: List Locales
+      operationId: list_locales_api_admin_locales_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/admin/cities:
+    get:
+      tags:
+      - admin
+      summary: List Cities
+      operationId: list_cities_api_admin_cities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - admin
+      summary: Create City
+      operationId: create_city_api_admin_cities_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/admin/cities/{city_id}:
+    patch:
+      tags:
+      - admin
+      summary: Update City
+      operationId: update_city_api_admin_cities__city_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: city_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: City Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - admin
+      summary: Delete City
+      operationId: delete_city_api_admin_cities__city_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: city_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: City Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/interests:
+    get:
+      tags:
+      - admin
+      summary: List Interests
+      operationId: list_interests_api_admin_interests_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - admin
+      summary: Create Interest
+      operationId: create_interest_api_admin_interests_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterestCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/admin/interests/{interest_id}:
+    patch:
+      tags:
+      - admin
+      summary: Update Interest
+      operationId: update_interest_api_admin_interests__interest_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: interest_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Interest Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterestPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - admin
+      summary: Delete Interest
+      operationId: delete_interest_api_admin_interests__interest_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: interest_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Interest Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/ai-providers:
+    get:
+      tags:
+      - admin-ai
+      summary: List Providers
+      operationId: list_providers_api_admin_ai_providers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AiProviderView'
+                type: array
+                title: Response List Providers Api Admin Ai Providers Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - admin-ai
+      summary: Create Provider
+      operationId: create_provider_api_admin_ai_providers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiProviderWrite'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiProviderView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/admin/ai-providers/{provider_id}:
+    patch:
+      tags:
+      - admin-ai
+      summary: Update Provider
+      operationId: update_provider_api_admin_ai_providers__provider_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Provider Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiProviderPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiProviderView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - admin-ai
+      summary: Delete Provider
+      operationId: delete_provider_api_admin_ai_providers__provider_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Provider Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/ai-providers/probe:
+    post:
+      tags:
+      - admin-ai
+      summary: Probe Provider
+      operationId: probe_provider_api_admin_ai_providers_probe_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiProviderProbe'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiProviderCheck'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/admin/ai-providers/{provider_id}/check:
+    post:
+      tags:
+      - admin-ai
+      summary: Check Provider
+      operationId: check_provider_api_admin_ai_providers__provider_id__check_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Provider Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiProviderCheck'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/assistant/app/history:
+    get:
+      tags:
+      - assistant
+      summary: App History
+      operationId: app_history_api_assistant_app_history_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantHistoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - assistant
+      summary: Clear App History
+      operationId: clear_app_history_api_assistant_app_history_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/assistant/app/turns:
+    post:
+      tags:
+      - assistant
+      summary: App Turn
+      operationId: app_turn_api_assistant_app_turns_post
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantClientTurn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantTurnResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/assistant/turns:
+    post:
+      tags:
+      - assistant
+      summary: Turn
+      operationId: turn_api_assistant_turns_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantTurnRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantTurnResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/event-categories:
+    get:
+      tags:
+      - events
+      summary: List Event Categories
+      operationId: list_event_categories_api_v1_event_categories_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/event-categories:
+    get:
+      tags:
+      - admin-event-categories
+      summary: List Admin Categories
+      operationId: list_admin_categories_api_admin_event_categories_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - admin-event-categories
+      summary: Create Category
+      operationId: create_category_api_admin_event_categories_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/admin/event-categories/{category_id}:
+    patch:
+      tags:
+      - admin-event-categories
+      summary: Update Category
+      operationId: update_category_api_admin_event_categories__category_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: category_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Category Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - admin-event-categories
+      summary: Delete Category
+      operationId: delete_category_api_admin_event_categories__category_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: category_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Category Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/media/{storage_key}:
+    get:
+      tags:
+      - media
+      summary: Media File
+      operationId: media_file_api_media__storage_key__get
+      parameters:
+      - name: storage_key
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Storage Key
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/recommendations/app/nearby:
+    post:
+      tags:
+      - recommendations
+      summary: App Nearby
+      operationId: app_nearby_api_recommendations_app_nearby_post
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NearbyPoint'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/NearbyEvent'
+                - type: 'null'
+                title: Response App Nearby Api Recommendations App Nearby Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/recommendations/nearby:
+    post:
+      tags:
+      - recommendations
+      summary: Nearby
+      operationId: nearby_api_recommendations_nearby_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NearbyRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/NearbyEvent'
+                - type: 'null'
+                title: Response Nearby Api Recommendations Nearby Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/local-dev-auth:
+    get:
+      tags:
+      - events
+      summary: Local Dev Auth
+      operationId: local_dev_auth_api_v1_local_dev_auth_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: boolean
+                type: object
+                title: Response Local Dev Auth Api V1 Local Dev Auth Get
+  /api/v1/locales:
+    get:
+      tags:
+      - events
+      summary: List Locales
+      operationId: list_locales_api_v1_locales_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/cities:
+    get:
+      tags:
+      - events
+      summary: List Cities
+      operationId: list_cities_api_v1_cities_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/interests:
+    get:
+      tags:
+      - events
+      summary: List Interests
+      operationId: list_interests_api_v1_interests_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events:
+    get:
+      tags:
+      - events
+      summary: List Events
+      operationId: list_events_api_v1_events_get
+      parameters:
+      - name: city_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+      - name: category_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+      - name: category_code
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category Code
+      - name: starts_after
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts After
+      - name: starts_before
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts Before
+      - name: free
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Free
+      - name: pushkin
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pushkin
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Q
+      - name: source
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(external|user)$
+          - type: 'null'
+          title: Source
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - events
+      summary: Create Event
+      operationId: create_event_api_v1_events_post
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/me/events:
+    get:
+      tags:
+      - events
+      summary: My Events
+      operationId: my_events_api_v1_me_events_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}:
+    patch:
+      tags:
+      - events
+      summary: Update Own Event
+      operationId: update_own_event_api_v1_events__event_id__patch
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEventUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - events
+      summary: Cancel Own Event
+      operationId: cancel_own_event_api_v1_events__event_id__delete
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - events
+      summary: Get Event
+      operationId: get_event_api_v1_events__event_id__get
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/photos:
+    post:
+      tags:
+      - events
+      summary: Upload Own Photo
+      operationId: upload_own_photo_api_v1_events__event_id__photos_post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_own_photo_api_v1_events__event_id__photos_post'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/photos/order:
+    put:
+      tags:
+      - events
+      summary: Order Own Photos
+      operationId: order_own_photos_api_v1_events__event_id__photos_order_put
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhotoOrder'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/photos/{photo_id}:
+    delete:
+      tags:
+      - events
+      summary: Delete Own Photo
+      operationId: delete_own_photo_api_v1_events__event_id__photos__photo_id__delete
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: photo_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Photo Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/chat:
+    post:
+      tags:
+      - events
+      summary: Connect Own Chat
+      operationId: connect_own_chat_api_v1_events__event_id__chat_post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatLink'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/attendance:
+    post:
+      tags:
+      - events
+      summary: Attend Event
+      operationId: attend_event_api_v1_events__event_id__attendance_post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - events
+      summary: Cancel Attendance
+      operationId: cancel_attendance_api_v1_events__event_id__attendance_delete
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/me/attendances:
+    get:
+      tags:
+      - events
+      summary: List Attendances
+      operationId: list_attendances_api_v1_me_attendances_get
+      parameters:
+      - name: when
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(upcoming|past)$
+          title: When
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events/{event_id}/reviews:
+    post:
+      tags:
+      - events
+      summary: Upsert Review
+      operationId: upsert_review_api_v1_events__event_id__reviews_post
+      parameters:
+      - name: event_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Event Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/me:
+    get:
+      tags:
+      - events
+      summary: Read Me
+      operationId: read_me_api_v1_me_get
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - events
+      summary: Update Me
+      operationId: update_me_api_v1_me_patch
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MePatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - events
+      summary: Delete Me
+      operationId: delete_me_api_v1_me_delete
+      parameters:
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/map/events:
+    get:
+      tags:
+      - events
+      summary: Map Events
+      operationId: map_events_api_v1_map_events_get
+      parameters:
+      - name: min_lat
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Min Lat
+      - name: min_lng
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Min Lng
+      - name: max_lat
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Max Lat
+      - name: max_lng
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Max Lng
+      - name: city_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+      - name: category_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+      - name: starts_after
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts After
+      - name: starts_before
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts Before
+      - name: free
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Free
+      - name: pushkin
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pushkin
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Q
+      - name: source
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(external|user)$
+          - type: 'null'
+          title: Source
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 500
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/map/areas:
+    get:
+      tags:
+      - events
+      summary: Map Areas
+      operationId: map_areas_api_v1_map_areas_get
+      parameters:
+      - name: city_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          title: City Id
+      - name: authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/health:
+    get:
+      summary: Api Health
+      operationId: api_health_api_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Api Health Api Health Get
+components:
+  schemas:
+    AccessStatusResponse:
+      properties:
+        access_required:
+          type: boolean
+          title: Access Required
+        access_granted:
+          type: boolean
+          title: Access Granted
+        locale:
+          type: string
+          title: Locale
+        assistant_available:
+          type: boolean
+          title: Assistant Available
+          default: false
+      type: object
+      required:
+      - access_required
+      - access_granted
+      - locale
+      title: AccessStatusResponse
+    AdminChatCheck:
+      properties:
+        chat_invite_url:
+          type: string
+          maxLength: 2048
+          minLength: 1
+          title: Chat Invite Url
+      additionalProperties: false
+      type: object
+      required:
+      - chat_invite_url
+      title: AdminChatCheck
+    AdminEventPatch:
+      properties:
+        title:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Title
+        description:
+          anyOf:
+          - type: string
+            maxLength: 10000
+          - type: 'null'
+          title: Description
+        city_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+        category_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+        address:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Address
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+        starts_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        price_rub:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Price Rub
+        pushkin_card:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pushkin Card
+        visible:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Visible
+        chat_invite_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Chat Invite Url
+        area:
+          anyOf:
+          - items:
+              items:
+                type: number
+              type: array
+            type: array
+          - type: 'null'
+          title: Area
+      additionalProperties: false
+      type: object
+      title: AdminEventPatch
+    AdminEventStats:
+      properties:
+        total:
+          type: integer
+          title: Total
+        official:
+          type: integer
+          title: Official
+        user_created:
+          type: integer
+          title: User Created
+      type: object
+      required:
+      - total
+      - official
+      - user_created
+      title: AdminEventStats
+    AdminEventWrite:
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 10000
+          title: Description
+        city_id:
+          type: integer
+          title: City Id
+        category_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+        address:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Address
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        price_rub:
+          type: integer
+          minimum: 0.0
+          title: Price Rub
+          default: 0
+        pushkin_card:
+          type: boolean
+          title: Pushkin Card
+          default: false
+        visible:
+          type: boolean
+          title: Visible
+          default: true
+        chat_invite_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Chat Invite Url
+        area:
+          anyOf:
+          - items:
+              items:
+                type: number
+              type: array
+            type: array
+          - type: 'null'
+          title: Area
+      additionalProperties: false
+      type: object
+      required:
+      - title
+      - description
+      - city_id
+      - address
+      - latitude
+      - longitude
+      - starts_at
+      title: AdminEventWrite
+    AdminLogin:
+      properties:
+        password:
+          type: string
+          maxLength: 512
+          minLength: 1
+          title: Password
+      additionalProperties: false
+      type: object
+      required:
+      - password
+      title: AdminLogin
+    AdminModerationComment:
+      properties:
+        comment:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Comment
+      additionalProperties: false
+      type: object
+      required:
+      - comment
+      title: AdminModerationComment
+    AdminModerationReason:
+      properties:
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - reason
+      title: AdminModerationReason
+    AdminRefresh:
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 512
+          minLength: 1
+          title: Refresh Token
+      additionalProperties: false
+      type: object
+      required:
+      - refresh_token
+      title: AdminRefresh
+    AdminSession:
+      properties:
+        authenticated:
+          type: boolean
+          title: Authenticated
+          default: true
+        expires_in:
+          type: integer
+          title: Expires In
+      type: object
+      required:
+      - expires_in
+      title: AdminSession
+    AdminStats:
+      properties:
+        events:
+          $ref: '#/components/schemas/AdminEventStats'
+        users:
+          $ref: '#/components/schemas/AdminUserStats'
+      type: object
+      required:
+      - events
+      - users
+      title: AdminStats
+    AdminTokens:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        refresh_token:
+          type: string
+          title: Refresh Token
+        expires_in:
+          type: integer
+          title: Expires In
+        refresh_expires_in:
+          type: integer
+          title: Refresh Expires In
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      - expires_in
+      - refresh_expires_in
+      title: AdminTokens
+    AdminUserRegistration:
+      properties:
+        date:
+          type: string
+          title: Date
+        count:
+          type: integer
+          title: Count
+      type: object
+      required:
+      - date
+      - count
+      title: AdminUserRegistration
+    AdminUserStats:
+      properties:
+        total:
+          type: integer
+          title: Total
+        registrations:
+          items:
+            $ref: '#/components/schemas/AdminUserRegistration'
+          type: array
+          title: Registrations
+      type: object
+      required:
+      - total
+      - registrations
+      title: AdminUserStats
+    AiProviderCheck:
+      properties:
+        ok:
+          type: boolean
+          title: Ok
+        models:
+          items:
+            type: string
+          type: array
+          title: Models
+        detail:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Detail
+      type: object
+      required:
+      - ok
+      title: AiProviderCheck
+    AiProviderPatch:
+      properties:
+        protocol:
+          anyOf:
+          - type: string
+            pattern: ^(chat_completions|responses)$
+          - type: 'null'
+          title: Protocol
+        base_url:
+          anyOf:
+          - type: string
+            maxLength: 2083
+            minLength: 1
+            format: uri
+          - type: 'null'
+          title: Base Url
+        api_key:
+          anyOf:
+          - type: string
+            maxLength: 4096
+            minLength: 1
+          - type: 'null'
+          title: Api Key
+        model:
+          anyOf:
+          - type: string
+            maxLength: 255
+            minLength: 1
+          - type: 'null'
+          title: Model
+        enabled:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Enabled
+      type: object
+      title: AiProviderPatch
+    AiProviderProbe:
+      properties:
+        base_url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Base Url
+        api_key:
+          type: string
+          maxLength: 4096
+          minLength: 1
+          title: Api Key
+      type: object
+      required:
+      - base_url
+      - api_key
+      title: AiProviderProbe
+    AiProviderView:
+      properties:
+        id:
+          type: integer
+          title: Id
+        purpose:
+          type: string
+          title: Purpose
+        protocol:
+          type: string
+          title: Protocol
+        base_url:
+          type: string
+          title: Base Url
+        api_key:
+          type: string
+          title: Api Key
+        model:
+          type: string
+          title: Model
+        enabled:
+          type: boolean
+          title: Enabled
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - purpose
+      - protocol
+      - base_url
+      - api_key
+      - model
+      - enabled
+      - created_at
+      - updated_at
+      title: AiProviderView
+    AiProviderWrite:
+      properties:
+        purpose:
+          type: string
+          pattern: ^(chat|embedding|review)$
+          title: Purpose
+        protocol:
+          type: string
+          pattern: ^(chat_completions|responses)$
+          title: Protocol
+        base_url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Base Url
+        api_key:
+          type: string
+          maxLength: 4096
+          minLength: 1
+          title: Api Key
+        model:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Model
+        enabled:
+          type: boolean
+          title: Enabled
+          default: true
+      type: object
+      required:
+      - purpose
+      - protocol
+      - base_url
+      - api_key
+      - model
+      title: AiProviderWrite
+    AssistantAction:
+      properties:
+        label:
+          type: string
+          title: Label
+        path:
+          type: string
+          title: Path
+      type: object
+      required:
+      - label
+      - path
+      title: AssistantAction
+    AssistantClientTurn:
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+          title: Text
+          default: ''
+        location:
+          anyOf:
+          - $ref: '#/components/schemas/AssistantLocation'
+          - type: 'null'
+        new_conversation:
+          type: boolean
+          title: New Conversation
+          default: false
+        choice_context:
+          type: string
+          maxLength: 2000
+          title: Choice Context
+          default: ''
+      type: object
+      title: AssistantClientTurn
+    AssistantHistoryMessage:
+      properties:
+        id:
+          type: integer
+          title: Id
+        role:
+          type: string
+          title: Role
+        text:
+          type: string
+          title: Text
+      type: object
+      required:
+      - id
+      - role
+      - text
+      title: AssistantHistoryMessage
+    AssistantHistoryResponse:
+      properties:
+        messages:
+          items:
+            $ref: '#/components/schemas/AssistantHistoryMessage'
+          type: array
+          title: Messages
+      type: object
+      required:
+      - messages
+      title: AssistantHistoryResponse
+    AssistantLocation:
+      properties:
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+      type: object
+      required:
+      - latitude
+      - longitude
+      title: AssistantLocation
+    AssistantTurnRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        channel:
+          type: string
+          pattern: ^(bot|mini_app)$
+          title: Channel
+          default: bot
+        text:
+          type: string
+          maxLength: 2000
+          title: Text
+          default: ''
+        location:
+          anyOf:
+          - $ref: '#/components/schemas/AssistantLocation'
+          - type: 'null'
+        new_conversation:
+          type: boolean
+          title: New Conversation
+          default: false
+        choice_context:
+          type: string
+          maxLength: 2000
+          title: Choice Context
+          default: ''
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      title: AssistantTurnRequest
+    AssistantTurnResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        text:
+          type: string
+          title: Text
+        suggestions:
+          items:
+            type: string
+          type: array
+          title: Suggestions
+        actions:
+          items:
+            $ref: '#/components/schemas/AssistantAction'
+          type: array
+          title: Actions
+      type: object
+      required:
+      - status
+      - text
+      - suggestions
+      - actions
+      title: AssistantTurnResponse
+    Body_upload_event_photo_api_admin_events__event_id__photos_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_upload_event_photo_api_admin_events__event_id__photos_post
+    Body_upload_own_photo_api_v1_events__event_id__photos_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_upload_own_photo_api_v1_events__event_id__photos_post
+    BotMeetingAttendanceRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        going:
+          type: boolean
+          title: Going
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      - going
+      title: BotMeetingAttendanceRequest
+    BotMeetingCard:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        address:
+          type: string
+          title: Address
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        chat_invite_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Chat Invite Url
+        latitude:
+          type: number
+          title: Latitude
+        longitude:
+          type: number
+          title: Longitude
+        price_rub:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Price Rub
+        pushkin_card:
+          type: boolean
+          title: Pushkin Card
+        images:
+          items:
+            $ref: '#/components/schemas/BotMeetingPhoto'
+          type: array
+          title: Images
+        attendees_count:
+          type: integer
+          title: Attendees Count
+        going:
+          type: boolean
+          title: Going
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - address
+      - starts_at
+      - ends_at
+      - chat_invite_url
+      - latitude
+      - longitude
+      - price_rub
+      - pushkin_card
+      - images
+      - attendees_count
+      - going
+      title: BotMeetingCard
+    BotMeetingItem:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        address:
+          type: string
+          title: Address
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        chat_invite_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Chat Invite Url
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - address
+      - starts_at
+      - ends_at
+      - chat_invite_url
+      title: BotMeetingItem
+    BotMeetingPhoto:
+      properties:
+        id:
+          type: integer
+          title: Id
+        url:
+          type: string
+          title: Url
+        max_image_token:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Max Image Token
+      type: object
+      required:
+      - id
+      - url
+      - max_image_token
+      title: BotMeetingPhoto
+    BotMeetingsRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      title: BotMeetingsRequest
+    BotMeetingsResponse:
+      properties:
+        total:
+          type: integer
+          title: Total
+        meetings:
+          items:
+            $ref: '#/components/schemas/BotMeetingItem'
+          type: array
+          title: Meetings
+      type: object
+      required:
+      - total
+      - meetings
+      title: BotMeetingsResponse
+    BotPhotoTokenRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        token:
+          type: string
+          maxLength: 1024
+          minLength: 1
+          title: Token
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      - token
+      title: BotPhotoTokenRequest
+    CategoryNameInput:
+      properties:
+        locale_code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Locale Code
+        text:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Text
+      additionalProperties: false
+      type: object
+      required:
+      - locale_code
+      - text
+      title: CategoryNameInput
+    ChatLink:
+      properties:
+        chat_invite_url:
+          type: string
+          maxLength: 2048
+          minLength: 1
+          title: Chat Invite Url
+      additionalProperties: false
+      type: object
+      required:
+      - chat_invite_url
+      title: ChatLink
+    CityCreate:
+      properties:
+        names:
+          items:
+            $ref: '#/components/schemas/LocalizedNameInput'
+          type: array
+          minItems: 1
+          title: Names
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+      additionalProperties: false
+      type: object
+      required:
+      - names
+      title: CityCreate
+    EventCategoryCreate:
+      properties:
+        names:
+          items:
+            $ref: '#/components/schemas/CategoryNameInput'
+          type: array
+          minItems: 1
+          title: Names
+      additionalProperties: false
+      type: object
+      required:
+      - names
+      title: EventCategoryCreate
+    EventCreate:
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 10000
+          title: Description
+        category_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+        city_id:
+          type: integer
+          title: City Id
+        address:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Address
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        area:
+          anyOf:
+          - items:
+              items:
+                type: number
+              type: array
+            type: array
+          - type: 'null'
+          title: Area
+      additionalProperties: false
+      type: object
+      required:
+      - title
+      - description
+      - city_id
+      - address
+      - latitude
+      - longitude
+      - starts_at
+      title: EventCreate
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    InterestCreate:
+      properties:
+        names:
+          items:
+            $ref: '#/components/schemas/LocalizedNameInput'
+          type: array
+          minItems: 1
+          title: Names
+      additionalProperties: false
+      type: object
+      required:
+      - names
+      title: InterestCreate
+    InterestPatch:
+      properties:
+        names:
+          items:
+            $ref: '#/components/schemas/LocalizedNameInput'
+          type: array
+          minItems: 1
+          title: Names
+      additionalProperties: false
+      type: object
+      required:
+      - names
+      title: InterestPatch
+    LocalePreferenceRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          type: string
+          maxLength: 64
+          minLength: 2
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - locale
+      - max_chat_id
+      title: LocalePreferenceRequest
+    LocalePreferenceResponse:
+      properties:
+        locale:
+          type: string
+          title: Locale
+      type: object
+      required:
+      - locale
+      title: LocalePreferenceResponse
+    LocalizedNameInput:
+      properties:
+        locale_code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Locale Code
+        text:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Text
+      additionalProperties: false
+      type: object
+      required:
+      - locale_code
+      - text
+      title: LocalizedNameInput
+    MaxIdentityRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      title: MaxIdentityRequest
+    MePatch:
+      properties:
+        city_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 64
+            minLength: 2
+          - type: 'null'
+          title: Locale
+        interest_ids:
+          anyOf:
+          - items:
+              type: integer
+            type: array
+            maxItems: 5
+            minItems: 0
+          - type: 'null'
+          title: Interest Ids
+        smart_interest_rotation:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Smart Interest Rotation
+        notifications_enabled:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Notifications Enabled
+        notifications_silent:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Notifications Silent
+        notify_event_reminders:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Notify Event Reminders
+        notify_schedule_changes:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Notify Schedule Changes
+      additionalProperties: false
+      type: object
+      title: MePatch
+    NearbyEvent:
+      properties:
+        id:
+          type: integer
+          title: Id
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        address:
+          type: string
+          title: Address
+        starts_at:
+          type: string
+          title: Starts At
+        images:
+          items:
+            type: string
+          type: array
+          title: Images
+        going:
+          type: boolean
+          title: Going
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - address
+      - starts_at
+      - images
+      - going
+      title: NearbyEvent
+    NearbyPoint:
+      properties:
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+      type: object
+      title: NearbyPoint
+    NearbyRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      - latitude
+      - longitude
+      title: NearbyRequest
+    NotificationPreferenceRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        preference:
+          type: string
+          enum:
+          - enabled
+          - silent
+          - disabled
+          title: Preference
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      - preference
+      title: NotificationPreferenceRequest
+    NotificationPreferenceResponse:
+      properties:
+        preference:
+          type: string
+          enum:
+          - enabled
+          - silent
+          - disabled
+          title: Preference
+      type: object
+      required:
+      - preference
+      title: NotificationPreferenceResponse
+    PendingChatSnapshot:
+      properties:
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        message_ids:
+          items:
+            type: string
+          type: array
+          title: Message Ids
+      type: object
+      required:
+      - max_chat_id
+      - message_ids
+      title: PendingChatSnapshot
+    PendingMessageBatchRequest:
+      properties:
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        message_ids:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Message Ids
+      type: object
+      required:
+      - max_chat_id
+      - message_ids
+      title: PendingMessageBatchRequest
+    PendingMessageRecoveryResponse:
+      properties:
+        chats:
+          items:
+            $ref: '#/components/schemas/PendingChatSnapshot'
+          type: array
+          title: Chats
+      type: object
+      required:
+      - chats
+      title: PendingMessageRecoveryResponse
+    PendingMessageRequest:
+      properties:
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        message_id:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Message Id
+      type: object
+      required:
+      - max_chat_id
+      - message_id
+      title: PendingMessageRequest
+    PendingMessageSnapshotRequest:
+      properties:
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        exclude_message_id:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Exclude Message Id
+      type: object
+      required:
+      - max_chat_id
+      title: PendingMessageSnapshotRequest
+    PendingMessageSnapshotResponse:
+      properties:
+        message_ids:
+          items:
+            type: string
+          type: array
+          title: Message Ids
+      type: object
+      required:
+      - message_ids
+      title: PendingMessageSnapshotResponse
+    PhotoOrder:
+      properties:
+        photo_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 10
+          minItems: 0
+          title: Photo Ids
+      additionalProperties: false
+      type: object
+      required:
+      - photo_ids
+      title: PhotoOrder
+    PrimaryMessageRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        primary_message_id:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Primary Message Id
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      title: PrimaryMessageRequest
+    PrimaryMessageResponse:
+      properties:
+        primary_message_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Primary Message Id
+      type: object
+      required:
+      - primary_message_id
+      title: PrimaryMessageResponse
+    ReviewCreate:
+      properties:
+        rating:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Rating
+        text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text
+        anonymous:
+          type: boolean
+          title: Anonymous
+          default: false
+      type: object
+      required:
+      - rating
+      title: ReviewCreate
+    UserAccessResponse:
+      properties:
+        access_required:
+          type: boolean
+          title: Access Required
+        access_granted:
+          type: boolean
+          title: Access Granted
+        locale:
+          type: string
+          title: Locale
+        assistant_available:
+          type: boolean
+          title: Assistant Available
+          default: false
+        max_user_id:
+          type: integer
+          title: Max User Id
+        access_granted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Access Granted At
+      type: object
+      required:
+      - access_required
+      - access_granted
+      - locale
+      - max_user_id
+      - access_granted_at
+      title: UserAccessResponse
+    UserEventUpdate:
+      properties:
+        title:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Title
+        description:
+          anyOf:
+          - type: string
+            maxLength: 10000
+          - type: 'null'
+          title: Description
+        category_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Category Id
+        city_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: City Id
+        address:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Address
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+        starts_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        chat_invite_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Chat Invite Url
+        area:
+          anyOf:
+          - items:
+              items:
+                type: number
+              type: array
+            type: array
+          - type: 'null'
+          title: Area
+      additionalProperties: false
+      type: object
+      title: UserEventUpdate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VerifyAccessCodeRequest:
+      properties:
+        max_user_id:
+          type: integer
+          title: Max User Id
+        first_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: First Name
+        last_name:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Last Name
+        username:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Username
+        avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Avatar Url
+        full_avatar_url:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+          title: Full Avatar Url
+        locale:
+          anyOf:
+          - type: string
+            maxLength: 16
+          - type: 'null'
+          title: Locale
+        max_chat_id:
+          type: integer
+          title: Max Chat Id
+        code:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Code
+      type: object
+      required:
+      - max_user_id
+      - first_name
+      - max_chat_id
+      - code
+      title: VerifyAccessCodeRequest
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
+      description: Парольная сессия админ-панели. Мини-приложение использует заголовок Authorization tma, он описан у методов /api/v1.
+
