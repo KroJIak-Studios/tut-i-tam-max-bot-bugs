@@ -123,8 +123,10 @@
 }
 
 .actionButton {
-  height: 42px;
+  height: 44px;
+  min-height: 44px;
   width: 100%;
+  border: none;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
@@ -179,7 +181,8 @@
     font-size: 12px;
   }
   .actionButton {
-    height: 38px;
+    height: 40px;
+    min-height: 40px;
     font-size: 14px;
   }
 }
