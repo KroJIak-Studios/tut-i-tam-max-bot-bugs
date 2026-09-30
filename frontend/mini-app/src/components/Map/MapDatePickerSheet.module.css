@@ -298,6 +298,16 @@
   transform: scale(0.92);
 }
 
+.dayCellOutside {
+  color: #9CA3AF;
+}
+
+.dayCellInRange {
+  background: #DBEAFE;
+  border-radius: 0;
+  color: #1D4ED8;
+}
+
 .dayCellDisabled {
   color: #D1D5DB;
   cursor: not-allowed;

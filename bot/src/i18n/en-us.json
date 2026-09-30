@@ -62,7 +62,8 @@
       "five": "Hi, I’m here. Tell me the mood and I’ll suggest an event."
     },
     "menu": "Main menu",
-    "share_location": "Send my location"
+    "share_location": "Send my location",
+    "typing": "Typing..."
   },
   "common": {
     "not_ready": "This section will be available later.",

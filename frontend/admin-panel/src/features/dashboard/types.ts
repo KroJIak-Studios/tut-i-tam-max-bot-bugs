@@ -8,8 +8,14 @@ export interface EventsStats {
   pushkin: number | null
 }
 
+export interface UserRegistration {
+  date: string
+  count: number
+}
+
 export interface UsersStats {
   total: number
+  registrations: UserRegistration[]
 }
 
 export interface DirectoryStats {

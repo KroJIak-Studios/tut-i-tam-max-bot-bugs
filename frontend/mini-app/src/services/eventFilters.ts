@@ -52,11 +52,15 @@ export function filterEvents(
     const sunIso = getIsoDate(daysToSat + 1)
     filtered = filtered.filter((e) => isEventVisibleForRange(e, satIso, sunIso))
   } else if (filters.selectedDate && filters.selectedDate !== 'all') {
-    filtered = filtered.filter((e) => isEventVisibleForDay(e, filters.selectedDate!))
+    const end = filters.dateEnd && filters.dateEnd !== filters.selectedDate ? filters.dateEnd : null
+    filtered = end
+      ? filtered.filter((event) => isEventVisibleForRange(event, filters.selectedDate!, end))
+      : filtered.filter((event) => isEventVisibleForDay(event, filters.selectedDate!))
   }
 
   // 2. Time slot filter (when explicitly supplied) or default today filter
-  if (filters.timeSlotMinutes !== undefined && filters.timeSlotMinutes !== null) {
+  const severalDays = Boolean(filters.dateEnd && filters.selectedDate && filters.dateEnd !== filters.selectedDate)
+  if (!severalDays && filters.timeSlotMinutes !== undefined && filters.timeSlotMinutes !== null) {
     const targetDate =
       filters.selectedDate && filters.selectedDate !== 'all'
         ? filters.selectedDate

@@ -202,25 +202,19 @@ export const MapPage: React.FC = () => {
     }))
   }, [])
 
-  const handleResetTime = useCallback(() => {
-    setUserSelectedId(null)
-    setFilters((prev) => ({
-      ...prev,
-      timeSlotMinutes: null,
-    }))
-  }, [])
-
   const hasActiveEventFilters = filters.category !== 'all' || filters.isFreeOnly || filters.pushkinCardOnly || filters.source !== 'all' || filters.minAttendees > 0 || filters.timeSlotMinutes !== null || !isToday
 
   // Date selection change
   const handleDateChange = (
     newIsoDate: string,
-    preset?: DatePreset
+    preset?: DatePreset,
+    endDate?: string,
   ) => {
     setUserSelectedId(null)
     setFilters((prev) => ({
       ...prev,
       selectedDate: newIsoDate,
+      dateEnd: endDate ?? newIsoDate,
       timeSlotMinutes: null,
       dateFilter:
         preset === 'weekend'
@@ -254,6 +248,7 @@ export const MapPage: React.FC = () => {
       {/* 2. Быстрые чипы с выбором даты */}
       <MapFilterChips
         selectedDate={filters.selectedDate}
+        dateEnd={filters.dateEnd}
         isFreeOnly={filters.isFreeOnly}
         extraFilterCount={extraFilterCount}
         onOpenDatePicker={() => setIsDatePickerOpen(true)}
@@ -305,12 +300,8 @@ export const MapPage: React.FC = () => {
             type="button"
             className={styles.emptyResetBtn}
             onClick={() => {
-              if (filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined) {
-                handleResetTime()
-              } else {
-                setLoading(true)
-                setFilters(DEFAULT_FILTERS)
-              }
+              setLoading(true)
+              setFilters(DEFAULT_FILTERS)
             }}
           >
             {filters.timeSlotMinutes !== null && filters.timeSlotMinutes !== undefined
@@ -346,12 +337,13 @@ export const MapPage: React.FC = () => {
       </div>
 
       {/* 4. Временная шкала событий */}
-      <MapTimeScrubber
-        selectedMinutes={filters.timeSlotMinutes ?? null}
-        onChangeMinutes={handleTimeChange}
-        onResetTime={handleResetTime}
-        isToday={isToday}
-      />
+      {(!filters.dateEnd || filters.dateEnd === filters.selectedDate) && (
+        <MapTimeScrubber
+          selectedMinutes={filters.timeSlotMinutes ?? null}
+          onChangeMinutes={handleTimeChange}
+          isToday={isToday}
+        />
+      )}
 
       {/* Нижняя навигация */}
       <BottomNavigation
@@ -363,6 +355,7 @@ export const MapPage: React.FC = () => {
       {isDatePickerOpen && (
         <MapDatePickerSheet
           selectedDate={filters.selectedDate}
+          dateEnd={filters.dateEnd}
           activePreset={filters.dateFilter}
           onClose={() => setIsDatePickerOpen(false)}
           onSelectDate={handleDateChange}

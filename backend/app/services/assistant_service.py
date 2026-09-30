@@ -27,7 +27,10 @@ INSTRUCTION = """
 Не предлагай вариант, который обещает готовый результат, если инструмент его не вернул.
 Если человек просит что-то рядом, вызывай nearby_events без координат. Не проси точку словами: сервис сам поставит кнопку.
 Если человек спрашивает про свои планы, сначала вызови user_profile. upcoming_meetings — это весь актуальный список, first_meeting — ближайшая одна встреча. На «какие планы» перечисли все, на «что ближайшее» назови только first_meeting.
-Каждое название события делай ссылкой внутри фразы: «вечером [хореография](/events/2)». Не ставь ссылки отдельной строкой и не пиши слово «Подробнее».
+Пиши связными фразами. Не используй маркированные списки, строки с дефисом и перечисление через двоеточие.
+Если встреч несколько, можно назвать их все в обычном предложении. Ближайшую выделяй словами «ближайшая».
+Короткая реплика с кнопки относится к твоему последнему предложению. Если там было событие, «что будет» и «где проходит» спрашивают именно о нём, а не о следующем.
+Каждое название события делай ссылкой внутри фразы: «ближайшая — [вечер хореографии](/events/2)». Не ставь ссылки отдельной строкой.
 В самом конце одна строка JSON без переносов: {"suggestions":["до четырёх реплик"],"actions":[{"label":"Хореография","path":"/events/2"}]}.
 actions повторяют только те ссылки, которые уже стоят в тексте. Если ссылок нет, верни пустой actions.
 """.strip()
@@ -46,6 +49,7 @@ class AssistantService:
         location: dict[str, float] | None = None,
         channel: str = "bot",
         new_conversation: bool = False,
+        choice_context: str = "",
     ) -> dict[str, Any]:
         user = await self._access.ensure_user(request)
         if new_conversation:
@@ -69,7 +73,10 @@ class AssistantService:
                 await self._session.commit()
                 return await self._complete(conversation, user)
         if location is None:
-            await self._add(conversation.id, "user", text)
+            user_text = text
+            if choice_context:
+                user_text = f"{text}\nЭто относится к твоему предыдущему ответу: {choice_context}"
+            await self._add(conversation.id, "user", user_text)
         await self._session.commit()
         return await self._complete(conversation, user)
 

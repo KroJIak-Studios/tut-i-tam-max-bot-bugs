@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, X, RotateCcw } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { resolveCityName, resolveCategoryName } from '../utils/eventFormatters'
 import type { City } from '../../cities/types/city'
 import type { EventCategory } from '../../categories/types'
@@ -11,7 +11,6 @@ interface EventsFiltersProps {
   cities: City[]
   categories: EventCategory[]
   onUpdateFilters: (updates: Partial<EventFiltersState>) => void
-  onResetFilters: () => void
 }
 
 export const EventsFilters: React.FC<EventsFiltersProps> = ({
@@ -19,17 +18,7 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
   cities,
   categories,
   onUpdateFilters,
-  onResetFilters,
 }) => {
-  const hasActiveFilters =
-    Boolean(filters.search) ||
-    filters.cityId !== 'all' ||
-    filters.categoryId !== 'all' ||
-    filters.source !== 'all' ||
-    filters.visible !== 'all' ||
-    filters.freeOnly ||
-    filters.pushkinOnly
-
   return (
     <div className={styles.filtersContainer} role="search" aria-label="Фильтры мероприятий">
       <div className={styles.searchRow}>
@@ -135,43 +124,30 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
               })
             }
           >
-            <option value="all">Все (видимые и скрытые)</option>
+            <option value="all">Все</option>
             <option value="visible">Только видимые</option>
             <option value="hidden">Только скрытые</option>
           </select>
         </div>
 
-        <label className={styles.checkboxContainer}>
-          <input
-            type="checkbox"
-            className={styles.checkboxInput}
-            checked={filters.freeOnly}
-            onChange={(e) => onUpdateFilters({ freeOnly: e.target.checked })}
-          />
-          <span>Бесплатные</span>
-        </label>
-
-        <label className={styles.checkboxContainer}>
-          <input
-            type="checkbox"
-            className={styles.checkboxInput}
-            checked={filters.pushkinOnly}
-            onChange={(e) => onUpdateFilters({ pushkinOnly: e.target.checked })}
-          />
-          <span>Пушкинская карта</span>
-        </label>
-
-        {hasActiveFilters && (
+        <div className={styles.toggleGroup} role="group" aria-label="Особенности">
           <button
             type="button"
-            className={styles.resetBtn}
-            onClick={onResetFilters}
-            aria-label="Сбросить все фильтры"
+            className={`${styles.toggle} ${filters.freeOnly ? styles.toggleActive : ''}`}
+            aria-pressed={filters.freeOnly}
+            onClick={() => onUpdateFilters({ freeOnly: !filters.freeOnly, pushkinOnly: filters.freeOnly ? filters.pushkinOnly : false })}
           >
-            <RotateCcw size={14} aria-hidden="true" />
-            <span>Сбросить</span>
+            Бесплатные
           </button>
-        )}
+          <button
+            type="button"
+            className={`${styles.toggle} ${filters.pushkinOnly ? styles.toggleActive : ''}`}
+            aria-pressed={filters.pushkinOnly}
+            onClick={() => onUpdateFilters({ pushkinOnly: !filters.pushkinOnly, freeOnly: filters.pushkinOnly ? filters.freeOnly : false })}
+          >
+            Пушкинская карта
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import {
   CalendarOff,
   ChevronLeft,
   ChevronRight,
+  RotateCcw,
 } from 'lucide-react'
 import { useEvents } from '../hooks/useEvents'
 import { EventsHeader } from './EventsHeader'
@@ -49,6 +50,15 @@ export const EventsView: React.FC = () => {
   // Default to cards on small screens, table on larger screens
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
 
+  const filtersActive =
+    Boolean(filters.search) ||
+    filters.cityId !== 'all' ||
+    filters.categoryId !== 'all' ||
+    filters.source !== 'all' ||
+    filters.visible !== 'all' ||
+    filters.freeOnly ||
+    filters.pushkinOnly
+
   return (
     <div className={styles.container}>
       <EventsHeader stats={stats} isLoading={isLoading} onRefresh={refresh} />
@@ -58,7 +68,6 @@ export const EventsView: React.FC = () => {
         cities={cities}
         categories={categories}
         onUpdateFilters={updateFilters}
-        onResetFilters={resetFilters}
       />
 
       {error ? (
@@ -98,9 +107,17 @@ export const EventsView: React.FC = () => {
       ) : (
         <>
           <div className={styles.viewControlsRow}>
-            <span className={styles.countLabel}>
-              Найдено мероприятий: {total}
-            </span>
+            <div className={styles.countGroup}>
+              <span className={styles.countLabel}>
+                Найдено мероприятий: {total}
+              </span>
+              {filtersActive && (
+                <button type="button" className={styles.resetBtn} onClick={resetFilters}>
+                  <RotateCcw size={13} aria-hidden="true" />
+                  <span>Сбросить</span>
+                </button>
+              )}
+            </div>
 
             <div className={styles.viewModeToggle} role="group" aria-label="Вид отображения">
               <button

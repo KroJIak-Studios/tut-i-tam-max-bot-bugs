@@ -80,6 +80,7 @@ export interface MapFilterState {
   category: number | 'all' | 'volunteering'
   dateFilter: 'all' | 'today' | 'tomorrow' | 'weekend'
   selectedDate: string // "YYYY-MM-DD"
+  dateEnd?: string
   isFreeOnly: boolean
   pushkinCardOnly: boolean
   minAttendees: number

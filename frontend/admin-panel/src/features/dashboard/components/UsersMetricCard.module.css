@@ -21,6 +21,7 @@
 .cardHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
@@ -44,24 +45,33 @@
   line-height: 1.3;
 }
 
-.totalSection {
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.totalInline {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-end;
+  gap: 2px;
 }
+
+.chart {
+  flex: 1;
+  min-height: 180px;
+  width: 100%;
+}
+
 
 .totalValue {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--color-text-main);
-  line-height: 1.1;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-}
-
-@media (min-width: 768px) {
-  .totalValue {
-    font-size: 38px;
-  }
 }
 
 .totalLabel {

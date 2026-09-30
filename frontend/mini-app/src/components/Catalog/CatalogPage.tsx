@@ -68,9 +68,10 @@ export const CatalogPage: React.FC = () => {
   useEffect(() => {
     let active = true
     setLoading(true)
-    const selectedDate = filters.dateFilter === 'all' ? undefined : filters.selectedDate
-    const startsAfter = selectedDate && selectedDate !== 'all' ? `${selectedDate}T00:00:00Z` : undefined
-    const startsBefore = selectedDate && selectedDate !== 'all' ? `${selectedDate}T23:59:59Z` : undefined
+    const selectedDate = filters.selectedDate !== 'all' ? filters.selectedDate : undefined
+    const endDate = filters.dateEnd && filters.dateEnd !== 'all' ? filters.dateEnd : selectedDate
+    const startsAfter = selectedDate ? `${selectedDate}T00:00:00Z` : undefined
+    const startsBefore = endDate ? `${endDate}T23:59:59Z` : undefined
     getCatalogEvents({
       cityId: cityId ?? undefined,
       categoryId: filters.category === 'all' || filters.category === 'volunteering' ? null : filters.category,
@@ -114,8 +115,9 @@ export const CatalogPage: React.FC = () => {
 
   const extraFilterCount = useMemo(() => countExtraFilters(filters), [filters])
   const handleToggleFree = useCallback(() => setFilters((prev) => ({ ...prev, isFreeOnly: !prev.isFreeOnly, pushkinCardOnly: false, quickChip: !prev.isFreeOnly ? 'free' : 'all' })), [])
-  const handleSelectDate = useCallback((isoDate: string, preset?: DatePreset) => {
-    setFilters((prev) => ({ ...prev, selectedDate: isoDate, dateFilter: preset === 'weekend' ? 'weekend' : preset === 'tomorrow' ? 'tomorrow' : preset === 'today' ? 'today' : 'all' }))
+  const handleSelectDate = useCallback((isoDate: string, preset?: DatePreset, endDate?: string) => {
+    setOffset(0)
+    setFilters((prev) => ({ ...prev, selectedDate: isoDate, dateEnd: endDate ?? isoDate, dateFilter: preset === 'weekend' ? 'weekend' : preset === 'tomorrow' ? 'tomorrow' : preset === 'today' ? 'today' : 'all' }))
   }, [])
   const handleApplyFilters = useCallback((newFilters: MapFilterState) => { setOffset(0); setFilters(newFilters) }, [])
   const handleResetFilters = useCallback(() => { setOffset(0); setFilters({ ...DEFAULT_FILTERS, dateFilter: 'all', selectedDate: 'all' }) }, [])
@@ -142,7 +144,7 @@ export const CatalogPage: React.FC = () => {
     <main className={styles.scrollArea}>
       <div className={styles.contentWrapper}>
         <div className={styles.filterBarSection}>
-          <CatalogFilterBar selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} allDates={filters.dateFilter === 'all'} isFreeOnly={filters.isFreeOnly} extraFilterCount={extraFilterCount} onOpenDatePicker={() => setIsDatePickerOpen(true)} onToggleFree={handleToggleFree} onOpenFilterSheet={() => setIsFilterSheetOpen(true)} />
+          <CatalogFilterBar selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} dateEnd={filters.dateEnd} allDates={filters.selectedDate === 'all'} isFreeOnly={filters.isFreeOnly} extraFilterCount={extraFilterCount} onOpenDatePicker={() => setIsDatePickerOpen(true)} onToggleFree={handleToggleFree} onOpenFilterSheet={() => setIsFilterSheetOpen(true)} />
         </div>
         {!loading && !hasError && cityId !== null && eventsWithNames.length > 0 && <div className={styles.listMetaRow}><span className={styles.countText}>{t('catalog.foundEvents', { count: eventsWithNames.length })}</span><CatalogSortDropdown value={sortOrder} onChange={handleSortChange} /></div>}
         {loading && <div className={styles.loadingSkeletonList}>{[1, 2, 3].map((i) => <div key={i} className={styles.skeletonCard}><div className={styles.skeletonImage} /><div className={styles.skeletonContent}><div className={styles.skeletonLineShort} /><div className={styles.skeletonLineTitle} /><div className={styles.skeletonLineMedium} /></div></div>)}</div>}
@@ -152,7 +154,7 @@ export const CatalogPage: React.FC = () => {
         {!loading && !hasError && cityId !== null && eventsWithNames.length > 0 && <><div className={styles.cardsList}>{eventsWithNames.map(({ event, distanceMeters }) => <CatalogEventCard key={event.id} event={event} distanceMeters={distanceMeters} onCardClick={handleCardClick} onMapClick={handleMapClick} />)}</div>{hasMore && <button type="button" className={styles.retryBtn} onClick={() => setOffset((value) => value + 20)}>{t('catalog.loadMore')}</button>}</> }
       </div>
     </main>
-    {isDatePickerOpen && <MapDatePickerSheet selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} activePreset={filters.dateFilter} onClose={() => setIsDatePickerOpen(false)} onSelectDate={(iso, preset) => { handleSelectDate(iso, preset); setIsDatePickerOpen(false) }} />}
+    {isDatePickerOpen && <MapDatePickerSheet selectedDate={filters.selectedDate === 'all' ? getIsoDate(0) : filters.selectedDate} dateEnd={filters.dateEnd} activePreset={filters.dateFilter} onClose={() => setIsDatePickerOpen(false)} onSelectDate={handleSelectDate} />}
     {isFilterSheetOpen && <MapFilterSheet filters={filters} categories={categories} onClose={() => setIsFilterSheetOpen(false)} onApply={handleApplyFilters} onReset={handleResetFilters} />}
     <BottomNavigation activeTab="none" onTabChange={handleTabChange} />
   </div>

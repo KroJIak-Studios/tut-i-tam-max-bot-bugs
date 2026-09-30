@@ -6,6 +6,7 @@ import styles from './MapFilterChips.module.css'
 
 interface MapFilterChipsProps {
   selectedDate: string
+  dateEnd?: string
   isFreeOnly: boolean
   extraFilterCount: number
   onOpenDatePicker: () => void
@@ -15,6 +16,7 @@ interface MapFilterChipsProps {
 
 export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
   selectedDate,
+  dateEnd,
   isFreeOnly,
   extraFilterCount,
   onOpenDatePicker,
@@ -22,8 +24,10 @@ export const MapFilterChips: React.FC<MapFilterChipsProps> = ({
   onOpenFilterSheet,
 }) => {
   const { t, i18n } = useTranslation()
-  const isToday = selectedDate === getIsoDate(0)
-  const dateLabel = formatChipDate(selectedDate, i18n.language)
+  const isToday = selectedDate === getIsoDate(0) && (!dateEnd || dateEnd === selectedDate)
+  const dateLabel = dateEnd && dateEnd !== selectedDate
+    ? `${formatChipDate(selectedDate, i18n.language)} — ${formatChipDate(dateEnd, i18n.language)}`
+    : formatChipDate(selectedDate, i18n.language)
 
   return (
     <div className={styles.barContainer} role="toolbar" aria-label={t('map.filtersToolbar')}>

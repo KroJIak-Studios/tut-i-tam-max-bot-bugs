@@ -36,5 +36,11 @@ class AdminEventStats(BaseModel):
     user_created: int
 
 
+class AdminUserRegistration(BaseModel):
+    date: str
+    count: int
+
+
 class AdminUserStats(BaseModel):
     total: int
+    registrations: list[AdminUserRegistration]

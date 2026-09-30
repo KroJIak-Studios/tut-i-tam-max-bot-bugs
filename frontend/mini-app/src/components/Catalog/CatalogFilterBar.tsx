@@ -6,6 +6,7 @@ import styles from './CatalogFilterBar.module.css'
 
 interface CatalogFilterBarProps {
   selectedDate: string
+  dateEnd?: string
   allDates: boolean
   isFreeOnly: boolean
   extraFilterCount: number
@@ -16,6 +17,7 @@ interface CatalogFilterBarProps {
 
 export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
   selectedDate,
+  dateEnd,
   allDates,
   isFreeOnly,
   extraFilterCount,
@@ -24,8 +26,12 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
   onOpenFilterSheet,
 }) => {
   const { t, i18n } = useTranslation()
-  const isToday = selectedDate === getIsoDate(0)
-  const dateLabel = allDates ? t('catalog.allDates') : formatChipDate(selectedDate, i18n.language)
+  const isToday = selectedDate === getIsoDate(0) && (!dateEnd || dateEnd === selectedDate)
+  const dateLabel = allDates
+    ? t('catalog.allDates')
+    : dateEnd && dateEnd !== selectedDate
+      ? `${formatChipDate(selectedDate, i18n.language)} — ${formatChipDate(dateEnd, i18n.language)}`
+      : formatChipDate(selectedDate, i18n.language)
 
   return (
     <div className={styles.barContainer} role="toolbar" aria-label={t('catalog.filterToolbar')}>

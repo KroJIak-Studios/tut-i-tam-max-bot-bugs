@@ -1,5 +1,5 @@
 import React from 'react'
-import { AlertCircle, Layers, RefreshCw } from 'lucide-react'
+import { AlertCircle, Layers } from 'lucide-react'
 import { LocalizedEntityList } from '../components/LocalizedEntity/LocalizedEntityList'
 import {
   CategoryDeleteModal,
@@ -48,20 +48,6 @@ export const CategoriesPage: React.FC = () => {
             Справочник категорий с мультиязычными названиями
           </p>
         </div>
-
-        <button
-          type="button"
-          className={styles.refreshBtn}
-          onClick={loadData}
-          disabled={isLoading}
-          title="Обновить список"
-          aria-label="Обновить список категорий"
-        >
-          <RefreshCw
-            size={16}
-            className={isLoading ? styles.spinning : undefined}
-          />
-        </button>
       </header>
 
       {/* Loading state */}
@@ -79,7 +65,6 @@ export const CategoriesPage: React.FC = () => {
           <h2 className={styles.stateTitle}>Не удалось загрузить категории</h2>
           <p className={styles.stateText}>{error}</p>
           <button type="button" className={styles.retryBtn} onClick={loadData}>
-            <RefreshCw size={16} />
             <span>Повторить попытку</span>
           </button>
         </div>

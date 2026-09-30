@@ -139,7 +139,7 @@ export function generateMonthCalendar(
       iso,
       dayNum,
       isCurrentMonth: false,
-      isDisabled: true, // out of current month
+      isDisabled: iso < minIso || iso > maxIso, // out of current month
       isToday: iso === todayIso,
       isSelected: iso === selectedIso,
     })
@@ -170,7 +170,7 @@ export function generateMonthCalendar(
       iso,
       dayNum: i,
       isCurrentMonth: false,
-      isDisabled: true,
+      isDisabled: iso < minIso || iso > maxIso,
       isToday: iso === todayIso,
       isSelected: iso === selectedIso,
     })

@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   Heart,
-  Plus,
-  RefreshCw,
   AlertCircle,
   CheckCircle2,
   X,
@@ -19,7 +17,6 @@ export const InterestsView: React.FC = () => {
   const [locales, setLocales] = useState<Locale[]>([])
   const [interests, setInterests] = useState<InterestItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
 
@@ -32,7 +29,6 @@ export const InterestsView: React.FC = () => {
   const fallbackLocaleCode = getFallbackLocaleCode(locales)
 
   const refreshData = useCallback(async () => {
-    setIsRefreshing(true)
     setErrorMessage(null)
     try {
       const [fetchedLocales, fetchedInterests] = await Promise.all([
@@ -47,8 +43,6 @@ export const InterestsView: React.FC = () => {
           ? err.message
           : 'Не удалось обновить данные интересов'
       setErrorMessage(msg)
-    } finally {
-      setIsRefreshing(false)
     }
   }, [])
 
@@ -160,32 +154,6 @@ export const InterestsView: React.FC = () => {
             названиями
           </p>
         </div>
-
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.refreshBtn}
-            onClick={refreshData}
-            disabled={isLoading || isRefreshing}
-            title="Обновить список"
-            aria-label="Обновить список интересов"
-          >
-            <RefreshCw
-              size={17}
-              className={isRefreshing ? styles.rotating : undefined}
-            />
-          </button>
-
-          <button
-            type="button"
-            className={styles.createBtn}
-            onClick={handleOpenCreate}
-            disabled={isLoading}
-          >
-            <Plus size={16} />
-            <span>Добавить интерес</span>
-          </button>
-        </div>
       </header>
 
       {successToast && (
@@ -220,7 +188,6 @@ export const InterestsView: React.FC = () => {
             className={styles.retryBtn}
             onClick={handleRetry}
           >
-            <RefreshCw size={15} />
             <span>Повторить попытку</span>
           </button>
         </div>

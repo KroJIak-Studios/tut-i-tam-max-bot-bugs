@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, FastAPI
 
 from app.api.bot_access import router as bot_access_router
@@ -12,12 +14,25 @@ from app.api.event_categories import public_router as event_categories_router
 from app.api.media import router as media_router
 from app.api.events import router as events_router
 
+from app.core.settings import get_settings
+from app.db import SessionFactory
+from app.services.ai_provider_bootstrap import bootstrap_ai_providers
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with SessionFactory() as session:
+        await bootstrap_ai_providers(session, get_settings())
+    yield
+
+
 app = FastAPI(
     title="tut-i-tam-max-bot",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
     swagger_ui_oauth2_redirect_url="/api/docs/oauth2-redirect",
+    lifespan=lifespan,
 )
 
 api_router = APIRouter()

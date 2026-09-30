@@ -17,10 +17,32 @@
   gap: 8px;
 }
 
+.countGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
 .countLabel {
-  font-size: 13px;
+  font-size: 22px;
+  color: var(--color-text-main);
+  font-weight: 650;
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
+  font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .viewModeToggle {

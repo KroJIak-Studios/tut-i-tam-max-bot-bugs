@@ -13,6 +13,7 @@ class AssistantTurnRequest(MaxIdentityRequest):
     text: str = Field(default="", max_length=2000)
     location: AssistantLocation | None = None
     new_conversation: bool = False
+    choice_context: str = Field(default="", max_length=2000)
 
 
 class AssistantAction(BaseModel):

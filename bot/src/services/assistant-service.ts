@@ -50,8 +50,7 @@ export class AssistantChatService {
   }
 
   async handleText(ctx: Context, text: string): Promise<void> {
-    await this.clearUnchosenMenu(ctx)
-    await this.answer(ctx, text, null)
+    await this.answer(ctx, text, null, '')
   }
 
   async choose(ctx: Context, index: number): Promise<void> {
@@ -77,24 +76,25 @@ export class AssistantChatService {
       CHOSEN.delete(messageId)
       return
     }
-    await this.answer(ctx, phrases[index], null)
+    await this.answer(ctx, phrases[index], null, text)
   }
 
   async handleLocation(ctx: Context, latitude: number, longitude: number): Promise<void> {
-    await this.answer(ctx, '', { latitude, longitude })
+    await this.answer(ctx, '', { latitude, longitude }, '')
   }
 
   async close(ctx: Context): Promise<void> {
     if (ctx.chatId !== undefined && ctx.chatId !== null) {
-      const previous = LAST_MENU.get(ctx.chatId)
       LAST_MENU.delete(ctx.chatId)
       ACTIVE_CHATS.delete(ctx.chatId)
-      if (previous) {
-        try {
-          await ctx.api.editMessage(previous.id, { text: previous.text, format: 'html', attachments: [] })
-        } catch {
-          // The menu is already gone if MAX rejects the edit.
-        }
+    }
+    const messageId = ctx.messageId
+    const text = ctx.message?.body.text
+    if (messageId && text) {
+      try {
+        await ctx.api.editMessage(messageId, { text, format: 'html', attachments: [] })
+      } catch {
+        // The buttons stay only if MAX rejects the edit.
       }
     }
     await this.menu.handleStart(ctx, true)
@@ -107,7 +107,12 @@ export class AssistantChatService {
     }
   }
 
-  private async answer(ctx: Context, text: string, location: { latitude: number; longitude: number } | null): Promise<void> {
+  private async answer(
+    ctx: Context,
+    text: string,
+    location: { latitude: number; longitude: number } | null,
+    choiceContext: string,
+  ): Promise<void> {
     const profile = await this.loadProfile(ctx)
     ACTIVE_CHATS.add(profile.chatId)
     const greetingId = GREETING_MESSAGES.get(profile.chatId)
@@ -117,25 +122,47 @@ export class AssistantChatService {
     }
     const i18n = await this.i18n(profile)
     const botName = await this.botName(ctx)
-    await ctx.sendAction('typing_on')
-    const turn = await this.backend.assistantTurn(profile, text, location)
-    await this.detachMenu(ctx, profile.chatId)
-    const phrases = turn.status === 'location_required' ? [] : turn.suggestions.slice(0, 4)
-    const actions = turn.actions ?? []
-    const rendered = this.linkedText(turn.text, botName)
-    const locationRequest = turn.status === 'location_required'
-    const sent = await ctx.reply(rendered, this.keyboard(i18n, phrases, actions, locationRequest, botName))
-    LAST_MENU.set(profile.chatId, { id: sent.body.mid, text: rendered, phrases, chosen: null, actions, location: locationRequest })
-    if (phrases.length) SUGGESTIONS.set(sent.body.mid, phrases)
+    const stopTyping = this.keepTyping(ctx)
+    const typingMessage = await ctx.reply(`<b>${i18n.translate('assistant.typing')}</b>`, { format: 'html' })
+    await this.backend.trackPendingMessage(profile.chatId, typingMessage.body.mid)
+    try {
+      const turn = await this.backend.assistantTurn(profile, text, location, false, choiceContext)
+      await this.keepMenuOnly(ctx, profile.chatId, i18n)
+      const phrases = turn.status === 'location_required' ? [] : turn.suggestions.slice(0, 4)
+      const actions = turn.actions ?? []
+      const rendered = this.linkedText(turn.text, botName)
+      const locationRequest = turn.status === 'location_required'
+      const sent = await ctx.reply(rendered, this.keyboard(i18n, phrases, actions, locationRequest, botName))
+      await this.detachMenu(ctx, profile.chatId)
+      LAST_MENU.set(profile.chatId, { id: sent.body.mid, text: rendered, phrases, chosen: null, actions, location: locationRequest })
+      if (phrases.length) SUGGESTIONS.set(sent.body.mid, phrases)
+    } finally {
+      stopTyping()
+      try {
+        await ctx.api.deleteMessage(typingMessage.body.mid)
+      } catch {
+        // The placeholder is already gone.
+      }
+      await this.backend.removePendingMessage(profile.chatId, typingMessage.body.mid)
+    }
   }
 
-  private async clearUnchosenMenu(ctx: Context): Promise<void> {
-    if (ctx.chatId === undefined || ctx.chatId === null) return
-    const previous = LAST_MENU.get(ctx.chatId)
+  private keepTyping(ctx: Context): () => void {
+    const send = () => { void ctx.sendAction('typing_on').catch(() => undefined) }
+    send()
+    const timer = setInterval(send, 4000)
+    return () => clearInterval(timer)
+  }
+
+  private async keepMenuOnly(ctx: Context, chatId: number, i18n: I18n): Promise<void> {
+    const previous = LAST_MENU.get(chatId)
     if (!previous || previous.chosen !== null) return
-    LAST_MENU.delete(ctx.chatId)
     try {
-      await ctx.api.editMessage(previous.id, { text: previous.text, format: 'html', attachments: [] })
+      await ctx.api.editMessage(previous.id, {
+        text: previous.text,
+        format: 'html',
+        attachments: [Keyboard.inlineKeyboard([[Keyboard.button.callback(`🏠 ${i18n.translate('assistant.menu')}`, AssistantAction.Menu)]])],
+      })
     } catch {
       return
     }
@@ -145,9 +172,7 @@ export class AssistantChatService {
     const previous = LAST_MENU.get(chatId)
     if (!previous) return
     LAST_MENU.delete(chatId)
-    const rows = previous.chosen === null
-      ? this.suggestionRows(previous.phrases)
-      : this.lockedRows(previous.phrases, previous.chosen)
+    const rows = previous.chosen === null ? [] : this.lockedRows(previous.phrases, previous.chosen)
     try {
       await ctx.api.editMessage(previous.id, {
         text: previous.text,
@@ -161,11 +186,12 @@ export class AssistantChatService {
 
   private keyboard(i18n: I18n, suggestions: string[], actions: { label: string; path: string }[], location: boolean, botName: string) {
     const phrases = suggestions.slice(0, 4).map((phrase) => phrase.split(/\s+/).slice(0, 2).join(' '))
-    const rows: any[][] = [...this.suggestionRows(phrases)]
+    const rows: any[][] = []
     for (const action of actions.slice(0, 3)) {
       rows.push([Keyboard.button.openApp(`${this.actionEmoji(action.path)} ${action.label}`, botName, undefined, this.startParam(action.path))])
     }
     if (location) rows.push([Keyboard.button.requestGeoLocation(`📍 ${i18n.translate('assistant.share_location')}`, { quick: false })])
+    rows.push(...this.suggestionRows(phrases))
     rows.push([Keyboard.button.callback(`🏠 ${i18n.translate('assistant.menu')}`, AssistantAction.Menu)])
     return { format: 'html' as const, attachments: [Keyboard.inlineKeyboard(rows)] }
   }

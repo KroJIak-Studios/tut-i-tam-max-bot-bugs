@@ -61,7 +61,7 @@
 
 .selectorsRow {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 10px;
 }
@@ -70,8 +70,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1 1 180px;
-  min-width: 140px;
+  flex: 0 1 180px;
+  width: 180px;
+  min-width: 150px;
 }
 
 .filterLabel {
@@ -97,43 +98,31 @@
   border-color: var(--color-primary);
 }
 
-.checkboxContainer {
+.toggleGroup {
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
   gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  font-size: 14px;
-  color: var(--color-text-main);
-  min-height: 44px;
-  padding: 0 4px;
-}
-
-.checkboxInput {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
-
-.resetBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   height: 40px;
-  min-height: 44px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-danger);
-  background: transparent;
-  border-radius: var(--radius-md);
-  transition: background-color 0.15s ease;
+  margin-bottom: 2px;
 }
 
-.resetBtn:hover {
-  background: var(--color-danger-soft);
+.toggle {
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggleActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft, #dbeafe);
+  color: var(--color-primary);
 }
 
 @media (max-width: 640px) {
@@ -152,11 +141,11 @@
     flex: none;
   }
 
-  .checkboxContainer {
+  .toggleGroup {
     width: 100%;
   }
 
-  .resetBtn {
-    width: 100%;
+  .toggle {
+    flex: 1;
   }
 }

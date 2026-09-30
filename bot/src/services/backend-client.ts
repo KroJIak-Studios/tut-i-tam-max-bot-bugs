@@ -196,6 +196,7 @@ export class BackendClient {
     text: string,
     location: { latitude: number; longitude: number } | null,
     newConversation = false,
+    choiceContext = '',
   ): Promise<AssistantTurn> {
     return this.request<AssistantTurn>('/api/assistant/turns', {
       ...this.identity(input),
@@ -203,6 +204,7 @@ export class BackendClient {
       text,
       location,
       new_conversation: newConversation,
+      choice_context: choiceContext,
     })
   }
 

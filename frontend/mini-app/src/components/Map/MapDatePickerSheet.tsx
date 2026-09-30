@@ -15,9 +15,10 @@ export type DatePreset = 'today' | 'tomorrow' | 'weekend' | 'custom'
 
 interface MapDatePickerSheetProps {
   selectedDate: string
+  dateEnd?: string
   activePreset?: 'today' | 'tomorrow' | 'weekend' | 'custom' | 'all'
   onClose: () => void
-  onSelectDate: (isoDate: string, preset?: DatePreset) => void
+  onSelectDate: (isoDate: string, preset?: DatePreset, endDate?: string) => void
 }
 
 const WEEKDAY_NAMES_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -25,6 +26,7 @@ const WEEKDAY_NAMES_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   selectedDate,
+  dateEnd,
   activePreset,
   onClose,
   onSelectDate,
@@ -41,6 +43,8 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   }, [selectedDate])
 
   const [viewMonthDate, setViewMonthDate] = useState<Date>(initialMonth)
+  const [rangeStart, setRangeStart] = useState<string | null>(selectedDate !== 'all' ? selectedDate : null)
+  const [rangeEnd, setRangeEnd] = useState<string | null>(dateEnd && dateEnd !== selectedDate ? dateEnd : null)
 
   // Escape key handler
   useEffect(() => {
@@ -111,8 +115,29 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
   }, [viewMonthDate, selectedDate])
 
   const handlePickDate = (iso: string, preset: DatePreset = 'custom') => {
+    setRangeStart(iso)
+    setRangeEnd(null)
     onSelectDate(iso, preset)
-    onClose()
+  }
+
+  const handleMonthDay = (iso: string, currentMonth: boolean) => {
+    if (!currentMonth) setViewMonthDate(parseIsoDate(iso))
+    if (!rangeStart || rangeEnd) {
+      setRangeStart(iso)
+      setRangeEnd(null)
+      return
+    }
+    const from = rangeStart < iso ? rangeStart : iso
+    const to = rangeStart < iso ? iso : rangeStart
+    const span = Math.round(Math.abs(parseIsoDate(from).getTime() - parseIsoDate(to).getTime()) / 86_400_000)
+    if (span > 20) {
+      setRangeStart(iso)
+      setRangeEnd(null)
+      return
+    }
+    setRangeStart(from)
+    setRangeEnd(to)
+    onSelectDate(from, 'custom', to)
   }
 
   return (
@@ -173,14 +198,17 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
           tabIndex={0}
         >
           {next7Days.map((day) => {
-            const isSelected = day.iso === selectedDate
+            const rangeFrom = rangeStart && rangeEnd ? (rangeStart < rangeEnd ? rangeStart : rangeEnd) : rangeStart
+            const rangeTo = rangeStart && rangeEnd ? (rangeStart < rangeEnd ? rangeEnd : rangeStart) : rangeStart
+            const isEndpoint = day.iso === rangeFrom || day.iso === rangeTo
+            const inRange = Boolean(rangeFrom && rangeTo && day.iso >= rangeFrom && day.iso <= rangeTo)
             return (
               <button
                 key={day.iso}
                 type="button"
                 role="option"
-                aria-selected={isSelected}
-                className={`${styles.stripItem} ${isSelected ? styles.stripItemActive : ''}`}
+                aria-selected={isEndpoint}
+                className={`${styles.stripItem} ${inRange ? styles.stripItemActive : ''}`}
                 onClick={() => handlePickDate(day.iso, 'custom')}
               >
                 <span className={styles.stripWeekday}>{day.dayOfWeek}</span>
@@ -221,11 +249,15 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
 
           <div className={styles.calendarGrid} role="grid" aria-label={t('dates.calendarAriaLabel')}>
             {calendarDays.map((day, idx) => {
+              const inRange = Boolean(rangeStart && rangeEnd && day.iso > rangeStart && day.iso < rangeEnd)
+              const isEndpoint = day.iso === rangeStart || day.iso === rangeEnd
               const classNames = [
                 styles.dayCell,
+                !day.isCurrentMonth ? styles.dayCellOutside : '',
                 day.isDisabled ? styles.dayCellDisabled : '',
                 day.isToday ? styles.dayCellToday : '',
-                day.isSelected ? styles.dayCellSelected : '',
+                inRange ? styles.dayCellInRange : '',
+                isEndpoint ? styles.dayCellSelected : '',
               ]
                 .filter(Boolean)
                 .join(' ')
@@ -236,9 +268,9 @@ export const MapDatePickerSheet: React.FC<MapDatePickerSheetProps> = ({
                   type="button"
                   disabled={day.isDisabled}
                   className={classNames}
-                  onClick={() => !day.isDisabled && handlePickDate(day.iso, 'custom')}
+                  onClick={() => !day.isDisabled && handleMonthDay(day.iso, day.isCurrentMonth)}
                   aria-label={`${day.dayNum}, ${day.iso}`}
-                  aria-selected={day.isSelected}
+                  aria-selected={isEndpoint}
                 >
                   {day.dayNum}
                 </button>

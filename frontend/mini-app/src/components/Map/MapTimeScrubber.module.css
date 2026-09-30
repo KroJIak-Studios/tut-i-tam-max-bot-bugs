@@ -20,7 +20,6 @@
   box-sizing: border-box;
 }
 
-/* Header row inside card */
 .headerRow {
   display: flex;
   align-items: center;
@@ -32,8 +31,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--color-text-main, #374151);
 }
 
@@ -47,44 +46,6 @@
   color: #111827;
 }
 
-.nowBadge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #2563EB;
-  background: rgba(37, 99, 235, 0.1);
-  padding: 1px 6px;
-  border-radius: 6px;
-}
-
-.actionsArea {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.actionBtn {
-  font-size: 12px;
-  font-weight: 600;
-  color: #2563EB;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  transition: background-color 0.15s ease;
-  white-space: nowrap;
-}
-
-.actionBtn:hover {
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.actionBtn:focus-visible {
-  outline: 2px solid #2563EB;
-  outline-offset: 1px;
-}
-
-/* Track & slider wrapper */
 .trackContainer {
   position: relative;
   width: 100%;
@@ -93,7 +54,6 @@
   padding-top: 14px;
 }
 
-/* Floating bubble attached above thumb */
 .floatingBubble {
   position: absolute;
   top: -8px;
@@ -107,7 +67,6 @@
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: left 0.05s ease-out;
   z-index: 2;
 }
 
@@ -122,7 +81,32 @@
   border-color: #1F2937 transparent transparent;
 }
 
-/* Native input styled as track */
+.nowMark {
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+  color: #B45309;
+  background: #FEF3C7;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.nowMark::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 2px;
+  height: 16px;
+  transform: translateX(-50%);
+  background: #F59E0B;
+}
+
 .rangeInput {
   -webkit-appearance: none;
   appearance: none;
@@ -151,7 +135,6 @@
   border: 2.5px solid #2563EB;
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
   cursor: grab;
-  transition: transform 0.12s ease;
 }
 
 .rangeInput::-webkit-slider-thumb:active {
@@ -169,14 +152,13 @@
   cursor: grab;
 }
 
-/* Tick marks underneath */
 .ticksRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: 0 2px;
-  margin-top: -2px;
+  margin-top: 12px;
 }
 
 .tickBtn {
@@ -187,41 +169,11 @@
   font-weight: 500;
   color: #6B7280;
   cursor: pointer;
-  transition: color 0.12s ease;
   line-height: 1;
 }
 
-.tickBtn:hover {
-  color: #2563EB;
-}
-
+.tickBtn:hover,
 .tickBtnActive {
   color: #2563EB;
   font-weight: 700;
-}
-
-/* 320px responsive adjustments */
-@media (max-width: 360px) {
-  .scrubberCard {
-    left: 8px;
-    right: 8px;
-    padding: 7px 10px 8px;
-    gap: 6px;
-    bottom: calc(max(env(safe-area-inset-bottom, 0px), 6px) + 68px);
-  }
-
-  .titleArea {
-    font-size: 12px;
-    gap: 4px;
-  }
-
-  .tickBtn {
-    font-size: 10px;
-    padding: 1px;
-  }
-
-  .rangeInput::-webkit-slider-thumb {
-    width: 20px;
-    height: 20px;
-  }
 }

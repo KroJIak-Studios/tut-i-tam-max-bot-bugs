@@ -289,14 +289,6 @@ export function LocalizedEntityList<T extends LocalizedEntity>({
               )
             })}
           </div>
-
-          <div className={styles.footer}>
-            <span className={styles.footerCount}>
-              {filtered.length === items.length
-                ? `${items.length} записей`
-                : `${filtered.length} из ${items.length}`}
-            </span>
-          </div>
         </>
       )}
     </div>

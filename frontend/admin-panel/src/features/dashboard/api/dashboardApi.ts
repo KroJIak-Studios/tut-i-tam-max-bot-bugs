@@ -10,6 +10,7 @@ interface BackendAdminStats {
   }
   users: {
     total: number
+    registrations?: Array<{ date: string; count: number }>
   }
 }
 
@@ -69,6 +70,9 @@ export const dashboardApi = {
       },
       users: {
         total: typeof raw?.users?.total === 'number' ? raw.users.total : 0,
+        registrations: Array.isArray(raw?.users?.registrations)
+          ? raw.users.registrations.filter((item) => item && typeof item.date === 'string' && typeof item.count === 'number')
+          : [],
       },
     }
   },
