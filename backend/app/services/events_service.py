@@ -52,7 +52,7 @@ class EventsService:
         self.session = session
 
     async def identity(self, init_user: MaxInitUser) -> MaxUser:
-        user = await self.session.scalar(select(MaxUser).where(MaxUser.max_user_id == init_user.id))
+        user = await self._find_user(init_user.id)
         if user is None:
             user = MaxUser(
                 max_user_id=init_user.id,
@@ -64,21 +64,29 @@ class EventsService:
                 smart_interest_rotation=True,
             )
             self.session.add(user)
-            await self.session.flush()
-            city_id = await self._nearest_city_id(init_user.ip)
-            user.city_id = city_id
-        else:
-            if user.city_id is None:
+            try:
+                async with self.session.begin_nested():
+                    await self.session.flush()
+            except IntegrityError:
+                user = await self._find_user(init_user.id)
+                if user is None:
+                    raise
+            else:
                 user.city_id = await self._nearest_city_id(init_user.ip)
-            user.first_name = init_user.first_name
-            user.last_name = init_user.last_name
-            user.username = init_user.username
-            if init_user.photo_url is not None:
-                user.avatar_url = init_user.photo_url
-                user.full_avatar_url = init_user.photo_url
+        if user.city_id is None:
+            user.city_id = await self._nearest_city_id(init_user.ip)
+        user.first_name = init_user.first_name
+        user.last_name = init_user.last_name
+        user.username = init_user.username
+        if init_user.photo_url is not None:
+            user.avatar_url = init_user.photo_url
+            user.full_avatar_url = init_user.photo_url
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+    async def _find_user(self, max_user_id: int) -> MaxUser | None:
+        return await self.session.scalar(select(MaxUser).where(MaxUser.max_user_id == max_user_id))
 
     async def _nearest_city_id(self, ip_address: str | None) -> int | None:
         cities = (await self.session.scalars(

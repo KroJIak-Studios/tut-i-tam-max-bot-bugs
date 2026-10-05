@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat import BotChat
@@ -13,8 +14,14 @@ class ChatRepository:
 
         if chat is None:
             chat = BotChat(max_chat_id=max_chat_id, user_id=user_id)
-            self._session.add(chat)
-            await self._session.flush()
+            try:
+                async with self._session.begin_nested():
+                    self._session.add(chat)
+                    await self._session.flush()
+            except IntegrityError:
+                chat = await self._session.scalar(select(BotChat).where(BotChat.max_chat_id == max_chat_id))
+                if chat is None:
+                    raise
 
         return chat
 
